@@ -9095,7 +9095,7 @@
         },
         "x-permission": "role.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -9171,7 +9171,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/roles/{id}": {
@@ -9241,7 +9241,7 @@
         },
         "x-permission": "role.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -9319,7 +9319,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/roles/{id}/permissions": {
@@ -9392,7 +9392,7 @@
         },
         "x-permission": "role.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "put": {
         "tags": [
@@ -9473,7 +9473,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/permissions": {
@@ -9550,7 +9550,7 @@
         },
         "x-permission": "role.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/audit-logs": {
