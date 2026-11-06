@@ -16704,6 +16704,37 @@
           "createdBy",
           "allocations"
         ]
+      },
+      "MaintenanceExpenseCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money.",
+            "not": {
+              "enum": [
+                "0.00"
+              ]
+            }
+          },
+          "spentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "amount",
+          "spentAt",
+          "description"
+        ]
       }
     },
     "parameters": {
