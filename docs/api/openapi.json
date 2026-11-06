@@ -4954,7 +4954,7 @@
         },
         "x-permission": "campaign.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -5032,7 +5032,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/contribution-campaigns/{id}/contributions": {
@@ -5119,7 +5119,7 @@
         },
         "x-permission": "contribution.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -5206,7 +5206,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/contributions/{id}": {
@@ -5276,7 +5276,7 @@
         },
         "x-permission": "contribution.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -5354,7 +5354,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/payments": {
