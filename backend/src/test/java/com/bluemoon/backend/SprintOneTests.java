@@ -311,4 +311,24 @@ class SprintOneTests {
         assertThat(call("POST","/payments/"+id(payments.getFirst())+"/void",map("reason","Sửa ghi nhận"),admin,unique()).status()).isEqualTo(422);
         assertThat(call("GET","/maintenance-funds/"+id(fund)+"/expenses",null,admin,null).body().get("totalElements")).isEqualTo(1);
     }
+    @Test void maintenanceAreaWeightsAndInvalidOccupancyRollbackWholeRound()throws Exception {
+        Home a=home(),b=home();assertThat(call("PATCH","/apartments/"+a.apartment(),map("areaM2","40.00"),admin,null).status()).isEqualTo(200);
+        var fund=create("/maintenance-funds",map("code",unique(),"name","Quỹ sửa chữa","openingBalance","1000.00","openingDate",start()));
+        var fee=create("/fee-types",map("code",unique(),"name","Sửa máy bơm","basis","PER_APARTMENT","mandatory",true,"active",true));
+        var period=create("/billing-periods",map("code",unique(),"startDate",start(),"endDate",today().toString(),"snapshotDate",today().toString(),"dueDate",today().plusDays(7).toString()));
+        var body=map("fundId",id(fund),"periodId",id(period),"feeTypeId",id(fee),"description","Sửa máy bơm","allocationBasis","PER_M2","totalCost","120.00","occupancyIds",List.of(a.occupancy(),b.occupancy()));
+        var round=call("POST","/maintenance-rounds",body,admin,unique());assertThat(round.status()).as(round.body().toString()).isEqualTo(201);
+        for(var allocation:objects(round.body().get("allocations")))assertThat(allocation.get("amount")).isEqualTo(a.occupancy().equals(allocation.get("occupancyId"))?"40.00":"80.00");
+        body.put("occupancyIds",List.of(a.occupancy(),UUID.randomUUID().toString()));
+        assertThat(call("POST","/maintenance-rounds",body,admin,unique()).status()).isEqualTo(404);
+        assertThat(call("GET","/maintenance-rounds?fundId="+id(fund),null,admin,null).body().get("totalElements")).isEqualTo(1);
+        String residentToken=token(user("RESIDENT",null));assertThat(call("GET","/maintenance-funds",null,residentToken,null).status()).isEqualTo(403);
+    }
+    @Test void loginThrottlePersistsFailedAttemptsAndCorsAllowsCommandHeaders()throws Exception {
+        String name="unknown-"+unique();
+        for(int i=0;i<5;i++)assertThat(call("POST","/auth/login",map("username",name,"password","wrong"),null,null).status()).isEqualTo(401);
+        assertThat(call("POST","/auth/login",map("username",name,"password","wrong"),null,null).status()).isEqualTo(429);
+        var req=HttpRequest.newBuilder(URI.create("http://localhost:"+port+"/api/payments")).header("Origin","http://localhost:5173").header("Access-Control-Request-Method","POST").header("Access-Control-Request-Headers","authorization,content-type,idempotency-key,if-match").method("OPTIONS",HttpRequest.BodyPublishers.noBody()).build();
+        var res=client.send(req,HttpResponse.BodyHandlers.ofString());assertThat(res.statusCode()).isEqualTo(200);assertThat(res.headers().firstValue("Access-Control-Allow-Headers").orElse("")).containsIgnoringCase("idempotency-key");
+    }
 }
