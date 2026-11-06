@@ -11196,7 +11196,7 @@
           "details": {
             "type": "object",
             "additionalProperties": true,
-            "description": "ERD: details : jsonb"
+            "description": "ERD: details : text (JSON)"
           }
         },
         "required": [
