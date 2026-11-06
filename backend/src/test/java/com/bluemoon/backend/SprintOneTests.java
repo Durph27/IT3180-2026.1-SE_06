@@ -232,4 +232,35 @@ class SprintOneTests {
             var r1=one.get(20,TimeUnit.SECONDS);var r2=two.get(20,TimeUnit.SECONDS);assertThat(r1.status()).isEqualTo(201);assertThat(r2.status()).isEqualTo(201);assertThat(id(r1.body())).isEqualTo(id(r2.body()));
         }
     }
+    @Test void voluntaryContributionCanExceedPledgeAndDoesNotCreateDebt()throws Exception {
+        Home home=home();var campaign=create("/contribution-campaigns",map("name","Quỹ vì người nghèo","startDate",start(),"endDate",today().plusDays(5).toString(),"purpose","Đóng góp tự nguyện"));
+        var c=create("/contribution-campaigns/"+id(campaign)+"/contributions",map("householdId",home.household(),"pledgedAmount","100.00"));
+        var body=map("householdId",home.household(),"channel","CASH","amount","200.00","paidAt",Instant.now().minusSeconds(1).toString(),"allocations",List.of(map("contributionId",id(c),"amount","200.00")));
+        assertThat(call("POST","/payments",body,admin,unique()).status()).isEqualTo(201);
+        assertThat(call("GET","/contributions/"+id(c),null,admin,null).body().get("paidAmount")).isEqualTo("200.00");
+        assertThat(call("GET","/invoices?householdId="+home.household(),null,admin,null).body().get("totalElements")).isEqualTo(0);
+    }
+    @Test void receiptSnapshotIsImmutableAndPdfShowsVietnameseAndVoidMark()throws Exception {
+        var bill=draft();var r=resident();member(bill.home(),r,true);issue(bill);
+        var payment=call("POST","/payments",payment(bill,"800.00"),admin,unique()).body();
+        var before=call("GET","/payments/"+id(payment)+"/receipt",null,admin,null).body();
+        assertThat(call("PATCH","/residents/"+id(r),map("fullName","Tên đã thay đổi"),admin,null).status()).isEqualTo(200);
+        assertThat(call("GET","/receipts/"+id(before),null,admin,null).body()).isEqualTo(before);
+        assertThat(call("POST","/payments/"+id(payment)+"/void",map("reason","Sửa chứng từ"),admin,unique()).status()).isEqualTo(200);
+        var request=HttpRequest.newBuilder(URI.create("http://localhost:"+port+"/api/receipts/"+id(before)+"/pdf")).header("Authorization","Bearer "+admin).GET().build();
+        var response=client.send(request,HttpResponse.BodyHandlers.ofByteArray());assertThat(response.statusCode()).isEqualTo(200);
+        try(var document=Loader.loadPDF(response.body())) {String text=new PDFTextStripper().getText(document);assertThat(text).contains("HỦY","Bảo trì thang máy",text(r,"fullName")).doesNotContain("Tên đã thay đổi");}
+        contract.validate(before,object(contract.section("schemas").get("Receipt")),"receipt");
+    }
+    @Test void pendingIntentReservesLineAndFailedCommandCanBeRetriedAfterCorrection()throws Exception {
+        var bill=draft();issue(bill);
+        String actor=text(object(call("GET","/auth/me",null,admin,null).body().get("user")),"id");
+        var intent=db.insert("PaymentIntent",map("householdId",bill.home().household(),"createdBy",actor,"providerCode","TEST","merchantOrderId",unique(),"idempotencyKey",unique(),"expectedAmount","800.00","currency","VND","status","PENDING","expiresAt",Instant.now().plusSeconds(300).toString(),"version",0L));
+        db.insert("PaymentIntentItem",map("intentId",id(intent),"invoiceLineId",bill.line(),"contributionId",null,"amount","800.00"));
+        String key=unique();var body=payment(bill,"800.00");
+        var blocked=call("POST","/payments",body,admin,key);assertThat(blocked.status()).isEqualTo(409);assertThat(blocked.body().get("code")).isEqualTo("TARGET_RESERVED");
+        db.update("PaymentIntent",id(intent),map("status","EXPIRED"));
+        body.put("householdId",home().household());assertThat(call("POST","/payments",body,admin,key).status()).isEqualTo(422);
+        body.put("householdId",bill.home().household());assertThat(call("POST","/payments",body,admin,key).status()).isEqualTo(201);
+    }
 }
