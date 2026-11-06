@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <mxfile host="app.diagrams.net">
   <diagram id="physical-0" name="01 - Cư trú">
     <mxGraphModel grid="1" page="0">
@@ -32,31 +32,31 @@
         <mxCell id="vehicle" value="&lt;b&gt;vehicle&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;household_id UUID NOT NULL&lt;br/&gt;plate_no VARCHAR(20) NOT NULL&lt;br/&gt;vehicle_type VARCHAR(20) NOT NULL CHECK (vehicle_type IN (&amp;#x27;MOTORBIKE&amp;#x27;,&amp;#x27;CAR&amp;#x27;,&amp;#x27;BICYCLE&amp;#x27;,&amp;#x27;OTHER&amp;#x27;))&lt;br/&gt;registered_from DATE NOT NULL&lt;br/&gt;registered_to DATE&lt;br/&gt;FK household_id → household.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
           <mxGeometry x="530" y="1320" width="460" height="540" as="geometry" />
         </mxCell>
-        <mxCell id="fk15" source="building" target="apartment" value="building_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk15" source="building" target="apartment" value="building_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk16" source="household" target="household_apartment" value="household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk16" source="household" target="household_apartment" value="household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk17" source="apartment" target="household_apartment" value="apartment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk17" source="apartment" target="household_apartment" value="apartment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk18" source="household" target="household_member" value="household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk18" source="household" target="household_member" value="household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk19" source="resident" target="household_member" value="resident_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk19" source="resident" target="household_member" value="resident_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk21" source="household" target="residence_change" value="household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk21" source="household" target="residence_change" value="household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk22" source="resident" target="residence_change" value="resident_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk22" source="resident" target="residence_change" value="resident_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk23" source="household" target="residence_change" value="target_household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk23" source="household" target="residence_change" value="target_household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk26" source="household" target="vehicle" value="household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk26" source="household" target="vehicle" value="household_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
@@ -91,22 +91,22 @@
         <mxCell id="contribution" value="&lt;b&gt;contribution&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;campaign_id UUID NOT NULL&lt;br/&gt;household_id UUID NOT NULL&lt;br/&gt;pledged_amount NUMERIC(18,2) CHECK (pledged_amount &amp;gt;= 0)&lt;br/&gt;created_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;UNIQUE(campaign_id, household_id)&lt;br/&gt;FK campaign_id → contribution_campaign.id&lt;br/&gt;FK household_id → household.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
           <mxGeometry x="20" y="1320" width="460" height="540" as="geometry" />
         </mxCell>
-        <mxCell id="fk27" source="fee_type" target="fee_rate" value="fee_type_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk27" source="fee_type" target="fee_rate" value="fee_type_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk29" source="billing_period" target="invoice" value="period_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk29" source="billing_period" target="invoice" value="period_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk30" source="invoice" target="invoice_line" value="invoice_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk30" source="invoice" target="invoice_line" value="invoice_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk31" source="fee_type" target="invoice_line" value="fee_type_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk31" source="fee_type" target="invoice_line" value="fee_type_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk32" source="fee_rate" target="invoice_line" value="rate_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk32" source="fee_rate" target="invoice_line" value="rate_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk35" source="contribution_campaign" target="contribution" value="campaign_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk35" source="contribution_campaign" target="contribution" value="campaign_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
@@ -150,34 +150,34 @@
         <mxCell id="reconciliation_item" value="&lt;b&gt;reconciliation_item&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;reconciliation_id UUID NOT NULL&lt;br/&gt;utility_bill_id UUID NOT NULL&lt;br/&gt;billed_amount NUMERIC(18,2) NOT NULL CHECK (billed_amount &amp;gt;= 0)&lt;br/&gt;collected_amount NUMERIC(18,2) NOT NULL CHECK (collected_amount &amp;gt;= 0)&lt;br/&gt;remitted_amount NUMERIC(18,2) NOT NULL CHECK (remitted_amount &amp;gt;= 0)&lt;br/&gt;note TEXT&lt;br/&gt;FK reconciliation_id → reconciliation.id&lt;br/&gt;FK utility_bill_id → utility_bill.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
           <mxGeometry x="20" y="1910" width="460" height="540" as="geometry" />
         </mxCell>
-        <mxCell id="fk38" source="payment" target="payment_intent" value="payment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk38" source="payment" target="payment_intent" value="payment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk40" source="payment_intent" target="payment" value="intent_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk40" source="payment_intent" target="payment" value="intent_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToOne;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk42" source="payment" target="payment_allocation" value="payment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk42" source="payment" target="payment_allocation" value="payment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk45" source="payment" target="receipt" value="payment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk45" source="payment" target="receipt" value="payment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToOne;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk47" source="provider" target="service_subscription" value="provider_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk47" source="provider" target="service_subscription" value="provider_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk48" source="service_subscription" target="utility_bill" value="subscription_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk48" source="service_subscription" target="utility_bill" value="subscription_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk50" source="provider" target="reconciliation" value="provider_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk50" source="provider" target="reconciliation" value="provider_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk52" source="reconciliation" target="reconciliation_item" value="reconciliation_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk52" source="reconciliation" target="reconciliation_item" value="reconciliation_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk53" source="utility_bill" target="reconciliation_item" value="utility_bill_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk53" source="utility_bill" target="reconciliation_item" value="utility_bill_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk54" source="payment_intent" target="payment_intent_item" value="intent_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk54" source="payment_intent" target="payment_intent_item" value="intent_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
@@ -221,22 +221,22 @@
         <mxCell id="business_lock" value="&lt;b&gt;business_lock&lt;/b&gt;&lt;hr/&gt;id INTEGER PRIMARY KEY" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
           <mxGeometry x="20" y="1910" width="460" height="540" as="geometry" />
         </mxCell>
-        <mxCell id="fk0" source="app_user" target="user_role" value="user_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk0" source="app_user" target="user_role" value="user_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk1" source="app_role" target="user_role" value="role_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk1" source="app_role" target="user_role" value="role_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk2" source="app_role" target="role_permission" value="role_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk2" source="app_role" target="role_permission" value="role_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk3" source="app_permission" target="role_permission" value="permission_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk3" source="app_permission" target="role_permission" value="permission_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk4" source="app_user" target="access_session" value="user_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk4" source="app_user" target="access_session" value="user_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk57" source="app_user" target="audit_log" value="actor_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk57" source="app_user" target="audit_log" value="actor_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERzeroToOne;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
@@ -262,13 +262,13 @@
         <mxCell id="maintenance_expense" value="&lt;b&gt;maintenance_expense&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;fund_id UUID NOT NULL REFERENCES maintenance_fund(id)&lt;br/&gt;amount NUMERIC(18,2) NOT NULL CHECK(amount &amp;gt; 0)&lt;br/&gt;spent_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;description TEXT NOT NULL&lt;br/&gt;recorded_by UUID NOT NULL REFERENCES app_user(id)&lt;br/&gt;FK fund_id → maintenance_fund.id&lt;br/&gt;FK recorded_by → app_user.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
           <mxGeometry x="20" y="730" width="460" height="540" as="geometry" />
         </mxCell>
-        <mxCell id="fk6" source="maintenance_fund" target="maintenance_round" value="fund_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk6" source="maintenance_fund" target="maintenance_round" value="fund_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk10" source="maintenance_round" target="maintenance_allocation" value="round_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk10" source="maintenance_round" target="maintenance_allocation" value="round_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fk13" source="maintenance_fund" target="maintenance_expense" value="fund_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+        <mxCell id="fk13" source="maintenance_fund" target="maintenance_expense" value="fund_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERzeroToMany;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
