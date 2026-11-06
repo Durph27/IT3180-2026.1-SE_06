@@ -384,7 +384,7 @@
         },
         "x-permission": "building.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -460,7 +460,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/buildings/{id}": {
@@ -530,7 +530,7 @@
         },
         "x-permission": "building.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -608,7 +608,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/apartments": {
@@ -705,7 +705,7 @@
         },
         "x-permission": "apartment.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -781,7 +781,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/apartments/{id}": {
@@ -851,7 +851,7 @@
         },
         "x-permission": "apartment.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -929,7 +929,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/households": {
@@ -1006,7 +1006,7 @@
         },
         "x-permission": "household.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -1082,7 +1082,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/households/{id}": {
@@ -1152,7 +1152,7 @@
         },
         "x-permission": "household.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/households/{id}/close": {
@@ -1232,7 +1232,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/occupancies": {
