@@ -24,6 +24,23 @@
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>3.0.7</version>
+		</dependency>
 
 		<!-- Spring Web MVC: REST API -->
 		<dependency>
@@ -73,6 +90,10 @@
 	</dependencies>
 
 	<build>
+        <resources>
+            <resource><directory>src/main/resources</directory></resource>
+            <resource><directory>../docs/api</directory><targetPath>contract</targetPath><includes><include>openapi.json</include></includes></resource>
+        </resources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
