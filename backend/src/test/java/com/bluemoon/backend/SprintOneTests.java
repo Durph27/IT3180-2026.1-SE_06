@@ -263,4 +263,52 @@ class SprintOneTests {
         body.put("householdId",home().household());assertThat(call("POST","/payments",body,admin,key).status()).isEqualTo(422);
         body.put("householdId",bill.home().household());assertThat(call("POST","/payments",body,admin,key).status()).isEqualTo(201);
     }
+    @Test void householdCloseRequiresEndedResidenceAndMembership()throws Exception {
+        Home home=home();var resident=resident();var member=member(home,resident,true);
+        assertThat(call("POST","/households/"+home.household()+"/close",map("closedAt",Instant.now().minusSeconds(1).toString()),admin,null).status()).isEqualTo(422);
+        assertThat(call("POST","/households/"+home.household()+"/members/"+id(member)+"/end",map("validTo",today().toString()),admin,null).status()).isEqualTo(200);
+        assertThat(call("POST","/occupancies/"+home.occupancy()+"/end",map("validTo",today().toString()),admin,null).status()).isEqualTo(200);
+        assertThat(call("POST","/households/"+home.household()+"/close",map("closedAt",Instant.now().minusSeconds(1).toString()),admin,null).status()).isEqualTo(200);
+        assertThat(call("POST","/households/"+home.household()+"/members",map("residentId",id(resident),"relationship","HEAD","isHead",true,"validFrom",today().toString()),admin,null).status()).isEqualTo(409);
+        assertThat(call("GET","/apartments/"+home.apartment(),null,admin,null).body().get("status")).isEqualTo("VACANT");
+    }
+    @Test void decimalSortingAndResidenceDetailsFollowContract()throws Exception {
+        var home=home();var fee=fee(true);
+        create("/fee-types/"+id(fee)+"/rates",map("unitPrice","200.00","effectiveFrom",start(),"effectiveTo",today().toString()));
+        create("/fee-types/"+id(fee)+"/rates",map("unitPrice","1000.00","effectiveFrom",today().toString()));
+        var rows=objects(call("GET","/fee-types/"+id(fee)+"/rates?sort=unitPrice,asc",null,admin,null).body().get("content"));
+        assertThat(rows.stream().map(r->r.get("unitPrice"))).containsExactly("200.00","1000.00");
+        var resident=resident();member(home,resident,true);
+        var second=resident();
+        assertThat(call("POST","/households/"+home.household().toUpperCase(Locale.ROOT)+"/members",map("residentId",id(second).toUpperCase(Locale.ROOT),"relationship","OTHER","isHead",false,"validFrom",start()),admin,null).status()).isEqualTo(201);
+        var request=map("householdId",home.household(),"residentId",id(resident),"changeType","TEMPORARY_ABSENCE","effectiveFrom",today().toString(),"effectiveTo",today().plusDays(1).toString(),"details",map("unknown",true));
+        assertThat(call("POST","/residence-changes",request,admin,null).status()).isEqualTo(422);
+    }
+    @Test void maintenanceAllocationConservesDongAndFundTracksReceiptsAndExpenses()throws Exception {
+        var homes=List.of(home(),home(),home());
+        var fund=create("/maintenance-funds",map("code",unique(),"name","Quỹ bảo trì","openingBalance","0.00","openingDate",start()));
+        var fee=create("/fee-types",map("code",unique(),"name","Sửa thang máy","basis","PER_APARTMENT","mandatory",true,"active",true));
+        var period=create("/billing-periods",map("code",unique(),"startDate",start(),"endDate",today().toString(),"snapshotDate",today().toString(),"dueDate",today().plusDays(7).toString()));
+        var request=map("fundId",id(fund),"periodId",id(period),"feeTypeId",id(fee),"description","Sửa thang máy","allocationBasis","EQUAL","totalCost","100.00","occupancyIds",homes.stream().map(Home::occupancy).toList());
+        String key=unique();var reply=call("POST","/maintenance-rounds",request,admin,key);assertThat(reply.status()).as(reply.body().toString()).isEqualTo(201);
+        var allocations=objects(reply.body().get("allocations"));assertThat(allocations.stream().map(a->decimal(a.get("amount"))).reduce(java.math.BigDecimal.ZERO,java.math.BigDecimal::add)).isEqualByComparingTo("100.00");
+        assertThat(allocations.stream().map(a->a.get("amount"))).containsExactlyInAnyOrder("34.00","33.00","33.00");
+        assertThat(call("POST","/maintenance-rounds",request,admin,key).body()).isEqualTo(reply.body());
+        contract.validate(reply.body(),object(contract.section("schemas").get("MaintenanceRound")),"round");
+        assertThat(call("POST","/billing-periods/"+id(period)+"/issue",null,admin,unique()).status()).isEqualTo(200);
+        List<Map<String,Object>> payments=new ArrayList<>();
+        for(var allocation:allocations) {
+            var occupancy=db.get("HouseholdApartment",allocation.get("occupancyId"));
+            var body=map("householdId",occupancy.get("householdId"),"channel","CASH","amount",allocation.get("amount"),"paidAt",Instant.now().minusSeconds(1).toString(),"allocations",List.of(map("invoiceLineId",allocation.get("invoiceLineId"),"amount",allocation.get("amount"))));
+            var paid=call("POST","/payments",body,admin,unique());assertThat(paid.status()).isEqualTo(201);payments.add(paid.body());
+        }
+        var expense=map("amount","90.00","spentAt",Instant.now().minusSeconds(1).toString(),"description","Chi sửa chữa");String expenseKey=unique();
+        assertThat(call("POST","/maintenance-funds/"+id(fund)+"/expenses",expense,admin,expenseKey).status()).isEqualTo(201);
+        assertThat(call("POST","/maintenance-funds/"+id(fund)+"/expenses",expense,admin,expenseKey).status()).isEqualTo(201);
+        var balance=call("GET","/maintenance-funds/"+id(fund),null,admin,null).body();assertThat(balance.get("balance")).isEqualTo("10.00");assertThat(balance.get("collectedAmount")).isEqualTo("100.00");
+        contract.validate(balance,object(contract.section("schemas").get("MaintenanceFund")),"fund");
+        expense.put("amount","11.00");assertThat(call("POST","/maintenance-funds/"+id(fund)+"/expenses",expense,admin,unique()).status()).isEqualTo(422);
+        assertThat(call("POST","/payments/"+id(payments.getFirst())+"/void",map("reason","Sửa ghi nhận"),admin,unique()).status()).isEqualTo(422);
+        assertThat(call("GET","/maintenance-funds/"+id(fund)+"/expenses",null,admin,null).body().get("totalElements")).isEqualTo(1);
+    }
 }
