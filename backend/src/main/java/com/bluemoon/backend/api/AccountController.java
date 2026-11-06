@@ -47,4 +47,39 @@ public class AccountController {
         return api.execute("GET /users", path, query, body, request);
     }
 
+    @RequestMapping(value = "/users", method = RequestMethod.POST)
+    public ResponseEntity<?> post_users(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /users", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/users/{id}", method = RequestMethod.GET)
+    public ResponseEntity<?> get_users_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /users/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/users/{id}", method = RequestMethod.PATCH)
+    public ResponseEntity<?> patch_users_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PATCH /users/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/users/{id}/status", method = RequestMethod.PUT)
+    public ResponseEntity<?> put_users_by_id_status(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PUT /users/{id}/status", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/users/{id}/reset-password", method = RequestMethod.POST)
+    public ResponseEntity<?> post_users_by_id_reset_password(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /users/{id}/reset-password", path, query, body, request);
+    }
+
 }
