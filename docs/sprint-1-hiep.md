@@ -38,8 +38,8 @@ thúc cư trú, giữ chỗ thanh toán và chặn hủy khoản thu đã chốt
   Request được kiểm tra schema tại HTTP boundary, kể cả field thừa và PATCH null.
 - Flyway quản lý schema; giữ `ddl-auto=validate`, không dùng `update`.
   JSON snapshot/details/audit lưu dạng TEXT để cùng migration chạy trên PostgreSQL
-  và H2. API vẫn trả JSON object đúng contract; khác biệt vật lý với ERD jsonb
-  được ghi rõ ở đây để tránh hiểu nhầm.
+  và H2. API vẫn trả JSON object đúng contract; ERD vật lý hiện hành
+  và mô tả kiểu lưu trữ trong OpenAPI cùng dùng TEXT.
 - Các thao tác ghi lấy khóa hàng `business_lock` trong transaction. Khóa nằm ở DB,
   có tác dụng giữa nhiều JVM. Cách này ưu tiên tính nhất quán ở Sprint 1; khi tăng
   tải có thể thay bằng khóa theo từng hộ/bảng kê, giữ nguyên các bất biến.
