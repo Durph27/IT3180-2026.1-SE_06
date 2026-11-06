@@ -171,3 +171,34 @@ ADMIN và ACCOUNTANT có toàn bộ quyền bảo trì; MANAGER xem quỹ/chi, q
 
 Số dư quỹ = openingBalance + thực thu POSTED vào các dòng bảo trì − tổng chi.
 Đây là sổ quỹ nội bộ, không phải lệnh chuyển tiền tới ngân hàng hoặc nhà cung cấp.
+
+## Kiểm thử
+
+```powershell
+cd backend
+.\mvnw.cmd verify
+```
+
+Bộ HTTP integration chạy với H2 PostgreSQL mode và migrations thật, không cần
+mật khẩu PostgreSQL local. Kiểm tra quyền tức thời, giới hạn hộ, lịch sử chủ hộ,
+duyệt rollback, version, snapshot, thu/void, idempotency, request đồng thời,
+Unicode PDF, giữ chỗ intent, quỹ và làm tròn phân bổ.
+
+Để chạy cùng bộ test trên PostgreSQL thật, đặt biến môi trường cho database test
+riêng (tài khoản cần quyền CREATE SCHEMA), rồi chạy Maven:
+
+```powershell
+$env:TEST_POSTGRES_URL = 'jdbc:postgresql://localhost:5432/bluemoon_test'
+$env:TEST_POSTGRES_USER = 'postgres'
+# Đặt TEST_POSTGRES_PASSWORD trong môi trường local, không ghi vào Git.
+.\mvnw.cmd test '-Dtest=PostgresSprintOneTests'
+```
+
+Test tự tạo schema ngẫu nhiên `sprint1_test_*` và chỉ xóa schema đó sau khi chạy;
+không migrate schema public. Nếu chưa đặt TEST_POSTGRES_URL thì test này được skip.
+Ở môi trường thực hiện thay đổi, chưa có PostgreSQL lắng nghe cổng 5432 nên kết
+quả đã xác minh hiện tại là H2; không coi đó là bằng chứng đã test PostgreSQL thật.
+
+Sau khi sửa contract, từ repository root chạy `python tools/sync_sprint1_contract.py`
+để đồng bộ HTTP bindings và metadata kiểm tra schema. Script không ghi đè migration
+đã tồn tại; thay đổi database phải thêm migration mới và kiểm thử lại.
