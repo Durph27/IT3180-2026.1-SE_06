@@ -285,3 +285,57 @@ CREATE TABLE audit_log (
     occurred_at TIMESTAMP WITH TIME ZONE NOT NULL,
     request_id VARCHAR(80) NOT NULL
 );
+
+ALTER TABLE apartment ADD FOREIGN KEY (building_id) REFERENCES building(id);
+
+ALTER TABLE household_apartment ADD FOREIGN KEY (household_id) REFERENCES household(id);
+
+ALTER TABLE household_apartment ADD FOREIGN KEY (apartment_id) REFERENCES apartment(id);
+
+ALTER TABLE household_member ADD FOREIGN KEY (household_id) REFERENCES household(id);
+
+ALTER TABLE household_member ADD FOREIGN KEY (resident_id) REFERENCES resident(id);
+
+ALTER TABLE app_user ADD FOREIGN KEY (resident_id) REFERENCES resident(id);
+
+ALTER TABLE residence_change ADD FOREIGN KEY (household_id) REFERENCES household(id);
+
+ALTER TABLE residence_change ADD FOREIGN KEY (resident_id) REFERENCES resident(id);
+
+ALTER TABLE residence_change ADD FOREIGN KEY (target_household_id) REFERENCES household(id);
+
+ALTER TABLE residence_change ADD FOREIGN KEY (requested_by) REFERENCES app_user(id);
+
+ALTER TABLE residence_change ADD FOREIGN KEY (approved_by) REFERENCES app_user(id);
+
+ALTER TABLE vehicle ADD FOREIGN KEY (household_id) REFERENCES household(id);
+
+ALTER TABLE fee_rate ADD FOREIGN KEY (fee_type_id) REFERENCES fee_type(id);
+
+ALTER TABLE invoice ADD FOREIGN KEY (occupancy_id) REFERENCES household_apartment(id);
+
+ALTER TABLE invoice ADD FOREIGN KEY (period_id) REFERENCES billing_period(id);
+
+ALTER TABLE invoice_line ADD FOREIGN KEY (invoice_id) REFERENCES invoice(id);
+
+ALTER TABLE invoice_line ADD FOREIGN KEY (fee_type_id) REFERENCES fee_type(id);
+
+ALTER TABLE invoice_line ADD FOREIGN KEY (rate_id) REFERENCES fee_rate(id);
+
+ALTER TABLE invoice_line ADD FOREIGN KEY (vehicle_id) REFERENCES vehicle(id);
+
+ALTER TABLE invoice_line ADD FOREIGN KEY (utility_bill_id) REFERENCES utility_bill(id);
+
+ALTER TABLE contribution ADD FOREIGN KEY (campaign_id) REFERENCES contribution_campaign(id);
+
+ALTER TABLE contribution ADD FOREIGN KEY (household_id) REFERENCES household(id);
+
+ALTER TABLE payment_intent ADD FOREIGN KEY (household_id) REFERENCES household(id);
+
+ALTER TABLE payment_intent ADD FOREIGN KEY (payment_id) REFERENCES payment(id);
+
+ALTER TABLE payment ADD FOREIGN KEY (household_id) REFERENCES household(id);
+
+ALTER TABLE payment ADD FOREIGN KEY (intent_id) REFERENCES payment_intent(id);
+
+ALTER TABLE payment ADD FOREIGN KEY (recorded_by) REFERENCES app_user(id);
