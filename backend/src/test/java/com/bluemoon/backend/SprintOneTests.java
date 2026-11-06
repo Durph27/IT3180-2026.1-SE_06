@@ -163,4 +163,33 @@ class SprintOneTests {
         assertThat(call("GET","/payments?householdId="+other.household(),null,token,null).body().get("totalElements")).isEqualTo(0);
         assertThat(call("POST","/households",map("code",unique()),token,null).status()).isEqualTo(403);
     }
+    @Test void changingHeadPreservesHistoryAndDisallowsDuplicateMembership()throws Exception {
+        Home home=home();var r1=resident();var r2=resident();member(home,r1,true);var next=member(home,r2,false);
+        var reply=call("PUT","/households/"+home.household()+"/head",map("memberId",id(next)),admin,null);assertThat(reply.status()).as(reply.body().toString()).isEqualTo(200);
+        var rows=objects(call("GET","/households/"+home.household()+"/members?size=100",null,admin,null).body().get("content"));
+        assertThat(rows).hasSize(4);assertThat(rows.stream().filter(m->active(m,today()) && Boolean.TRUE.equals(m.get("isHead"))).count()).isEqualTo(1);
+        assertThat(call("POST","/households/"+home.household()+"/members",map("residentId",id(r1),"relationship","X","isHead",false,"validFrom",today().toString()),admin,null).status()).isEqualTo(422);
+    }
+    @Test void residenceTransferRequiresAnotherApproverAndRollsBackOnConflict()throws Exception {
+        Home source=home(),target=home();var r=resident();member(source,r,true);var oldHead=resident();member(target,oldHead,true);
+        var manager=user("MANAGER",null);String approver=token(manager);
+        var change=create("/residence-changes",map("householdId",source.household(),"residentId",id(r),"targetHouseholdId",target.household(),"changeType","TRANSFER","effectiveFrom",today().toString(),"details",map("relationship","HEAD","isHead",true)));
+        assertThat(call("POST","/residence-changes/"+id(change)+"/approve",null,admin,null).status()).isEqualTo(422);
+        assertThat(call("POST","/residence-changes/"+id(change)+"/approve",null,approver,null).status()).isEqualTo(422);
+        assertThat(db.where("HouseholdMember","residentId",id(r)).stream().filter(m->active(m,today())).findFirst().orElseThrow().get("householdId")).isEqualTo(source.household());
+        var valid=create("/residence-changes",map("householdId",source.household(),"residentId",id(r),"targetHouseholdId",target.household(),"changeType","TRANSFER","effectiveFrom",today().toString(),"details",map("relationship","OTHER","isHead",false)));
+        assertThat(call("POST","/residence-changes/"+id(valid)+"/approve",null,approver,null).status()).isEqualTo(200);
+        assertThat(call("POST","/residence-changes/"+id(valid)+"/approve",null,approver,null).status()).isEqualTo(409);
+        assertThat(db.where("HouseholdMember","residentId",id(r)).stream().filter(m->active(m,today())).findFirst().orElseThrow().get("householdId")).isEqualTo(target.household());
+    }
+    @Test void temporaryAbsenceDoesNotEndMembershipAndCanBeRejected()throws Exception {
+        Home home=home();var resident=resident();member(home,resident,true);
+        var request=map("householdId",home.household(),"residentId",id(resident),"changeType","TEMPORARY_ABSENCE","effectiveFrom",today().toString(),"effectiveTo",today().plusDays(5).toString(),"details",Map.of());
+        var change=create("/residence-changes",request);String approver=token(user("MANAGER",null));
+        assertThat(call("POST","/residence-changes/"+id(change)+"/approve",null,approver,null).status()).isEqualTo(200);
+        assertThat(db.where("HouseholdMember","residentId",id(resident)).getFirst().get("validTo")).isNull();
+        var rejected=create("/residence-changes",request);
+        var reply=call("POST","/residence-changes/"+id(rejected)+"/reject",map("reason","Không đủ hồ sơ"),approver,null);
+        assertThat(reply.body().get("status")).isEqualTo("REJECTED");assertThat(object(reply.body().get("details")).get("decisionReason")).isEqualTo("Không đủ hồ sơ");
+    }
 }
