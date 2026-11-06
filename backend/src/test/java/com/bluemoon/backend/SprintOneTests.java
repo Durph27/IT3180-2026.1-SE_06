@@ -192,4 +192,44 @@ class SprintOneTests {
         var reply=call("POST","/residence-changes/"+id(rejected)+"/reject",map("reason","Không đủ hồ sơ"),approver,null);
         assertThat(reply.body().get("status")).isEqualTo("REJECTED");assertThat(object(reply.body().get("details")).get("decisionReason")).isEqualTo("Không đủ hồ sơ");
     }
+    @Test void rateIntervalsAndInvoiceVersionsAreEnforced()throws Exception {
+        var fee=fee(true);String ratePath="/fee-types/"+id(fee)+"/rates";
+        create(ratePath,map("unitPrice","0.00","effectiveFrom",start(),"effectiveTo",today().toString()));
+        create(ratePath,map("unitPrice","10.00","effectiveFrom",today().toString()));
+        assertThat(call("POST",ratePath,map("unitPrice","20.00","effectiveFrom",today().toString()),admin,null).status()).isEqualTo(422);
+        var bill=draft();var line=map("feeTypeId",id(fee),"description","Test","quantity","1.000","unitPrice","10.00");
+        line(bill.invoice(),0,line,409);line(bill.invoice(),1,line,201);
+        var hugeVersion=HttpRequest.newBuilder(URI.create("http://localhost:"+port+"/api/invoices/"+bill.invoice()+"/lines"))
+            .header("Authorization","Bearer "+admin).header("Content-Type","application/json").header("If-Match","\"99999999999999999999999999\"")
+            .POST(HttpRequest.BodyPublishers.ofString(contract.json.writeValueAsString(line))).build();
+        assertThat(client.send(hugeVersion,HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(409);
+        issue(bill);line(bill.invoice(),3,line,409);
+        var invoice=call("GET","/invoices/"+bill.invoice(),null,admin,null).body();contract.validate(invoice,object(contract.section("schemas").get("Invoice")),"invoice");
+    }
+    @Test void paymentsAreAtomicIdempotentAndVoidRestoresBalance()throws Exception {
+        var bill=draft();issue(bill);String key=unique();var body=payment(bill,"300.00");
+        var first=call("POST","/payments",body,admin,key);assertThat(first.status()).as(first.body().toString()).isEqualTo(201);
+        var retry=call("POST","/payments",body,admin,key);assertThat(retry.body()).isEqualTo(first.body());
+        assertThat(call("POST","/payments",payment(bill,"301.00"),admin,key).status()).isEqualTo(409);
+        var invoice=call("GET","/invoices/"+bill.invoice(),null,admin,null).body();assertThat(invoice.get("status")).isEqualTo("PARTIALLY_PAID");assertThat(invoice.get("outstandingAmount")).isEqualTo("500.00");
+        var invalid=payment(bill,"500.00");object(objects(invalid.get("allocations")).getFirst()).put("amount","400.00");
+        assertThat(call("POST","/payments",invalid,admin,unique()).status()).isEqualTo(422);
+        assertThat(call("POST","/payments",payment(bill,"501.00"),admin,unique()).status()).isEqualTo(409);
+        var finalPayment=call("POST","/payments",payment(bill,"500.00"),admin,unique());assertThat(finalPayment.status()).isEqualTo(201);
+        assertThat(call("GET","/invoices/"+bill.invoice(),null,admin,null).body().get("status")).isEqualTo("PAID");
+        assertThat(call("POST","/payments/"+id(finalPayment.body())+"/void",map("reason","Nhập sai"),admin,unique()).status()).isEqualTo(200);
+        assertThat(call("GET","/invoices/"+bill.invoice(),null,admin,null).body().get("outstandingAmount")).isEqualTo("500.00");
+        contract.validate(first.body(),object(contract.section("schemas").get("Payment")),"payment");
+    }
+    @Test void concurrentPaymentsCannotOverCollectAndSameKeyCreatesOnce()throws Exception {
+        var bill=draft();issue(bill);var body=payment(bill,"800.00");
+        try(var pool=Executors.newFixedThreadPool(2)) {
+            var gate=new CountDownLatch(1);var tasks=new ArrayList<Future<Reply>>();
+            for(int i=0;i<2;i++)tasks.add(pool.submit(()->{gate.await();return call("POST","/payments",body,admin,unique());}));
+            gate.countDown();var statuses=new ArrayList<Integer>();for(var task:tasks)statuses.add(task.get(20,TimeUnit.SECONDS).status());assertThat(statuses).containsExactlyInAnyOrder(201,409);
+            var other=draft();issue(other);String key=unique();var sameBody=payment(other,"800.00");
+            var one=pool.submit(()->call("POST","/payments",sameBody,admin,key));var two=pool.submit(()->call("POST","/payments",sameBody,admin,key));
+            var r1=one.get(20,TimeUnit.SECONDS);var r2=two.get(20,TimeUnit.SECONDS);assertThat(r1.status()).isEqualTo(201);assertThat(r2.status()).isEqualTo(201);assertThat(id(r1.body())).isEqualTo(id(r2.body()));
+        }
+    }
 }
