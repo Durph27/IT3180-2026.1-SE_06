@@ -62,4 +62,54 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram id="physical-1" name="02 - Khoản thu">
+    <mxGraphModel grid="1" page="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="note" value="&lt;b&gt;ERD vật lý Sprint 1&lt;/b&gt;&lt;br/&gt;Nguồn: Flyway V1–V3. JSON snapshot lưu TEXT; FK ghi tên cột. Quan hệ qua trang tham chiếu tên bảng.&lt;br/&gt;app_role.code: ADMIN, MANAGER, AUTHORITY, ACCOUNTANT, RESIDENT." parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="10" width="1440" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="fee_type" value="&lt;b&gt;fee_type&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;code VARCHAR(30) NOT NULL UNIQUE&lt;br/&gt;name VARCHAR(120) NOT NULL&lt;br/&gt;basis VARCHAR(20) NOT NULL CHECK (basis IN (&amp;#x27;PER_APARTMENT&amp;#x27;,&amp;#x27;PER_M2&amp;#x27;,&amp;#x27;PER_PERSON&amp;#x27;,&amp;#x27;PER_VEHICLE&amp;#x27;,&amp;#x27;ACTUAL&amp;#x27;))&lt;br/&gt;mandatory BOOLEAN NOT NULL&lt;br/&gt;active BOOLEAN NOT NULL" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="fee_rate" value="&lt;b&gt;fee_rate&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;fee_type_id UUID NOT NULL&lt;br/&gt;vehicle_type VARCHAR(20) CHECK (vehicle_type IN (&amp;#x27;MOTORBIKE&amp;#x27;,&amp;#x27;CAR&amp;#x27;,&amp;#x27;BICYCLE&amp;#x27;,&amp;#x27;OTHER&amp;#x27;))&lt;br/&gt;unit_price NUMERIC(18,2) NOT NULL CHECK (unit_price &amp;gt;= 0)&lt;br/&gt;effective_from DATE NOT NULL&lt;br/&gt;effective_to DATE&lt;br/&gt;CHECK(effective_to IS NULL OR effective_to &amp;gt; effective_from)&lt;br/&gt;FK fee_type_id → fee_type.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="530" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="billing_period" value="&lt;b&gt;billing_period&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;code VARCHAR(20) NOT NULL UNIQUE&lt;br/&gt;start_date DATE NOT NULL&lt;br/&gt;end_date DATE NOT NULL&lt;br/&gt;due_date DATE NOT NULL&lt;br/&gt;snapshot_date DATE NOT NULL&lt;br/&gt;status VARCHAR(20) NOT NULL CHECK (status IN (&amp;#x27;DRAFT&amp;#x27;,&amp;#x27;ISSUED&amp;#x27;,&amp;#x27;CLOSED&amp;#x27;))" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="1040" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="invoice" value="&lt;b&gt;invoice&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;occupancy_id UUID NOT NULL&lt;br/&gt;period_id UUID NOT NULL&lt;br/&gt;invoice_no VARCHAR(40) NOT NULL UNIQUE&lt;br/&gt;issued_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;status VARCHAR(20) NOT NULL CHECK (status IN (&amp;#x27;DRAFT&amp;#x27;,&amp;#x27;ISSUED&amp;#x27;,&amp;#x27;PARTIALLY_PAID&amp;#x27;,&amp;#x27;PAID&amp;#x27;,&amp;#x27;CANCELLED&amp;#x27;))&lt;br/&gt;version BIGINT NOT NULL&lt;br/&gt;UNIQUE(occupancy_id, period_id)&lt;br/&gt;FK occupancy_id → household_apartment.id&lt;br/&gt;FK period_id → billing_period.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="invoice_line" value="&lt;b&gt;invoice_line&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;invoice_id UUID NOT NULL&lt;br/&gt;fee_type_id UUID NOT NULL&lt;br/&gt;rate_id UUID&lt;br/&gt;vehicle_id UUID&lt;br/&gt;utility_bill_id UUID UNIQUE&lt;br/&gt;description TEXT NOT NULL&lt;br/&gt;quantity NUMERIC(12,3) NOT NULL CHECK (quantity &amp;gt;= 0)&lt;br/&gt;unit_price NUMERIC(18,2) NOT NULL CHECK (unit_price &amp;gt;= 0)&lt;br/&gt;amount NUMERIC(18,2) NOT NULL CHECK (amount &amp;gt;= 0)&lt;br/&gt;FK invoice_id → invoice.id&lt;br/&gt;FK fee_type_id → fee_type.id&lt;br/&gt;FK rate_id → fee_rate.id&lt;br/&gt;FK vehicle_id → vehicle.id&lt;br/&gt;FK utility_bill_id → utility_bill.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="530" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="contribution_campaign" value="&lt;b&gt;contribution_campaign&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;name VARCHAR(160) NOT NULL&lt;br/&gt;start_date DATE NOT NULL&lt;br/&gt;end_date DATE NOT NULL&lt;br/&gt;suggested_amount NUMERIC(18,2) CHECK (suggested_amount &amp;gt;= 0)&lt;br/&gt;purpose TEXT NOT NULL" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="1040" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="contribution" value="&lt;b&gt;contribution&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;campaign_id UUID NOT NULL&lt;br/&gt;household_id UUID NOT NULL&lt;br/&gt;pledged_amount NUMERIC(18,2) CHECK (pledged_amount &amp;gt;= 0)&lt;br/&gt;created_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;UNIQUE(campaign_id, household_id)&lt;br/&gt;FK campaign_id → contribution_campaign.id&lt;br/&gt;FK household_id → household.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="1320" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="fk27" source="fee_type" target="fee_rate" value="fee_type_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk29" source="billing_period" target="invoice" value="period_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk30" source="invoice" target="invoice_line" value="invoice_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk31" source="fee_type" target="invoice_line" value="fee_type_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk32" source="fee_rate" target="invoice_line" value="rate_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk35" source="contribution_campaign" target="contribution" value="campaign_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
