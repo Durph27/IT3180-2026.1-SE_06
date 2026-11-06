@@ -47,4 +47,39 @@ public class ResidenceController {
         return api.execute("GET /apartments", path, query, body, request);
     }
 
+    @RequestMapping(value = "/apartments", method = RequestMethod.POST)
+    public ResponseEntity<?> post_apartments(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /apartments", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/apartments/{id}", method = RequestMethod.GET)
+    public ResponseEntity<?> get_apartments_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /apartments/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/apartments/{id}", method = RequestMethod.PATCH)
+    public ResponseEntity<?> patch_apartments_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PATCH /apartments/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/households", method = RequestMethod.GET)
+    public ResponseEntity<?> get_households(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /households", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/households", method = RequestMethod.POST)
+    public ResponseEntity<?> post_households(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /households", path, query, body, request);
+    }
+
 }
