@@ -339,3 +339,57 @@ ALTER TABLE payment ADD FOREIGN KEY (household_id) REFERENCES household(id);
 ALTER TABLE payment ADD FOREIGN KEY (intent_id) REFERENCES payment_intent(id);
 
 ALTER TABLE payment ADD FOREIGN KEY (recorded_by) REFERENCES app_user(id);
+
+ALTER TABLE payment_allocation ADD FOREIGN KEY (payment_id) REFERENCES payment(id);
+
+ALTER TABLE payment_allocation ADD FOREIGN KEY (invoice_line_id) REFERENCES invoice_line(id);
+
+ALTER TABLE payment_allocation ADD FOREIGN KEY (contribution_id) REFERENCES contribution(id);
+
+ALTER TABLE receipt ADD FOREIGN KEY (payment_id) REFERENCES payment(id);
+
+ALTER TABLE service_subscription ADD FOREIGN KEY (occupancy_id) REFERENCES household_apartment(id);
+
+ALTER TABLE service_subscription ADD FOREIGN KEY (provider_id) REFERENCES provider(id);
+
+ALTER TABLE utility_bill ADD FOREIGN KEY (subscription_id) REFERENCES service_subscription(id);
+
+ALTER TABLE utility_bill ADD FOREIGN KEY (period_id) REFERENCES billing_period(id);
+
+ALTER TABLE reconciliation ADD FOREIGN KEY (provider_id) REFERENCES provider(id);
+
+ALTER TABLE reconciliation ADD FOREIGN KEY (period_id) REFERENCES billing_period(id);
+
+ALTER TABLE reconciliation_item ADD FOREIGN KEY (reconciliation_id) REFERENCES reconciliation(id);
+
+ALTER TABLE reconciliation_item ADD FOREIGN KEY (utility_bill_id) REFERENCES utility_bill(id);
+
+ALTER TABLE payment_intent_item ADD FOREIGN KEY (intent_id) REFERENCES payment_intent(id);
+
+ALTER TABLE payment_intent_item ADD FOREIGN KEY (invoice_line_id) REFERENCES invoice_line(id);
+
+ALTER TABLE payment_intent_item ADD FOREIGN KEY (contribution_id) REFERENCES contribution(id);
+
+ALTER TABLE audit_log ADD FOREIGN KEY (actor_id) REFERENCES app_user(id);
+
+CREATE TABLE user_role (user_id UUID REFERENCES app_user(id), role_id UUID REFERENCES app_role(id), PRIMARY KEY(user_id, role_id));
+
+CREATE TABLE role_permission (role_id UUID REFERENCES app_role(id), permission_id UUID REFERENCES app_permission(id), PRIMARY KEY(role_id, permission_id));
+
+CREATE TABLE access_session (token_hash VARCHAR(64) PRIMARY KEY, user_id UUID NOT NULL REFERENCES app_user(id), expires_at TIMESTAMP WITH TIME ZONE NOT NULL);
+
+CREATE TABLE login_attempt (attempt_key VARCHAR(64) PRIMARY KEY, window_start TIMESTAMP WITH TIME ZONE NOT NULL, attempts INTEGER NOT NULL);
+
+CREATE TABLE command_result (command_key VARCHAR(80) PRIMARY KEY, fingerprint VARCHAR(64) NOT NULL, status INTEGER NOT NULL, location TEXT, response_body TEXT NOT NULL);
+
+CREATE TABLE business_lock (id INTEGER PRIMARY KEY);
+
+INSERT INTO business_lock(id) VALUES (1);
+
+CREATE INDEX member_resident_dates ON household_member(resident_id, valid_from, valid_to);
+
+CREATE INDEX member_household_dates ON household_member(household_id, valid_from, valid_to);
+
+CREATE INDEX occupancy_apartment_dates ON household_apartment(apartment_id, valid_from, valid_to);
+
+CREATE INDEX occupancy_household_dates ON household_apartment(household_id, valid_from, valid_to);
