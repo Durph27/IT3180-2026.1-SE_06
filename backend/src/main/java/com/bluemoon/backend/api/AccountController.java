@@ -82,4 +82,17 @@ public class AccountController {
         return api.execute("POST /users/{id}/reset-password", path, query, body, request);
     }
 
+    @RequestMapping(value = "/users/{id}/roles", method = RequestMethod.GET)
+    public ResponseEntity<?> get_users_by_id_roles(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /users/{id}/roles", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/users/{id}/roles", method = RequestMethod.PUT)
+    public ResponseEntity<?> put_users_by_id_roles(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PUT /users/{id}/roles", path, query, body, request);
+    }
 }
