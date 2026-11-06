@@ -242,4 +242,36 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram id="physical-4" name="05 - Quỹ bảo trì">
+    <mxGraphModel grid="1" page="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="note" value="&lt;b&gt;ERD vật lý Sprint 1&lt;/b&gt;&lt;br/&gt;Nguồn: Flyway V1–V3. JSON snapshot lưu TEXT; FK ghi tên cột. Quan hệ qua trang tham chiếu tên bảng.&lt;br/&gt;app_role.code: ADMIN, MANAGER, AUTHORITY, ACCOUNTANT, RESIDENT." parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="10" width="1440" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="maintenance_fund" value="&lt;b&gt;maintenance_fund&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;code VARCHAR(30) NOT NULL UNIQUE&lt;br/&gt;name VARCHAR(120) NOT NULL&lt;br/&gt;opening_balance NUMERIC(18,2) NOT NULL CHECK(opening_balance &amp;gt;= 0)&lt;br/&gt;opening_date DATE NOT NULL&lt;br/&gt;created_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;created_by UUID NOT NULL REFERENCES app_user(id)&lt;br/&gt;FK created_by → app_user.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="maintenance_round" value="&lt;b&gt;maintenance_round&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;fund_id UUID NOT NULL REFERENCES maintenance_fund(id)&lt;br/&gt;period_id UUID NOT NULL REFERENCES billing_period(id)&lt;br/&gt;fee_type_id UUID NOT NULL REFERENCES fee_type(id)&lt;br/&gt;description TEXT NOT NULL&lt;br/&gt;allocation_basis VARCHAR(20) NOT NULL CHECK(allocation_basis IN (&amp;#x27;EQUAL&amp;#x27;,&amp;#x27;PER_M2&amp;#x27;))&lt;br/&gt;total_cost NUMERIC(18,2) NOT NULL CHECK(total_cost &amp;gt; 0)&lt;br/&gt;snapshot_date DATE NOT NULL&lt;br/&gt;created_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;created_by UUID NOT NULL REFERENCES app_user(id)&lt;br/&gt;FK fund_id → maintenance_fund.id&lt;br/&gt;FK period_id → billing_period.id&lt;br/&gt;FK fee_type_id → fee_type.id&lt;br/&gt;FK created_by → app_user.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="530" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="maintenance_allocation" value="&lt;b&gt;maintenance_allocation&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;round_id UUID NOT NULL REFERENCES maintenance_round(id)&lt;br/&gt;occupancy_id UUID NOT NULL REFERENCES household_apartment(id)&lt;br/&gt;invoice_line_id UUID NOT NULL UNIQUE REFERENCES invoice_line(id)&lt;br/&gt;weight NUMERIC(12,3) NOT NULL CHECK(weight &amp;gt; 0)&lt;br/&gt;amount NUMERIC(18,2) NOT NULL CHECK(amount &amp;gt;= 0)&lt;br/&gt;UNIQUE(round_id,occupancy_id)&lt;br/&gt;FK round_id → maintenance_round.id&lt;br/&gt;FK occupancy_id → household_apartment.id&lt;br/&gt;FK invoice_line_id → invoice_line.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="1040" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="maintenance_expense" value="&lt;b&gt;maintenance_expense&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;fund_id UUID NOT NULL REFERENCES maintenance_fund(id)&lt;br/&gt;amount NUMERIC(18,2) NOT NULL CHECK(amount &amp;gt; 0)&lt;br/&gt;spent_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;description TEXT NOT NULL&lt;br/&gt;recorded_by UUID NOT NULL REFERENCES app_user(id)&lt;br/&gt;FK fund_id → maintenance_fund.id&lt;br/&gt;FK recorded_by → app_user.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="fk6" source="maintenance_fund" target="maintenance_round" value="fund_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk10" source="maintenance_round" target="maintenance_allocation" value="round_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk13" source="maintenance_fund" target="maintenance_expense" value="fund_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
