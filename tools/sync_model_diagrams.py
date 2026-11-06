@@ -78,7 +78,13 @@ def generate():
             box(root, name, label, 20+(i % 3)*510, 140+(i//3)*590, 460, 540)
         for i, (child, parent, column) in enumerate(links):
             if child in names and parent in names:
-                edge(root, 'fk'+str(i), parent, child, column, 'startArrow=ERone;endArrow=ERmany;')
+                definition = next(row for row in tables[child] if row.startswith(column+' '))
+                required = 'NOT NULL' in definition or 'PRIMARY KEY' in definition
+                unique = 'UNIQUE' in definition or any(
+                    re.fullmatch(r'UNIQUE\s*\(\s*'+column+r'\s*\)', row) for row in tables[child])
+                start = 'ERone' if required else 'ERzeroToOne'
+                end = 'ERzeroToOne' if unique else 'ERzeroToMany'
+                edge(root, 'fk'+str(i), parent, child, column, f'startArrow={start};endArrow={end};')
     write(ROOT/'docs/BlueMoon_ERD.drawio', erd)
     cache = [[re.sub('<[^>]+>', ' ', cell.get('value', ''))
               for cell in page.iter('mxCell') if cell.get('value')]
