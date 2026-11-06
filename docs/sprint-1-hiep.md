@@ -202,3 +202,21 @@ quả đã xác minh hiện tại là H2; không coi đó là bằng chứng đ�
 Sau khi sửa contract, từ repository root chạy `python tools/sync_sprint1_contract.py`
 để đồng bộ HTTP bindings và metadata kiểm tra schema. Script không ghi đè migration
 đã tồn tại; thay đổi database phải thêm migration mới và kiểm thử lại.
+
+## Nguồn dữ liệu và sơ đồ hiện hành
+
+- Phân công: `C:\Documents\2. Cấu trúc phân chia công việc (WBS).xlsx`, các mã WBS ở bảng đầu.
+- Tên tính năng FT-01–20: file `Pasted text.txt` người dùng gửi trong yêu cầu sửa nhánh ngày 06/11/2026.
+- HTTP/schema: `docs/api/openapi.json`; Maven đóng gói chính file này vào jar, không giữ bản sao schema sinh sẵn.
+- Database vật lý: `backend/src/main/resources/db/migration/V1__sprint1_baseline.sql`, V2 quỹ bảo trì và V3 ràng buộc vai trò.
+- ERD hiện hành: `docs/BlueMoon_ERD.drawio`, sinh từ migration bằng `python tools/sync_model_diagrams.py`.
+- UML hiện hành: `docs/BlueMoon_UML.drawio` (5 actor và luồng xử lý API). `BlueMoon_UML.asta` và các ảnh preview cũ là bản thiết kế lịch sử; không dùng để đối chiếu code mới.
+- API camelCase ánh xạ cột snake_case; `Role` → `app_role`, `Permission` → `app_permission`.
+  `password_hash` chỉ lưu DB; các tổng tiền, collections, số dư là trường tính toán, không là cột ghi.
+  Snapshot JSON lưu TEXT như migration/ERD vật lý; JDBC đọc/ghi JSON qua serializer.
+
+V3 không xóa dữ liệu phân quyền. Database mới seed đủ 5 vai trò. Nếu đã chạy bản
+cũ có STAFF/custom role, V3 chủ động dừng do CHECK constraint: phải thống nhất
+ánh xạ cho từng tài khoản trước khi nâng cấp database đó; không tự cấp quyền AUTHORITY.
+
+Các nhánh là chuỗi phụ thuộc; xem `docs/feature-branches.md` để chọn base và thứ tự merge.
