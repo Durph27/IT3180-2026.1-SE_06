@@ -8494,7 +8494,7 @@
         },
         "x-permission": "user.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -8570,7 +8570,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/users/{id}": {
@@ -8640,7 +8640,7 @@
         },
         "x-permission": "user.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -8718,7 +8718,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/users/{id}/status": {
@@ -8798,7 +8798,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/users/{id}/reset-password": {
@@ -8871,7 +8871,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/users/{id}/roles": {
@@ -8944,7 +8944,7 @@
         },
         "x-permission": "user.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "put": {
         "tags": [
@@ -9025,7 +9025,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/roles": {
