@@ -82,4 +82,39 @@ public class FeesController {
         return api.execute("GET /billing-periods/{id}", path, query, body, request);
     }
 
+    @RequestMapping(value = "/billing-periods/{id}", method = RequestMethod.PATCH)
+    public ResponseEntity<?> patch_billing_periods_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PATCH /billing-periods/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/billing-periods/{id}/issue", method = RequestMethod.POST)
+    public ResponseEntity<?> post_billing_periods_by_id_issue(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /billing-periods/{id}/issue", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/billing-periods/{id}/close", method = RequestMethod.POST)
+    public ResponseEntity<?> post_billing_periods_by_id_close(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /billing-periods/{id}/close", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/invoices", method = RequestMethod.GET)
+    public ResponseEntity<?> get_invoices(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /invoices", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/invoices", method = RequestMethod.POST)
+    public ResponseEntity<?> post_invoices(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /invoices", path, query, body, request);
+    }
+
 }
