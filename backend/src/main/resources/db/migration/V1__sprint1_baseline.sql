@@ -227,3 +227,61 @@ CREATE TABLE provider (
     service_type VARCHAR(20) NOT NULL CHECK (service_type IN ('ELECTRICITY','WATER','INTERNET','OTHER')),
     contact TEXT
 );
+
+CREATE TABLE service_subscription (
+    id UUID PRIMARY KEY,
+    occupancy_id UUID NOT NULL,
+    provider_id UUID NOT NULL,
+    customer_code VARCHAR(50) NOT NULL,
+    valid_from DATE NOT NULL,
+    valid_to DATE
+);
+
+CREATE TABLE utility_bill (
+    id UUID PRIMARY KEY,
+    subscription_id UUID NOT NULL,
+    period_id UUID NOT NULL,
+    provider_bill_no VARCHAR(80) NOT NULL,
+    amount NUMERIC(18,2) NOT NULL CHECK (amount >= 0),
+    imported_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    source_hash VARCHAR(64) NOT NULL
+);
+
+CREATE TABLE reconciliation (
+    id UUID PRIMARY KEY,
+    provider_id UUID NOT NULL,
+    period_id UUID NOT NULL,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('DRAFT','CONFIRMED'))
+);
+
+CREATE TABLE reconciliation_item (
+    id UUID PRIMARY KEY,
+    reconciliation_id UUID NOT NULL,
+    utility_bill_id UUID NOT NULL,
+    billed_amount NUMERIC(18,2) NOT NULL CHECK (billed_amount >= 0),
+    collected_amount NUMERIC(18,2) NOT NULL CHECK (collected_amount >= 0),
+    remitted_amount NUMERIC(18,2) NOT NULL CHECK (remitted_amount >= 0),
+    note TEXT
+);
+
+CREATE TABLE payment_intent_item (
+    id UUID PRIMARY KEY,
+    intent_id UUID NOT NULL,
+    invoice_line_id UUID,
+    contribution_id UUID,
+    amount NUMERIC(18,2) NOT NULL CHECK (amount >= 0)
+);
+
+CREATE TABLE audit_log (
+    id UUID PRIMARY KEY,
+    actor_id UUID,
+    action VARCHAR(40) NOT NULL,
+    entity_type VARCHAR(60) NOT NULL,
+    entity_id UUID NOT NULL,
+    before_data TEXT,
+    after_data TEXT,
+    occurred_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    request_id VARCHAR(80) NOT NULL
+);
