@@ -47,4 +47,17 @@ public class PaymentsController {
         return api.execute("GET /payments/{id}/receipt", path, query, body, request);
     }
 
+    @RequestMapping(value = "/receipts/{id}", method = RequestMethod.GET)
+    public ResponseEntity<?> get_receipts_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /receipts/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/receipts/{id}/pdf", method = RequestMethod.GET)
+    public ResponseEntity<?> get_receipts_by_id_pdf(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /receipts/{id}/pdf", path, query, body, request);
+    }
 }
