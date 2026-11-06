@@ -117,4 +117,39 @@ public class FeesController {
         return api.execute("POST /invoices", path, query, body, request);
     }
 
+    @RequestMapping(value = "/invoices/{id}", method = RequestMethod.GET)
+    public ResponseEntity<?> get_invoices_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /invoices/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/invoices/{id}/lines", method = RequestMethod.POST)
+    public ResponseEntity<?> post_invoices_by_id_lines(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /invoices/{id}/lines", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/invoices/{id}/lines/{lineId}", method = RequestMethod.PATCH)
+    public ResponseEntity<?> patch_invoices_by_id_lines_by_lineId(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PATCH /invoices/{id}/lines/{lineId}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/invoices/{id}/lines/{lineId}", method = RequestMethod.DELETE)
+    public ResponseEntity<?> delete_invoices_by_id_lines_by_lineId(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("DELETE /invoices/{id}/lines/{lineId}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/invoices/{id}/cancel", method = RequestMethod.POST)
+    public ResponseEntity<?> post_invoices_by_id_cancel(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /invoices/{id}/cancel", path, query, body, request);
+    }
+
 }
