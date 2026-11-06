@@ -9665,7 +9665,8 @@
           }
         },
         "x-permission": "audit.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/audit-logs/{id}": {
@@ -9734,7 +9735,8 @@
           }
         },
         "x-permission": "audit.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/payment-intents": {
@@ -9832,7 +9834,8 @@
           }
         },
         "x-permission": "payment-intent.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -9912,7 +9915,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/payment-intents/{id}": {
@@ -9981,7 +9985,8 @@
           }
         },
         "x-permission": "payment-intent.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/payment-intents/{id}/cancel": {
@@ -10060,7 +10065,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/payment-intents/{id}/events": {
@@ -10138,7 +10144,8 @@
           }
         },
         "x-permission": "payment-event.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/payment-gateways/{providerCode}/events": {
@@ -10230,7 +10237,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/reports/revenue": {
@@ -10308,7 +10316,8 @@
           }
         },
         "x-permission": "report.revenue",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/revenue/export": {
@@ -10395,7 +10404,8 @@
           }
         },
         "x-permission": "report.export",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/debts": {
@@ -10480,7 +10490,8 @@
           }
         },
         "x-permission": "report.debts",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/debts/export": {
