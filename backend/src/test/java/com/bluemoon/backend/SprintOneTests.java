@@ -133,4 +133,34 @@ class SprintOneTests {
         assertThat(call("POST","/occupancies",map("householdId",home.household(),"apartmentId",home.apartment(),"validFrom",today().toString()),admin,null).status()).isEqualTo(422);
         contract.validate(apartment,object(contract.section("schemas").get("Apartment")),"response");
     }
+    @Test void permissionsApplyImmediatelyAndLastAdminCannotBeRemoved()throws Exception {
+        var user=user("ACCOUNTANT",null);String token=token(user);
+        assertThat(call("POST","/buildings",map("code",unique(),"name","x","address","x"),token,null).status()).isEqualTo(403);
+        assertThat(call("PUT","/users/"+id(user)+"/roles",map("roleIds",List.of(roleIds.get("MANAGER"))),admin,null).status()).isEqualTo(200);
+        assertThat(call("POST","/buildings",map("code",unique(),"name","x","address","x"),token,null).status()).isEqualTo(201);
+        assertThat(call("PUT","/users/"+id(user)+"/status",map("status","LOCKED"),admin,null).status()).isEqualTo(200);
+        assertThat(call("GET","/auth/me",null,token,null).status()).isEqualTo(401);
+        String adminId=text(object(call("GET","/auth/me",null,admin,null).body().get("user")),"id");
+        assertThat(call("PUT","/users/"+adminId+"/roles",map("roleIds",List.of()),admin,null).status()).isEqualTo(409);
+        assertThat(call("GET","/roles",null,admin,null).status()).isEqualTo(200);
+    }
+    @Test void passwordChangeRevokesOldTokenAndDoesNotExposeSecrets()throws Exception {
+        var user=user("MANAGER",null);String old=token(user);
+        var reply=call("POST","/auth/change-password",map("currentPassword","User-test-password!","newPassword","Changed-password-123!"),old,null);
+        assertThat(reply.status()).isEqualTo(204);assertThat(call("GET","/auth/me",null,old,null).status()).isEqualTo(401);
+        String fresh=login(text(user,"username"),"Changed-password-123!");
+        assertThat(call("GET","/auth/me",null,fresh,null).body().toString()).doesNotContain("passwordHash","Changed-password");
+        assertThat(db.all("AuditLog").toString()).doesNotContain("Changed-password-123!","User-test-password!");
+    }
+    @Test void residentScopeFiltersBeforeCountingAndMasksOtherIdentity()throws Exception {
+        Home mine=home(),other=home();var r=resident();member(mine,r,true);var relative=resident();member(mine,relative,false);
+        String token=token(user("RESIDENT",id(r)));
+        assertThat(call("GET","/households/"+other.household(),null,token,null).status()).isEqualTo(404);
+        var list=call("GET","/apartments?size=100",null,token,null).body();assertThat(((Number)list.get("totalElements")).intValue()).isEqualTo(1);
+        assertThat(call("GET","/residents/"+id(relative),null,token,null).body().get("identityNo")).isNull();
+        assertThat(call("GET","/residents/"+id(r),null,token,null).body().get("identityNo")).isEqualTo(r.get("identityNo"));
+        assertThat(call("POST","/payments",Map.of(),token,unique()).status()).isEqualTo(400);
+        assertThat(call("GET","/payments?householdId="+other.household(),null,token,null).body().get("totalElements")).isEqualTo(0);
+        assertThat(call("POST","/households",map("code",unique()),token,null).status()).isEqualTo(403);
+    }
 }
