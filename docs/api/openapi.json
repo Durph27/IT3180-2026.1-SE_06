@@ -3816,7 +3816,7 @@
         },
         "x-permission": "billing-period.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -3894,7 +3894,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/billing-periods/{id}/generate-invoices": {
@@ -4040,7 +4040,7 @@
         },
         "x-permission": "billing-period.issue",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/billing-periods/{id}/close": {
@@ -4110,7 +4110,7 @@
         },
         "x-permission": "billing-period.close",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/invoices": {
@@ -4218,7 +4218,7 @@
         },
         "x-permission": "invoice.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -4294,7 +4294,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/invoices/{id}": {
@@ -4364,7 +4364,7 @@
         },
         "x-permission": "invoice.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/invoices/{id}/lines": {
@@ -4463,7 +4463,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/invoices/{id}/lines/{lineId}": {
@@ -4562,7 +4562,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       },
       "delete": {
         "tags": [
@@ -4642,7 +4642,7 @@
         },
         "x-permission": "invoice.write",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/invoices/{id}/cancel": {
@@ -4738,7 +4738,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/contribution-campaigns": {
@@ -4808,7 +4808,7 @@
         },
         "x-permission": "campaign.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -4884,7 +4884,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/contribution-campaigns/{id}": {
