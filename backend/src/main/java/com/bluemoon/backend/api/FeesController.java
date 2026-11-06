@@ -187,4 +187,24 @@ public class FeesController {
         return api.execute("GET /contribution-campaigns/{id}/contributions", path, query, body, request);
     }
 
+    @RequestMapping(value = "/contribution-campaigns/{id}/contributions", method = RequestMethod.POST)
+    public ResponseEntity<?> post_contribution_campaigns_by_id_contributions(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /contribution-campaigns/{id}/contributions", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/contributions/{id}", method = RequestMethod.GET)
+    public ResponseEntity<?> get_contributions_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /contributions/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/contributions/{id}", method = RequestMethod.PATCH)
+    public ResponseEntity<?> patch_contributions_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PATCH /contributions/{id}", path, query, body, request);
+    }
 }
