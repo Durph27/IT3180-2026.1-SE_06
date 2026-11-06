@@ -119,7 +119,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/auth/me": {
@@ -178,7 +178,7 @@
         },
         "x-permission": "AUTHENTICATED",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -245,7 +245,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/auth/change-password": {
@@ -307,7 +307,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/buildings": {
