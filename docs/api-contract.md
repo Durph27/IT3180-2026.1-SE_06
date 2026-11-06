@@ -1,6 +1,10 @@
 # BlueMoon — API contract
 
-Phiên bản `1.0.0-design`, ngày 05/11/2026. Bao phủ **36 thực thể, 138 thao tác** trong ERD 00–06, bao gồm [QR/ví](ERD_Preview/ERD_06.svg). **Chỉ hello và health đã triển khai; các API nghiệp vụ là thiết kế.**
+Phiên bản `1.1.0-sprint1`, ngày 06/11/2026. Gồm 36 thực thể ERD 00–06 và 4 model
+bảo trì bổ sung; tổng 146 thao tác thiết kế. **Đã triển khai 94 thao tác gồm 92
+nghiệp vụ Sprint 1 và hello/health.** Xem [phạm vi bàn giao](sprint-1-hiep.md).
+OpenAPI dùng `x-implemented` để phân biệt từng endpoint; QR/ví và một số module
+vẫn ở mức thiết kế.
 
 - [Quy ước, phân quyền và nghiệp vụ](api/design.md)
 - [Danh mục endpoint](api/endpoints.md)
@@ -37,4 +41,4 @@ khi đó client nhận lỗi kết nối thay vì HTTP 503. API không trả chi
 CORS mặc định cho phép `http://localhost:5173`. Cấu hình nhiều origin qua
 `CORS_ALLOWED_ORIGINS`, phân cách bằng dấu phẩy.
 
-Các API nghiệp vụ hiện là contract thiết kế, xem các tài liệu ở đầu trang.
+Phạm vi từng API nghiệp vụ xem `x-implemented` trong OpenAPI và tài liệu Sprint 1.
