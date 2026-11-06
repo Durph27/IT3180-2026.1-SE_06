@@ -200,3 +200,18 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | GET | `/hello` | Kiểm tra API đang chạy | — | 200 string | `PUBLIC` |
 | GET | `/health` | Kiểm tra kết nối database | — | 200 Health | `PUBLIC` |
 
+
+## Bảo trì — bổ sung Sprint 1
+
+| Method | Path | Quyền |
+| --- | --- | --- |
+| GET | `/maintenance-funds` | `maintenance-fund.read` |
+| POST | `/maintenance-funds` | `maintenance-fund.write` |
+| GET | `/maintenance-funds/{id}` | `maintenance-fund.read` |
+| GET | `/maintenance-funds/{id}/expenses` | `maintenance-expense.read` |
+| POST | `/maintenance-funds/{id}/expenses` | `maintenance-expense.record` |
+| GET | `/maintenance-rounds` | `maintenance-round.read` |
+| POST | `/maintenance-rounds` | `maintenance-round.write` |
+| GET | `/maintenance-rounds/{id}` | `maintenance-round.read` |
+
+Quy tắc phân bổ, sổ quỹ và phạm vi đã triển khai: [bàn giao Sprint 1](../sprint-1-hiep.md).
