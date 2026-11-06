@@ -47,4 +47,24 @@ public class MaintenanceController {
         return api.execute("POST /maintenance-funds/{id}/expenses", path, query, body, request);
     }
 
+    @RequestMapping(value = "/maintenance-rounds", method = RequestMethod.GET)
+    public ResponseEntity<?> get_maintenance_rounds(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /maintenance-rounds", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/maintenance-rounds", method = RequestMethod.POST)
+    public ResponseEntity<?> post_maintenance_rounds(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /maintenance-rounds", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/maintenance-rounds/{id}", method = RequestMethod.GET)
+    public ResponseEntity<?> get_maintenance_rounds_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /maintenance-rounds/{id}", path, query, body, request);
+    }
 }
