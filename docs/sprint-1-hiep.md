@@ -21,3 +21,40 @@ nhà (`generate-invoices`, US10 của Huy), tìm kiếm/xuất Excel chuyên bi�
 QR/ví, thu hộ, đối soát và thông báo vẫn thuộc các phần việc khác. Các bảng nền
 cho subscription, intent và reconciliation có mặt để kiểm tra điều kiện kết
 thúc cư trú, giữ chỗ thanh toán và chặn hủy khoản thu đã chốt đối soát.
+
+## Quyết định thiết kế
+
+- OpenAPI `1.1.0-sprint1` là nguồn schema HTTP. `x-implemented: true` đánh dấu
+  endpoint đã có code. Có 92 thao tác nghiệp vụ và 2 API hello/health đã triển khai.
+- Đúng 5 role: `ADMIN` (Admin), `MANAGER` (Ban quản trị), `AUTHORITY` (Cơ quan chức năng),
+  `ACCOUNTANT` (Kế toán), `RESIDENT` (Cư dân). AUTHORITY chỉ đọc cư trú/CCCD,
+  không sửa hồ sơ, xem tài chính hoặc quản trị quyền. Chưa có trường phân loại kiot.
+- Giữ `identityNo` nullable, tối đa 30 ký tự; đơn giá không âm. Các khác biệt WBS
+  chưa được quyết định không bị tự động áp thành quy tắc mới.
+- Không xóa căn hộ/hộ/nhân khẩu bằng DELETE: dùng kết thúc khoảng cư trú hoặc
+  đóng hộ theo contract. Chỉ dòng bảng kê nháp được DELETE.
+- Persistence dùng `JdbcTemplate` trong tầng repository với tham số bind và
+  danh sách tên bảng/cột được kiểm soát bởi contract. Không trả JPA entity.
+  Request được kiểm tra schema tại HTTP boundary, kể cả field thừa và PATCH null.
+- Flyway quản lý schema; giữ `ddl-auto=validate`, không dùng `update`.
+  JSON snapshot/details/audit lưu dạng TEXT để cùng migration chạy trên PostgreSQL
+  và H2. API vẫn trả JSON object đúng contract; khác biệt vật lý với ERD jsonb
+  được ghi rõ ở đây để tránh hiểu nhầm.
+- Các thao tác ghi lấy khóa hàng `business_lock` trong transaction. Khóa nằm ở DB,
+  có tác dụng giữa nhiều JVM. Cách này ưu tiên tính nhất quán ở Sprint 1; khi tăng
+  tải có thể thay bằng khóa theo từng hộ/bảng kê, giữ nguyên các bất biến.
+- Danh sách hiện lọc phạm vi trước đếm/phân trang nhưng thực hiện lọc/sắp xếp
+  trong service. Chưa có chứng nhận hiệu năng trên dữ liệu 10.000 bản ghi.
+- Token Bearer ngẫu nhiên 256 bit, sống 1800 giây; DB chỉ lưu SHA-256 của token.
+  Quyền/trạng thái tài khoản/phạm vi hộ đọc lại mỗi request. Đổi/reset mật khẩu
+  xóa toàn bộ session cũ. Login giới hạn 5 lần/phút theo IP + username, không
+  khóa vĩnh viễn tài khoản sau 5 lần sai.
+- Mật khẩu lưu BCrypt cost 12 của chuỗi SHA-256 hex của mật khẩu gốc. Prehash
+  tránh giới hạn 72 byte của BCrypt với mật khẩu Unicode dài; khi tích hợp phải
+  dùng `IdentityService.hashPassword/matches`, không so với BCrypt(rawPassword).
+- ADMIN luôn giữ toàn bộ catalog quyền và ít nhất một tài khoản ACTIVE có role
+  ADMIN. Khi khởi động lại, các quyền đã cấu hình cho role khác được giữ nguyên;
+  permission mới được seed vào role mặc định theo chính sách tương ứng.
+- PDF sinh bằng PDFBox, nhúng font Unicode tại runtime. Receipt JSON giữ snapshot
+  nguyên bản; header `X-Payment-Status` cho biết POSTED/VOIDED. PDF đánh dấu HỦY
+  theo trạng thái payment hiện tại, không sửa snapshot cũ.
