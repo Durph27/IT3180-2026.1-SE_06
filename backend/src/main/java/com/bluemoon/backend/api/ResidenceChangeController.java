@@ -47,4 +47,10 @@ public class ResidenceChangeController {
         return api.execute("POST /residence-changes/{id}/reject", path, query, body, request);
     }
 
+    @RequestMapping(value = "/residence-changes/{id}/cancel", method = RequestMethod.POST)
+    public ResponseEntity<?> post_residence_changes_by_id_cancel(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /residence-changes/{id}/cancel", path, query, body, request);
+    }
 }
