@@ -169,3 +169,61 @@ CREATE TABLE contribution (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     UNIQUE(campaign_id, household_id)
 );
+
+CREATE TABLE payment_intent (
+    id UUID PRIMARY KEY,
+    household_id UUID NOT NULL,
+    created_by UUID NOT NULL,
+    provider_code VARCHAR(30) NOT NULL,
+    merchant_order_id VARCHAR(80) NOT NULL UNIQUE,
+    idempotency_key VARCHAR(80) NOT NULL UNIQUE,
+    expected_amount NUMERIC(18,2) NOT NULL CHECK (expected_amount >= 0),
+    currency VARCHAR(3) NOT NULL CHECK (currency IN ('VND')),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING','SUCCEEDED','FAILED','EXPIRED','CANCELLED')),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    version BIGINT NOT NULL,
+    payment_id UUID,
+    qr_content TEXT,
+    checkout_url TEXT
+);
+
+CREATE TABLE payment (
+    id UUID PRIMARY KEY,
+    household_id UUID NOT NULL,
+    intent_id UUID UNIQUE,
+    recorded_by UUID,
+    payment_no VARCHAR(40) NOT NULL UNIQUE,
+    channel VARCHAR(20) NOT NULL CHECK (channel IN ('CASH','BANK_TRANSFER','QR','EWALLET')),
+    amount NUMERIC(18,2) NOT NULL CHECK (amount >= 0),
+    paid_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('POSTED','VOIDED')),
+    external_ref VARCHAR(120),
+    idempotency_key VARCHAR(80) UNIQUE,
+    UNIQUE(external_ref)
+);
+
+CREATE TABLE payment_allocation (
+    id UUID PRIMARY KEY,
+    payment_id UUID NOT NULL,
+    invoice_line_id UUID,
+    contribution_id UUID,
+    amount NUMERIC(18,2) NOT NULL CHECK (amount >= 0),
+    CHECK((invoice_line_id IS NULL) <> (contribution_id IS NULL)),
+    CHECK(amount > 0)
+);
+
+CREATE TABLE receipt (
+    id UUID PRIMARY KEY,
+    payment_id UUID NOT NULL UNIQUE,
+    receipt_no VARCHAR(40) NOT NULL UNIQUE,
+    issued_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    snapshot TEXT NOT NULL
+);
+
+CREATE TABLE provider (
+    id UUID PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE,
+    name VARCHAR(160) NOT NULL,
+    service_type VARCHAR(20) NOT NULL CHECK (service_type IN ('ELECTRICITY','WATER','INTERNET','OTHER')),
+    contact TEXT
+);
