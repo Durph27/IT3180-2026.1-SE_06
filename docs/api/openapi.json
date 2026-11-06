@@ -118,7 +118,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/auth/me": {
@@ -176,7 +177,8 @@
           }
         },
         "x-permission": "AUTHENTICATED",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -242,7 +244,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/auth/change-password": {
@@ -303,7 +306,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/buildings": {
@@ -379,7 +383,8 @@
           }
         },
         "x-permission": "building.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -454,7 +459,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/buildings/{id}": {
@@ -523,7 +529,8 @@
           }
         },
         "x-permission": "building.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -600,7 +607,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/apartments": {
@@ -696,7 +704,8 @@
           }
         },
         "x-permission": "apartment.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -771,7 +780,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/apartments/{id}": {
@@ -840,7 +850,8 @@
           }
         },
         "x-permission": "apartment.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -917,7 +928,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/households": {
@@ -993,7 +1005,8 @@
           }
         },
         "x-permission": "household.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -1068,7 +1081,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/households/{id}": {
@@ -1137,7 +1151,8 @@
           }
         },
         "x-permission": "household.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/households/{id}/close": {
@@ -1216,7 +1231,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/occupancies": {
