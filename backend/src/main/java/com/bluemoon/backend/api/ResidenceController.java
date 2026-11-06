@@ -82,4 +82,39 @@ public class ResidenceController {
         return api.execute("POST /households", path, query, body, request);
     }
 
+    @RequestMapping(value = "/households/{id}", method = RequestMethod.GET)
+    public ResponseEntity<?> get_households_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /households/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/households/{id}/close", method = RequestMethod.POST)
+    public ResponseEntity<?> post_households_by_id_close(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /households/{id}/close", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/occupancies", method = RequestMethod.GET)
+    public ResponseEntity<?> get_occupancies(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /occupancies", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/occupancies", method = RequestMethod.POST)
+    public ResponseEntity<?> post_occupancies(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /occupancies", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/occupancies/{id}", method = RequestMethod.GET)
+    public ResponseEntity<?> get_occupancies_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /occupancies/{id}", path, query, body, request);
+    }
+
 }
