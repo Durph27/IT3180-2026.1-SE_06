@@ -393,3 +393,13 @@ CREATE INDEX member_household_dates ON household_member(household_id, valid_from
 CREATE INDEX occupancy_apartment_dates ON household_apartment(apartment_id, valid_from, valid_to);
 
 CREATE INDEX occupancy_household_dates ON household_apartment(household_id, valid_from, valid_to);
+
+CREATE INDEX allocation_line ON payment_allocation(invoice_line_id);
+
+CREATE INDEX allocation_contribution ON payment_allocation(contribution_id);
+
+CREATE INDEX invoice_period ON invoice(period_id);
+
+CREATE INDEX payment_household_date ON payment(household_id, paid_at);
+
+CREATE UNIQUE INDEX user_lower_username ON app_user(username);
