@@ -6153,7 +6153,8 @@
           }
         },
         "x-permission": "provider.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -6230,7 +6231,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/service-subscriptions": {
@@ -6322,7 +6324,8 @@
           }
         },
         "x-permission": "subscription.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -6397,7 +6400,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/service-subscriptions/{id}": {
@@ -6466,7 +6470,8 @@
           }
         },
         "x-permission": "subscription.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -6543,7 +6548,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/utility-bills": {
@@ -6636,7 +6642,8 @@
           }
         },
         "x-permission": "utility-bill.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -6716,7 +6723,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/utility-bills/{id}": {
@@ -6785,7 +6793,8 @@
           }
         },
         "x-permission": "utility-bill.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/utility-bills/import": {
@@ -6858,7 +6867,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/reconciliations": {
@@ -6954,7 +6964,8 @@
           }
         },
         "x-permission": "reconciliation.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -7029,7 +7040,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/reconciliations/{id}": {
@@ -7098,7 +7110,8 @@
           }
         },
         "x-permission": "reconciliation.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reconciliations/{id}/items/{itemId}": {
@@ -7186,7 +7199,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/reconciliations/{id}/confirm": {
@@ -7258,7 +7272,8 @@
           }
         },
         "x-permission": "reconciliation.confirm",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notices": {
