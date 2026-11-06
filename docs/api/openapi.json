@@ -1325,7 +1325,8 @@
           }
         },
         "x-permission": "occupancy.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -1400,7 +1401,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/occupancies/{id}": {
@@ -1469,7 +1471,8 @@
           }
         },
         "x-permission": "occupancy.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/occupancies/{id}/end": {
@@ -1548,7 +1551,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/residents": {
@@ -1634,7 +1638,8 @@
           }
         },
         "x-permission": "resident.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -1709,7 +1714,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/residents/{id}": {
@@ -1778,7 +1784,8 @@
           }
         },
         "x-permission": "resident.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -1855,7 +1862,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/households/{id}/members": {
@@ -1941,7 +1949,8 @@
           }
         },
         "x-permission": "household.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -2027,7 +2036,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/households/{id}/members/{memberId}/end": {
@@ -2115,7 +2125,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/households/{id}/head": {
@@ -2194,7 +2205,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/residence-changes": {
@@ -2298,7 +2310,8 @@
           }
         },
         "x-permission": "residence-change.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -2373,7 +2386,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/residence-changes/{id}": {
@@ -2442,7 +2456,8 @@
           }
         },
         "x-permission": "residence-change.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/residence-changes/{id}/approve": {
