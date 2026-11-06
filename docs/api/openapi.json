@@ -3090,7 +3090,7 @@
         },
         "x-permission": "fee-type.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -3166,7 +3166,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/fee-types/{id}": {
@@ -3236,7 +3236,7 @@
         },
         "x-permission": "fee-type.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -3314,7 +3314,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/fee-types/{id}/rates": {
@@ -3414,7 +3414,7 @@
         },
         "x-permission": "fee-rate.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -3501,7 +3501,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/fee-rates/{id}": {
@@ -3581,7 +3581,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/billing-periods": {
@@ -3670,7 +3670,7 @@
         },
         "x-permission": "billing-period.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -3746,7 +3746,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/billing-periods/{id}": {
