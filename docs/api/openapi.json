@@ -3815,7 +3815,8 @@
           }
         },
         "x-permission": "billing-period.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -3892,7 +3893,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/billing-periods/{id}/generate-invoices": {
@@ -3964,7 +3966,8 @@
           }
         },
         "x-permission": "invoice.generate",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/billing-periods/{id}/issue": {
@@ -4036,7 +4039,8 @@
           }
         },
         "x-permission": "billing-period.issue",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/billing-periods/{id}/close": {
@@ -4105,7 +4109,8 @@
           }
         },
         "x-permission": "billing-period.close",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/invoices": {
@@ -4212,7 +4217,8 @@
           }
         },
         "x-permission": "invoice.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -4287,7 +4293,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/invoices/{id}": {
@@ -4356,7 +4363,8 @@
           }
         },
         "x-permission": "invoice.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/invoices/{id}/lines": {
@@ -4454,7 +4462,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/invoices/{id}/lines/{lineId}": {
@@ -4552,7 +4561,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       },
       "delete": {
         "tags": [
@@ -4631,7 +4641,8 @@
           }
         },
         "x-permission": "invoice.write",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/invoices/{id}/cancel": {
@@ -4726,7 +4737,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/contribution-campaigns": {
@@ -4795,7 +4807,8 @@
           }
         },
         "x-permission": "campaign.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -4870,7 +4883,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/contribution-campaigns/{id}": {
