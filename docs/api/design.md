@@ -1,11 +1,12 @@
 # BlueMoon — Quy ước và nghiệp vụ API
 
-Phiên bản `1.0.0-design`, ngày 05/11/2026. Bao phủ 36 thực thể của ERD 00–06,
-bao gồm [ERD thanh toán QR/ví](../ERD_Preview/ERD_06.svg).
-**Đây là contract thiết kế; backend hiện chỉ triển khai hello và health.**
+Phiên bản `1.1.0-sprint1`, ngày 06/11/2026. Bao phủ 36 thực thể ERD 00–06,
+bao gồm [ERD thanh toán QR/ví](../ERD_Preview/ERD_06.svg), cùng 4 model bảo trì bổ sung.
+**94/146 thao tác đã triển khai.** Phạm vi và quyết định triển khai tại
+[bàn giao Sprint 1](../sprint-1-hiep.md); OpenAPI đánh dấu `x-implemented` từng thao tác.
 
 - [OpenAPI 3.0.3](openapi.json): schema request/response, header, filter, HTTP và quyền.
-- [138 thao tác](endpoints.md): danh mục theo nhóm.
+- [146 thao tác](endpoints.md): danh mục theo nhóm.
 - [36 thực thể và DTO](data-dictionary.md): đối chiếu đầy đủ cột ERD, kiểu, nullable.
 - [API hệ thống đã triển khai](../api-contract.md#api-hệ-thống-đã-triển-khai).
 
@@ -100,7 +101,7 @@ tra nghiệp vụ. Vai trò khởi tạo đề xuất:
 | ADMIN | Toàn bộ catalog | Hệ thống |
 | MANAGER | Cư trú, phí, kỳ/bảng kê, đóng góp, thu hộ, thông báo, ticket và report; duyệt/phát hành/khóa/lập/hủy bảng kê | Chung cư, không tự có RBAC hoặc hủy thu tiền |
 | ACCOUNTANT | Đọc cư trú; quản lý phí/kỳ/bảng kê/đóng góp/thu hộ/đối soát; payment.read/record/void, receipt.read, payment-intent.read, payment-event.read, notice.read/remind và report | Chung cư |
-| STAFF | ticket.read/update/handle, notice.read | Ticket được giao, thông báo được nhận |
+| AUTHORITY | building.read, apartment.read, household.read, occupancy.read, resident.read, resident.identity.read, residence-change.read | Tra cứu cư trú toàn chung cư; không ghi và không xem tài chính |
 | RESIDENT | Đọc dữ liệu hộ/căn hộ/cư trú/xe/phí/kỳ/bảng kê/đóng góp/thu hộ/thanh toán; residence-change.read/write, contribution.read/write, payment-intent.read/create, notice.read, ticket.read/write/update | Hộ của tài khoản |
 
 Bảng là hướng dẫn seed, không phải wildcard runtime; gán các code cụ thể trong
@@ -113,8 +114,7 @@ kiểm tra hộ qua occupancy; householdId từ client không chứng minh quy�
 Khi membership kết thúc, cư dân mất quyền hộ, quản lý hỗ trợ tra cứu lịch sử.
 Lọc phạm vi trước đếm và phân trang. Che identityNo của người khác trừ chính
 chủ hoặc resident.identity.read. Thông báo chỉ người nhận hoặc notice.write;
-đánh dấu đọc chỉ user chủ recipient. Cư dân chỉ ticket của hộ, STAFF chỉ ticket
-được giao. Ngoài phạm vi xem trả 404. Audit chỉ audit.read được xem sau khi che.
+đánh dấu đọc chỉ user chủ recipient. Cư dân chỉ ticket của hộ. Không có vai trò STAFF. Ngoài phạm vi xem trả 404. Audit chỉ audit.read được xem sau khi che.
 
 ## 4. Căn hộ và cư trú
 
@@ -365,3 +365,13 @@ CSV và chống formula injection ở ô văn bản bắt đầu =/+/-/@. PDF th
 - Thay nghiệp vụ cập nhật cả OpenAPI và tài liệu. CORS nghiệp vụ cần cho phép
   Authorization, Content-Type, Idempotency-Key, If-Match và expose Location,
   X-Request-Id, Retry-After, Content-Disposition.
+
+## Sơ đồ vật lý và vai trò hiện hành
+
+ERD hiện hành: `docs/BlueMoon_ERD.drawio`, gồm 39 bảng vật lý từ migration.
+UML hiện hành: `docs/BlueMoon_UML.drawio`, gồm 5 actor và luồng component.
+Các ảnh ERD/UML preview và file Astah cũ là tài liệu lịch sử. Tên bảng vật lý
+`app_role`, `app_permission` tương ứng API `Role`, `Permission`; JSON snapshot
+lưu TEXT. Tổng tiền và collections trong response được tính từ các bảng liên quan.
+Danh mục vai trò cố định; POST /roles được giữ cho tương thích URL nhưng không
+thể tạo thêm vai trò. AUTHORITY không được cấp quyền ngoài nhóm đọc cư trú.
