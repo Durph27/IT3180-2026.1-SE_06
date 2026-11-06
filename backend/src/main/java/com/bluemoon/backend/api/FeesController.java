@@ -47,4 +47,39 @@ public class FeesController {
         return api.execute("GET /fee-types/{id}/rates", path, query, body, request);
     }
 
+    @RequestMapping(value = "/fee-types/{id}/rates", method = RequestMethod.POST)
+    public ResponseEntity<?> post_fee_types_by_id_rates(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /fee-types/{id}/rates", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/fee-rates/{id}", method = RequestMethod.PATCH)
+    public ResponseEntity<?> patch_fee_rates_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PATCH /fee-rates/{id}", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/billing-periods", method = RequestMethod.GET)
+    public ResponseEntity<?> get_billing_periods(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /billing-periods", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/billing-periods", method = RequestMethod.POST)
+    public ResponseEntity<?> post_billing_periods(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /billing-periods", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/billing-periods/{id}", method = RequestMethod.GET)
+    public ResponseEntity<?> get_billing_periods_by_id(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /billing-periods/{id}", path, query, body, request);
+    }
+
 }
