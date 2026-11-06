@@ -112,4 +112,75 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram id="physical-2" name="03 - Thanh toán và dịch vụ">
+    <mxGraphModel grid="1" page="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="note" value="&lt;b&gt;ERD vật lý Sprint 1&lt;/b&gt;&lt;br/&gt;Nguồn: Flyway V1–V3. JSON snapshot lưu TEXT; FK ghi tên cột. Quan hệ qua trang tham chiếu tên bảng.&lt;br/&gt;app_role.code: ADMIN, MANAGER, AUTHORITY, ACCOUNTANT, RESIDENT." parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="10" width="1440" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="payment" value="&lt;b&gt;payment&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;household_id UUID NOT NULL&lt;br/&gt;intent_id UUID UNIQUE&lt;br/&gt;recorded_by UUID&lt;br/&gt;payment_no VARCHAR(40) NOT NULL UNIQUE&lt;br/&gt;channel VARCHAR(20) NOT NULL CHECK (channel IN (&amp;#x27;CASH&amp;#x27;,&amp;#x27;BANK_TRANSFER&amp;#x27;,&amp;#x27;QR&amp;#x27;,&amp;#x27;EWALLET&amp;#x27;))&lt;br/&gt;amount NUMERIC(18,2) NOT NULL CHECK (amount &amp;gt;= 0)&lt;br/&gt;paid_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;status VARCHAR(20) NOT NULL CHECK (status IN (&amp;#x27;POSTED&amp;#x27;,&amp;#x27;VOIDED&amp;#x27;))&lt;br/&gt;external_ref VARCHAR(120)&lt;br/&gt;idempotency_key VARCHAR(80) UNIQUE&lt;br/&gt;UNIQUE(external_ref)&lt;br/&gt;FK household_id → household.id&lt;br/&gt;FK intent_id → payment_intent.id&lt;br/&gt;FK recorded_by → app_user.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="payment_allocation" value="&lt;b&gt;payment_allocation&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;payment_id UUID NOT NULL&lt;br/&gt;invoice_line_id UUID&lt;br/&gt;contribution_id UUID&lt;br/&gt;amount NUMERIC(18,2) NOT NULL CHECK (amount &amp;gt;= 0)&lt;br/&gt;CHECK((invoice_line_id IS NULL) &amp;lt;&amp;gt; (contribution_id IS NULL))&lt;br/&gt;CHECK(amount &amp;gt; 0)&lt;br/&gt;FK payment_id → payment.id&lt;br/&gt;FK invoice_line_id → invoice_line.id&lt;br/&gt;FK contribution_id → contribution.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="530" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="receipt" value="&lt;b&gt;receipt&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;payment_id UUID NOT NULL UNIQUE&lt;br/&gt;receipt_no VARCHAR(40) NOT NULL UNIQUE&lt;br/&gt;issued_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;snapshot TEXT NOT NULL&lt;br/&gt;FK payment_id → payment.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="1040" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="payment_intent" value="&lt;b&gt;payment_intent&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;household_id UUID NOT NULL&lt;br/&gt;created_by UUID NOT NULL&lt;br/&gt;provider_code VARCHAR(30) NOT NULL&lt;br/&gt;merchant_order_id VARCHAR(80) NOT NULL UNIQUE&lt;br/&gt;idempotency_key VARCHAR(80) NOT NULL UNIQUE&lt;br/&gt;expected_amount NUMERIC(18,2) NOT NULL CHECK (expected_amount &amp;gt;= 0)&lt;br/&gt;currency VARCHAR(3) NOT NULL CHECK (currency IN (&amp;#x27;VND&amp;#x27;))&lt;br/&gt;status VARCHAR(20) NOT NULL CHECK (status IN (&amp;#x27;PENDING&amp;#x27;,&amp;#x27;SUCCEEDED&amp;#x27;,&amp;#x27;FAILED&amp;#x27;,&amp;#x27;EXPIRED&amp;#x27;,&amp;#x27;CANCELLED&amp;#x27;))&lt;br/&gt;expires_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;version BIGINT NOT NULL&lt;br/&gt;payment_id UUID&lt;br/&gt;qr_content TEXT&lt;br/&gt;checkout_url TEXT&lt;br/&gt;FK household_id → household.id&lt;br/&gt;FK payment_id → payment.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="payment_intent_item" value="&lt;b&gt;payment_intent_item&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;intent_id UUID NOT NULL&lt;br/&gt;invoice_line_id UUID&lt;br/&gt;contribution_id UUID&lt;br/&gt;amount NUMERIC(18,2) NOT NULL CHECK (amount &amp;gt;= 0)&lt;br/&gt;FK intent_id → payment_intent.id&lt;br/&gt;FK invoice_line_id → invoice_line.id&lt;br/&gt;FK contribution_id → contribution.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="530" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="provider" value="&lt;b&gt;provider&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;code VARCHAR(30) NOT NULL UNIQUE&lt;br/&gt;name VARCHAR(160) NOT NULL&lt;br/&gt;service_type VARCHAR(20) NOT NULL CHECK (service_type IN (&amp;#x27;ELECTRICITY&amp;#x27;,&amp;#x27;WATER&amp;#x27;,&amp;#x27;INTERNET&amp;#x27;,&amp;#x27;OTHER&amp;#x27;))&lt;br/&gt;contact TEXT" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="1040" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="service_subscription" value="&lt;b&gt;service_subscription&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;occupancy_id UUID NOT NULL&lt;br/&gt;provider_id UUID NOT NULL&lt;br/&gt;customer_code VARCHAR(50) NOT NULL&lt;br/&gt;valid_from DATE NOT NULL&lt;br/&gt;valid_to DATE&lt;br/&gt;FK occupancy_id → household_apartment.id&lt;br/&gt;FK provider_id → provider.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="1320" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="utility_bill" value="&lt;b&gt;utility_bill&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;subscription_id UUID NOT NULL&lt;br/&gt;period_id UUID NOT NULL&lt;br/&gt;provider_bill_no VARCHAR(80) NOT NULL&lt;br/&gt;amount NUMERIC(18,2) NOT NULL CHECK (amount &amp;gt;= 0)&lt;br/&gt;imported_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;source_hash VARCHAR(64) NOT NULL&lt;br/&gt;FK subscription_id → service_subscription.id&lt;br/&gt;FK period_id → billing_period.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="530" y="1320" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="reconciliation" value="&lt;b&gt;reconciliation&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;provider_id UUID NOT NULL&lt;br/&gt;period_id UUID NOT NULL&lt;br/&gt;created_by UUID NOT NULL&lt;br/&gt;created_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;status VARCHAR(20) NOT NULL CHECK (status IN (&amp;#x27;DRAFT&amp;#x27;,&amp;#x27;CONFIRMED&amp;#x27;))&lt;br/&gt;FK provider_id → provider.id&lt;br/&gt;FK period_id → billing_period.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="1040" y="1320" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="reconciliation_item" value="&lt;b&gt;reconciliation_item&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;reconciliation_id UUID NOT NULL&lt;br/&gt;utility_bill_id UUID NOT NULL&lt;br/&gt;billed_amount NUMERIC(18,2) NOT NULL CHECK (billed_amount &amp;gt;= 0)&lt;br/&gt;collected_amount NUMERIC(18,2) NOT NULL CHECK (collected_amount &amp;gt;= 0)&lt;br/&gt;remitted_amount NUMERIC(18,2) NOT NULL CHECK (remitted_amount &amp;gt;= 0)&lt;br/&gt;note TEXT&lt;br/&gt;FK reconciliation_id → reconciliation.id&lt;br/&gt;FK utility_bill_id → utility_bill.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="1910" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="fk38" source="payment" target="payment_intent" value="payment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk40" source="payment_intent" target="payment" value="intent_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk42" source="payment" target="payment_allocation" value="payment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk45" source="payment" target="receipt" value="payment_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk47" source="provider" target="service_subscription" value="provider_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk48" source="service_subscription" target="utility_bill" value="subscription_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk50" source="provider" target="reconciliation" value="provider_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk52" source="reconciliation" target="reconciliation_item" value="reconciliation_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk53" source="utility_bill" target="reconciliation_item" value="utility_bill_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk54" source="payment_intent" target="payment_intent_item" value="intent_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
