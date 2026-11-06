@@ -1639,7 +1639,7 @@
         },
         "x-permission": "resident.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -1715,7 +1715,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/residents/{id}": {
@@ -1785,7 +1785,7 @@
         },
         "x-permission": "resident.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -1863,7 +1863,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/households/{id}/members": {
