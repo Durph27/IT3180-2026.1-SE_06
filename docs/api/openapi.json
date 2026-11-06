@@ -2526,7 +2526,8 @@
           }
         },
         "x-permission": "residence-change.approve",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/residence-changes/{id}/reject": {
@@ -2605,7 +2606,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/residence-changes/{id}/cancel": {
@@ -2674,7 +2676,8 @@
           }
         },
         "x-permission": "residence-change.write",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/vehicles": {
@@ -2771,7 +2774,8 @@
           }
         },
         "x-permission": "vehicle.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -2846,7 +2850,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/vehicles/{id}": {
@@ -2915,7 +2920,8 @@
           }
         },
         "x-permission": "vehicle.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -2992,7 +2998,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/fee-types": {
@@ -3082,7 +3089,8 @@
           }
         },
         "x-permission": "fee-type.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -3157,7 +3165,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/fee-types/{id}": {
@@ -3226,7 +3235,8 @@
           }
         },
         "x-permission": "fee-type.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -3303,7 +3313,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/fee-types/{id}/rates": {
@@ -3402,7 +3413,8 @@
           }
         },
         "x-permission": "fee-rate.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -3488,7 +3500,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/fee-rates/{id}": {
@@ -3567,7 +3580,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/billing-periods": {
@@ -3655,7 +3669,8 @@
           }
         },
         "x-permission": "billing-period.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -3730,7 +3745,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/billing-periods/{id}": {
