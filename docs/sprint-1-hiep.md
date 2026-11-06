@@ -58,3 +58,35 @@ thúc cư trú, giữ chỗ thanh toán và chặn hủy khoản thu đã chốt
 - PDF sinh bằng PDFBox, nhúng font Unicode tại runtime. Receipt JSON giữ snapshot
   nguyên bản; header `X-Payment-Status` cho biết POSTED/VOIDED. PDF đánh dấu HỦY
   theo trạng thái payment hiện tại, không sửa snapshot cũ.
+
+## Chạy local
+
+1. Cấu hình PostgreSQL và `.env` như README. Dùng database phát triển trống khi
+   chạy lần đầu. Flyway không tự baseline database đã có bảng hoặc xóa dữ liệu cũ.
+2. Điền `BOOTSTRAP_ADMIN_PASSWORD` ít nhất 12 ký tự trong `.env` local. Có thể đặt
+   `BOOTSTRAP_ADMIN_USERNAME`; mặc định `admin`. Không có mật khẩu mặc định.
+3. Từ `backend/`, chạy `./mvnw.cmd spring-boot:run`. Flyway chạy V1 và V2, sau đó
+   seed permission/role. Tài khoản admin chỉ được tạo khi `app_user` đang trống.
+4. Sau khi admin đã tạo, có thể bỏ giá trị bootstrap khỏi `.env`; bootstrap
+   không reset mật khẩu hoặc gán lại role cho user đã có.
+5. Nếu font không được tự phát hiện, đặt `PDF_FONT_PATH` tới file TTF hỗ trợ tiếng
+   Việt. Windows mặc định tìm Arial; Linux tìm DejaVuSans hoặc LiberationSans.
+   Trong file `.env`, dùng `/` cho đường dẫn hoặc escape `\\` theo Java properties.
+
+Đăng nhập bằng PowerShell, nhập thông tin thật vào prompt:
+
+```powershell
+$credential = Get-Credential
+$loginBody = @{
+  username = $credential.UserName
+  password = $credential.GetNetworkCredential().Password
+} | ConvertTo-Json
+$session = Invoke-RestMethod http://localhost:8080/api/auth/login `
+  -Method Post -ContentType 'application/json' -Body $loginBody
+$headers = @{ Authorization = "Bearer $($session.accessToken)" }
+Invoke-RestMethod http://localhost:8080/api/auth/me -Headers $headers
+```
+
+Không in token hoặc mật khẩu vào log, issue hoặc commit. Frontend tiếp tục dùng
+Vite proxy `/api`; lấy menu/quyền từ `profile.permissions`, dữ liệu hộ từ
+`profile.householdIds`. Backend vẫn kiểm tra quyền và phạm vi độc lập với menu.
