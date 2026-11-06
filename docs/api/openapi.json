@@ -9103,7 +9103,7 @@
         ],
         "summary": "Tạo Role",
         "operationId": "post_roles",
-        "description": "Quyền: `role.write`.",
+        "description": "Danh mục cố định gồm 5 vai trò được seed sẵn. Không tạo vai trò bổ sung; trả 409 cho mã hệ thống đã tồn tại, 400 cho mã ngoài enum.",
         "responses": {
           "201": {
             "description": "Đã tạo",
@@ -12548,7 +12548,14 @@
           "code": {
             "type": "string",
             "maxLength": 30,
-            "description": "ERD: code : varchar(30) UQ"
+            "description": "ERD: code : varchar(30) UQ",
+            "enum": [
+              "ADMIN",
+              "MANAGER",
+              "AUTHORITY",
+              "ACCOUNTANT",
+              "RESIDENT"
+            ]
           },
           "name": {
             "type": "string",
@@ -14228,7 +14235,14 @@
             "type": "string",
             "maxLength": 30,
             "description": "ERD: code : varchar(30) UQ",
-            "minLength": 1
+            "minLength": 1,
+            "enum": [
+              "ADMIN",
+              "MANAGER",
+              "AUTHORITY",
+              "ACCOUNTANT",
+              "RESIDENT"
+            ]
           },
           "name": {
             "type": "string",
