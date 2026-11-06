@@ -2527,7 +2527,7 @@
         },
         "x-permission": "residence-change.approve",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/residence-changes/{id}/reject": {
@@ -2607,7 +2607,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/residence-changes/{id}/cancel": {
@@ -2677,7 +2677,7 @@
         },
         "x-permission": "residence-change.write",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/vehicles": {
