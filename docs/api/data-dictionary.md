@@ -1,6 +1,6 @@
 # Đối chiếu thực thể ERD và DTO
 
-Nguồn: `docs/ERD_Preview/ERD_01.svg` đến `ERD_06.svg`. Tên JSON dùng camelCase. Tất cả thuộc tính response ERD có mặt, kể cả null; ngoại lệ `password_hash` luôn bị loại bỏ. Schema request giới hạn riêng các field client được ghi. Các enum là đề xuất thiết kế, xem [quy ước](../api-contract.md).
+Nguồn HTTP: `docs/api/openapi.json`. Database Sprint 1 đối chiếu `docs/BlueMoon_ERD.drawio` sinh từ migration V1–V3; các schema module chưa triển khai là thiết kế tương lai. Tên JSON dùng camelCase. Tất cả thuộc tính response ERD có mặt, kể cả null; ngoại lệ `password_hash` luôn bị loại bỏ. Schema request giới hạn riêng các field client được ghi. Các enum là đề xuất thiết kế, xem [quy ước](../api-contract.md).
 
 ## building → Building
 
@@ -78,7 +78,7 @@ Nguồn: `docs/ERD_Preview/ERD_01.svg` đến `ERD_06.svg`. Tên JSON dùng came
 | effective_from | effectiveFrom | date | Không |  |
 | effective_to | effectiveTo | date | Có |  |
 | status | status | varchar(20) | Không | PENDING, APPROVED, REJECTED, CANCELLED |
-| details | details | jsonb | Không |  |
+| details | details | text (JSON) | Không |  |
 
 ## app_user → AppUser
 
@@ -198,7 +198,7 @@ Nguồn: `docs/ERD_Preview/ERD_01.svg` đến `ERD_06.svg`. Tên JSON dùng came
 | payment_id | paymentId | uuid FK UQ | Không | Unique |
 | receipt_no | receiptNo | varchar(40) UQ | Không | Unique |
 | issued_at | issuedAt | timestamptz | Không |  |
-| snapshot | snapshot | jsonb | Không |  |
+| snapshot | snapshot | text (JSON) | Không |  |
 
 ## contribution_campaign → ContributionCampaign
 
@@ -368,8 +368,8 @@ Nguồn: `docs/ERD_Preview/ERD_01.svg` đến `ERD_06.svg`. Tên JSON dùng came
 | action | action | varchar(40) | Không |  |
 | entity_type | entityType | varchar(60) | Không |  |
 | entity_id | entityId | uuid | Không |  |
-| before_data | beforeData | jsonb | Có |  |
-| after_data | afterData | jsonb | Có |  |
+| before_data | beforeData | text (JSON) | Có |  |
+| after_data | afterData | text (JSON) | Có |  |
 | occurred_at | occurredAt | timestamptz | Không |  |
 | request_id | requestId | varchar(80) | Không |  |
 
@@ -413,3 +413,60 @@ Nguồn: `docs/ERD_Preview/ERD_01.svg` đến `ERD_06.svg`. Tên JSON dùng came
 | processing_status | processingStatus | varchar(20) | Không | RECEIVED, PROCESSED, DUPLICATE, REJECTED, REVIEW_REQUIRED |
 | payload_hash | payloadHash | varchar(64) | Không |  |
 
+
+## Bảo trì — model bổ sung Sprint 1
+
+Bốn model sau bổ sung cho US09, chưa có trong ERD gốc. Migration V2 là schema vật lý.
+
+### MaintenanceFund
+
+| JSON | Kiểu API | Nguồn |
+| --- | --- | --- |
+| `id` | uuid | Lưu trữ; xem migration V2 |
+| `code` | string | Lưu trữ; xem migration V2 |
+| `name` | string | Lưu trữ; xem migration V2 |
+| `openingBalance` | string | Lưu trữ; xem migration V2 |
+| `openingDate` | date | Lưu trữ; xem migration V2 |
+| `createdAt` | date-time | Lưu trữ; xem migration V2 |
+| `createdBy` | uuid | Lưu trữ; xem migration V2 |
+| `collectedAmount` | string | Dẫn xuất, chỉ đọc |
+| `expenseAmount` | string | Dẫn xuất, chỉ đọc |
+| `balance` | string | Dẫn xuất, chỉ đọc |
+
+### MaintenanceRound
+
+| JSON | Kiểu API | Nguồn |
+| --- | --- | --- |
+| `id` | uuid | Lưu trữ; xem migration V2 |
+| `fundId` | uuid | Lưu trữ; xem migration V2 |
+| `periodId` | uuid | Lưu trữ; xem migration V2 |
+| `feeTypeId` | uuid | Lưu trữ; xem migration V2 |
+| `description` | string | Lưu trữ; xem migration V2 |
+| `allocationBasis` | string | Lưu trữ; xem migration V2 |
+| `totalCost` | string | Lưu trữ; xem migration V2 |
+| `snapshotDate` | date | Lưu trữ; xem migration V2 |
+| `createdAt` | date-time | Lưu trữ; xem migration V2 |
+| `createdBy` | uuid | Lưu trữ; xem migration V2 |
+| `allocations` | array | Dẫn xuất, chỉ đọc |
+
+### MaintenanceAllocation
+
+| JSON | Kiểu API | Nguồn |
+| --- | --- | --- |
+| `id` | uuid | Lưu trữ; xem migration V2 |
+| `roundId` | uuid | Lưu trữ; xem migration V2 |
+| `occupancyId` | uuid | Lưu trữ; xem migration V2 |
+| `invoiceLineId` | uuid | Lưu trữ; xem migration V2 |
+| `weight` | string | Lưu trữ; xem migration V2 |
+| `amount` | string | Lưu trữ; xem migration V2 |
+
+### MaintenanceExpense
+
+| JSON | Kiểu API | Nguồn |
+| --- | --- | --- |
+| `id` | uuid | Lưu trữ; xem migration V2 |
+| `fundId` | uuid | Lưu trữ; xem migration V2 |
+| `amount` | string | Lưu trữ; xem migration V2 |
+| `spentAt` | date-time | Lưu trữ; xem migration V2 |
+| `description` | string | Lưu trữ; xem migration V2 |
+| `recordedBy` | uuid | Lưu trữ; xem migration V2 |

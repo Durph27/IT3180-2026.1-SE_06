@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "BlueMoon API Contract",
-    "version": "1.0.0-design",
-    "description": "Contract thiết kế dựa trên ERD_00–06 ngày 05/11/2026. Chỉ GET /hello và /health đã được triển khai. Xem api-contract.md cho giả định, phân quyền và các bất biến nghiệp vụ."
+    "version": "1.1.0-sprint1",
+    "description": "Thiết kế và phạm vi triển khai Sprint 1. Xem docs/sprint-1-hiep.md cho các endpoint đã triển khai, bổ sung US09 và các module còn ở mức thiết kế."
   },
   "servers": [
     {
@@ -47,6 +47,9 @@
     },
     {
       "name": "Hệ thống"
+    },
+    {
+      "name": "Bảo trì"
     }
   ],
   "security": [
@@ -118,7 +121,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/auth/me": {
@@ -176,7 +180,8 @@
           }
         },
         "x-permission": "AUTHENTICATED",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -242,7 +247,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/auth/change-password": {
@@ -303,7 +309,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/buildings": {
@@ -379,7 +386,8 @@
           }
         },
         "x-permission": "building.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -454,7 +462,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/buildings/{id}": {
@@ -523,7 +532,8 @@
           }
         },
         "x-permission": "building.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -600,7 +610,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/apartments": {
@@ -696,7 +707,8 @@
           }
         },
         "x-permission": "apartment.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -771,7 +783,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/apartments/{id}": {
@@ -840,7 +853,8 @@
           }
         },
         "x-permission": "apartment.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -917,7 +931,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/households": {
@@ -993,7 +1008,8 @@
           }
         },
         "x-permission": "household.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -1068,7 +1084,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/households/{id}": {
@@ -1137,7 +1154,8 @@
           }
         },
         "x-permission": "household.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/households/{id}/close": {
@@ -1216,7 +1234,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/occupancies": {
@@ -1309,7 +1328,8 @@
           }
         },
         "x-permission": "occupancy.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -1384,7 +1404,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/occupancies/{id}": {
@@ -1453,7 +1474,8 @@
           }
         },
         "x-permission": "occupancy.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/occupancies/{id}/end": {
@@ -1532,7 +1554,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/residents": {
@@ -1618,7 +1641,8 @@
           }
         },
         "x-permission": "resident.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -1693,7 +1717,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/residents/{id}": {
@@ -1762,7 +1787,8 @@
           }
         },
         "x-permission": "resident.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -1839,7 +1865,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/households/{id}/members": {
@@ -1925,7 +1952,8 @@
           }
         },
         "x-permission": "household.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -2011,7 +2039,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/households/{id}/members/{memberId}/end": {
@@ -2099,7 +2128,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/households/{id}/head": {
@@ -2178,7 +2208,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/residence-changes": {
@@ -2282,7 +2313,8 @@
           }
         },
         "x-permission": "residence-change.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -2357,7 +2389,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/residence-changes/{id}": {
@@ -2426,7 +2459,8 @@
           }
         },
         "x-permission": "residence-change.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/residence-changes/{id}/approve": {
@@ -2495,7 +2529,8 @@
           }
         },
         "x-permission": "residence-change.approve",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/residence-changes/{id}/reject": {
@@ -2574,7 +2609,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/residence-changes/{id}/cancel": {
@@ -2643,7 +2679,8 @@
           }
         },
         "x-permission": "residence-change.write",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/vehicles": {
@@ -2740,7 +2777,8 @@
           }
         },
         "x-permission": "vehicle.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -2815,7 +2853,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/vehicles/{id}": {
@@ -2884,7 +2923,8 @@
           }
         },
         "x-permission": "vehicle.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -2961,7 +3001,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/fee-types": {
@@ -3051,7 +3092,8 @@
           }
         },
         "x-permission": "fee-type.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -3126,7 +3168,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/fee-types/{id}": {
@@ -3195,7 +3238,8 @@
           }
         },
         "x-permission": "fee-type.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -3272,7 +3316,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/fee-types/{id}/rates": {
@@ -3371,7 +3416,8 @@
           }
         },
         "x-permission": "fee-rate.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -3457,7 +3503,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/fee-rates/{id}": {
@@ -3536,7 +3583,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/billing-periods": {
@@ -3624,7 +3672,8 @@
           }
         },
         "x-permission": "billing-period.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -3699,7 +3748,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/billing-periods/{id}": {
@@ -3768,7 +3818,8 @@
           }
         },
         "x-permission": "billing-period.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -3845,7 +3896,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/billing-periods/{id}/generate-invoices": {
@@ -3917,7 +3969,8 @@
           }
         },
         "x-permission": "invoice.generate",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/billing-periods/{id}/issue": {
@@ -3989,7 +4042,8 @@
           }
         },
         "x-permission": "billing-period.issue",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/billing-periods/{id}/close": {
@@ -4058,7 +4112,8 @@
           }
         },
         "x-permission": "billing-period.close",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/invoices": {
@@ -4165,7 +4220,8 @@
           }
         },
         "x-permission": "invoice.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -4240,7 +4296,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/invoices/{id}": {
@@ -4309,7 +4366,8 @@
           }
         },
         "x-permission": "invoice.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/invoices/{id}/lines": {
@@ -4407,7 +4465,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/invoices/{id}/lines/{lineId}": {
@@ -4505,7 +4564,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       },
       "delete": {
         "tags": [
@@ -4584,7 +4644,8 @@
           }
         },
         "x-permission": "invoice.write",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/invoices/{id}/cancel": {
@@ -4679,7 +4740,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/contribution-campaigns": {
@@ -4748,7 +4810,8 @@
           }
         },
         "x-permission": "campaign.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -4823,7 +4886,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/contribution-campaigns/{id}": {
@@ -4892,7 +4956,8 @@
           }
         },
         "x-permission": "campaign.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -4969,7 +5034,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/contribution-campaigns/{id}/contributions": {
@@ -5055,7 +5121,8 @@
           }
         },
         "x-permission": "contribution.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -5141,7 +5208,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/contributions/{id}": {
@@ -5210,7 +5278,8 @@
           }
         },
         "x-permission": "contribution.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -5287,7 +5356,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/payments": {
@@ -5404,7 +5474,8 @@
           }
         },
         "x-permission": "payment.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -5484,7 +5555,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/payments/{id}": {
@@ -5553,7 +5625,8 @@
           }
         },
         "x-permission": "payment.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/payments/{id}/void": {
@@ -5635,7 +5708,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/payments/{id}/receipt": {
@@ -5704,7 +5778,8 @@
           }
         },
         "x-permission": "receipt.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/receipts/{id}": {
@@ -5773,7 +5848,8 @@
           }
         },
         "x-permission": "receipt.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/receipts/{id}/pdf": {
@@ -5851,7 +5927,8 @@
           }
         },
         "x-permission": "receipt.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/providers": {
@@ -5933,7 +6010,8 @@
           }
         },
         "x-permission": "provider.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -6008,7 +6086,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/providers/{id}": {
@@ -6077,7 +6156,8 @@
           }
         },
         "x-permission": "provider.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -6154,7 +6234,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/service-subscriptions": {
@@ -6246,7 +6327,8 @@
           }
         },
         "x-permission": "subscription.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -6321,7 +6403,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/service-subscriptions/{id}": {
@@ -6390,7 +6473,8 @@
           }
         },
         "x-permission": "subscription.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "patch": {
         "tags": [
@@ -6467,7 +6551,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/utility-bills": {
@@ -6560,7 +6645,8 @@
           }
         },
         "x-permission": "utility-bill.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -6640,7 +6726,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/utility-bills/{id}": {
@@ -6709,7 +6796,8 @@
           }
         },
         "x-permission": "utility-bill.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/utility-bills/import": {
@@ -6782,7 +6870,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/reconciliations": {
@@ -6878,7 +6967,8 @@
           }
         },
         "x-permission": "reconciliation.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -6953,7 +7043,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/reconciliations/{id}": {
@@ -7022,7 +7113,8 @@
           }
         },
         "x-permission": "reconciliation.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reconciliations/{id}/items/{itemId}": {
@@ -7110,7 +7202,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/reconciliations/{id}/confirm": {
@@ -7182,7 +7275,8 @@
           }
         },
         "x-permission": "reconciliation.confirm",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notices": {
@@ -7270,7 +7364,8 @@
           }
         },
         "x-permission": "notice.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -7350,7 +7445,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/notices/{id}": {
@@ -7419,7 +7515,8 @@
           }
         },
         "x-permission": "notice.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notices/{id}/recipients": {
@@ -7516,7 +7613,8 @@
           }
         },
         "x-permission": "notice.delivery.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/me/notice-recipients": {
@@ -7597,7 +7695,8 @@
           }
         },
         "x-permission": "AUTHENTICATED",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notice-recipients/{id}/read": {
@@ -7666,7 +7765,8 @@
           }
         },
         "x-permission": "AUTHENTICATED",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notice-recipients/{id}/retry": {
@@ -7735,7 +7835,8 @@
           }
         },
         "x-permission": "notice.write",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notices/fee-reminders": {
@@ -7808,7 +7909,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/tickets": {
@@ -7905,7 +8007,8 @@
           }
         },
         "x-permission": "ticket.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -7980,7 +8083,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/tickets/{id}": {
@@ -8049,7 +8153,8 @@
           }
         },
         "x-permission": "ticket.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/tickets/{id}/assignee": {
@@ -8128,7 +8233,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/tickets/{id}/updates": {
@@ -8206,7 +8312,8 @@
           }
         },
         "x-permission": "ticket.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -8292,7 +8399,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/users": {
@@ -8388,7 +8496,8 @@
           }
         },
         "x-permission": "user.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -8463,7 +8572,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/users/{id}": {
@@ -8532,7 +8642,8 @@
           }
         },
         "x-permission": "user.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -8609,7 +8720,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/users/{id}/status": {
@@ -8688,7 +8800,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/users/{id}/reset-password": {
@@ -8760,7 +8873,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/users/{id}/roles": {
@@ -8832,7 +8946,8 @@
           }
         },
         "x-permission": "user.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "put": {
         "tags": [
@@ -8912,7 +9027,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/roles": {
@@ -8981,7 +9097,8 @@
           }
         },
         "x-permission": "role.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -8989,7 +9106,7 @@
         ],
         "summary": "Tạo Role",
         "operationId": "post_roles",
-        "description": "Quyền: `role.write`.",
+        "description": "Danh mục cố định gồm 5 vai trò được seed sẵn. Không tạo vai trò bổ sung; trả 409 cho mã hệ thống đã tồn tại, 400 cho mã ngoài enum.",
         "responses": {
           "201": {
             "description": "Đã tạo",
@@ -9056,7 +9173,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/roles/{id}": {
@@ -9125,7 +9243,8 @@
           }
         },
         "x-permission": "role.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "patch": {
         "tags": [
@@ -9202,7 +9321,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/roles/{id}/permissions": {
@@ -9274,7 +9394,8 @@
           }
         },
         "x-permission": "role.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       },
       "put": {
         "tags": [
@@ -9354,7 +9475,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": true
       }
     },
     "/permissions": {
@@ -9430,7 +9552,8 @@
           }
         },
         "x-permission": "role.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": true
       }
     },
     "/audit-logs": {
@@ -9545,7 +9668,8 @@
           }
         },
         "x-permission": "audit.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/audit-logs/{id}": {
@@ -9614,7 +9738,8 @@
           }
         },
         "x-permission": "audit.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/payment-intents": {
@@ -9712,7 +9837,8 @@
           }
         },
         "x-permission": "payment-intent.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -9792,7 +9918,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/payment-intents/{id}": {
@@ -9861,7 +9988,8 @@
           }
         },
         "x-permission": "payment-intent.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/payment-intents/{id}/cancel": {
@@ -9940,7 +10068,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/payment-intents/{id}/events": {
@@ -10018,7 +10147,8 @@
           }
         },
         "x-permission": "payment-event.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/payment-gateways/{providerCode}/events": {
@@ -10110,7 +10240,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/reports/revenue": {
@@ -10188,7 +10319,8 @@
           }
         },
         "x-permission": "report.revenue",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/revenue/export": {
@@ -10275,7 +10407,8 @@
           }
         },
         "x-permission": "report.export",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/debts": {
@@ -10360,7 +10493,8 @@
           }
         },
         "x-permission": "report.debts",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/debts/export": {
@@ -10445,7 +10579,8 @@
           }
         },
         "x-permission": "report.export",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/contributions": {
@@ -10530,7 +10665,8 @@
           }
         },
         "x-permission": "report.contributions",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/contributions/export": {
@@ -10615,7 +10751,8 @@
           }
         },
         "x-permission": "report.export",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/collections": {
@@ -10700,7 +10837,8 @@
           }
         },
         "x-permission": "report.collections",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/collections/export": {
@@ -10785,7 +10923,8 @@
           }
         },
         "x-permission": "report.export",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/hello": {
@@ -10811,7 +10950,8 @@
         },
         "x-permission": "PUBLIC",
         "x-implementation-status": "implemented",
-        "security": []
+        "security": [],
+        "x-implemented": true
       }
     },
     "/health": {
@@ -10846,7 +10986,988 @@
         },
         "x-permission": "PUBLIC",
         "x-implementation-status": "implemented",
-        "security": []
+        "security": [],
+        "x-implemented": true
+      }
+    },
+    "/maintenance-funds": {
+      "get": {
+        "tags": [
+          "Bảo trì"
+        ],
+        "summary": "maintenance-fund.read",
+        "operationId": "get_maintenance_funds",
+        "x-permission": "maintenance-fund.read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Size"
+          },
+          {
+            "$ref": "#/components/parameters/Sort"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceFundPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      },
+      "post": {
+        "tags": [
+          "Bảo trì"
+        ],
+        "summary": "maintenance-fund.write",
+        "operationId": "post_maintenance_funds",
+        "x-permission": "maintenance-fund.write",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceFund"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceFundCreate"
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      }
+    },
+    "/maintenance-funds/{id}": {
+      "get": {
+        "tags": [
+          "Bảo trì"
+        ],
+        "summary": "maintenance-fund.read",
+        "operationId": "get_maintenance_funds_id",
+        "x-permission": "maintenance-fund.read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceFund"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      }
+    },
+    "/maintenance-funds/{id}/expenses": {
+      "get": {
+        "tags": [
+          "Bảo trì"
+        ],
+        "summary": "maintenance-expense.read",
+        "operationId": "get_maintenance_funds_id_expenses",
+        "x-permission": "maintenance-expense.read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Size"
+          },
+          {
+            "$ref": "#/components/parameters/Sort"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceExpensePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      },
+      "post": {
+        "tags": [
+          "Bảo trì"
+        ],
+        "summary": "maintenance-expense.record",
+        "operationId": "post_maintenance_funds_id_expenses",
+        "x-permission": "maintenance-expense.record",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceExpense"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceExpenseCreate"
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      }
+    },
+    "/maintenance-rounds": {
+      "get": {
+        "tags": [
+          "Bảo trì"
+        ],
+        "summary": "maintenance-round.read",
+        "operationId": "get_maintenance_rounds",
+        "x-permission": "maintenance-round.read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Size"
+          },
+          {
+            "$ref": "#/components/parameters/Sort"
+          },
+          {
+            "name": "fundId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRoundPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      },
+      "post": {
+        "tags": [
+          "Bảo trì"
+        ],
+        "summary": "maintenance-round.write",
+        "operationId": "post_maintenance_rounds",
+        "x-permission": "maintenance-round.write",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRound"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceRoundCreate"
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      }
+    },
+    "/maintenance-rounds/{id}": {
+      "get": {
+        "tags": [
+          "Bảo trì"
+        ],
+        "summary": "maintenance-round.read",
+        "operationId": "get_maintenance_rounds_id",
+        "x-permission": "maintenance-round.read",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRound"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-implemented": true
       }
     }
   },
@@ -11196,7 +12317,7 @@
           "details": {
             "type": "object",
             "additionalProperties": true,
-            "description": "ERD: details : jsonb"
+            "description": "ERD: details : text (JSON)"
           }
         },
         "required": [
@@ -12410,7 +13531,14 @@
           "code": {
             "type": "string",
             "maxLength": 30,
-            "description": "ERD: code : varchar(30) UQ"
+            "description": "ERD: code : varchar(30) UQ",
+            "enum": [
+              "ADMIN",
+              "MANAGER",
+              "AUTHORITY",
+              "ACCOUNTANT",
+              "RESIDENT"
+            ]
           },
           "name": {
             "type": "string",
@@ -12523,13 +13651,13 @@
             "type": "object",
             "additionalProperties": true,
             "nullable": true,
-            "description": "ERD: before_data : jsonb ?"
+            "description": "ERD: before_data : text (JSON) ?"
           },
           "afterData": {
             "type": "object",
             "additionalProperties": true,
             "nullable": true,
-            "description": "ERD: after_data : jsonb ?"
+            "description": "ERD: after_data : text (JSON) ?"
           },
           "occurredAt": {
             "type": "string",
@@ -13298,7 +14426,7 @@
           "details": {
             "type": "object",
             "additionalProperties": true,
-            "description": "ERD: details : jsonb"
+            "description": "ERD: details : text (JSON)"
           }
         },
         "required": [
@@ -14090,7 +15218,14 @@
             "type": "string",
             "maxLength": 30,
             "description": "ERD: code : varchar(30) UQ",
-            "minLength": 1
+            "minLength": 1,
+            "enum": [
+              "ADMIN",
+              "MANAGER",
+              "AUTHORITY",
+              "ACCOUNTANT",
+              "RESIDENT"
+            ]
           },
           "name": {
             "type": "string",
@@ -16413,6 +17548,465 @@
           "totalElements": {
             "type": "integer",
             "format": "int64",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "content",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages"
+        ]
+      },
+      "MaintenanceFundCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "openingBalance": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money."
+          },
+          "openingDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "openingBalance",
+          "openingDate"
+        ]
+      },
+      "MaintenanceFund": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "openingBalance": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money."
+          },
+          "openingDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "collectedAmount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money."
+          },
+          "expenseAmount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money."
+          },
+          "balance": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money."
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "openingBalance",
+          "openingDate",
+          "createdAt",
+          "createdBy",
+          "collectedAmount",
+          "expenseAmount",
+          "balance"
+        ]
+      },
+      "MaintenanceRoundCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fundId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "periodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "feeTypeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "allocationBasis": {
+            "type": "string",
+            "enum": [
+              "EQUAL",
+              "PER_M2"
+            ]
+          },
+          "totalCost": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money.",
+            "not": {
+              "enum": [
+                "0.00"
+              ]
+            }
+          },
+          "occupancyIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1000,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "fundId",
+          "periodId",
+          "feeTypeId",
+          "description",
+          "allocationBasis",
+          "totalCost",
+          "occupancyIds"
+        ]
+      },
+      "MaintenanceAllocation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "roundId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occupancyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "invoiceLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "weight": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,8})\\.[0-9]{3}$",
+            "description": "numeric(12,3)"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money."
+          }
+        },
+        "required": [
+          "id",
+          "roundId",
+          "occupancyId",
+          "invoiceLineId",
+          "weight",
+          "amount"
+        ]
+      },
+      "MaintenanceRound": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fundId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "periodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "feeTypeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "allocationBasis": {
+            "type": "string",
+            "enum": [
+              "EQUAL",
+              "PER_M2"
+            ]
+          },
+          "totalCost": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money.",
+            "not": {
+              "enum": [
+                "0.00"
+              ]
+            }
+          },
+          "snapshotDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceAllocation"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "fundId",
+          "periodId",
+          "feeTypeId",
+          "description",
+          "allocationBasis",
+          "totalCost",
+          "snapshotDate",
+          "createdAt",
+          "createdBy",
+          "allocations"
+        ]
+      },
+      "MaintenanceExpenseCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money.",
+            "not": {
+              "enum": [
+                "0.00"
+              ]
+            }
+          },
+          "spentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "amount",
+          "spentAt",
+          "description"
+        ]
+      },
+      "MaintenanceExpense": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fundId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "example": "150000.00",
+            "description": "Số tiền > 0; quy tắc định dạng như Money.",
+            "not": {
+              "enum": [
+                "0.00"
+              ]
+            }
+          },
+          "spentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "recordedBy": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "fundId",
+          "amount",
+          "spentAt",
+          "description",
+          "recordedBy"
+        ]
+      },
+      "MaintenanceFundPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceFund"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "totalElements": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "content",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages"
+        ]
+      },
+      "MaintenanceRoundPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceRound"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "totalElements": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "content",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages"
+        ]
+      },
+      "MaintenanceExpensePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceExpense"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "totalElements": {
+            "type": "integer",
             "minimum": 0
           },
           "totalPages": {

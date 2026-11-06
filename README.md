@@ -1,8 +1,13 @@
 # BlueMoon Fee Management System
 
-Skeleton full stack quản lý thu phí chung cư: React + JavaScript + CSS + Vite,
-Spring Boot + Java 21, PostgreSQL. Hiện có trang kiểm tra kết nối và API health;
-chưa triển khai chức năng quản lý căn hộ/thu phí.
+Hệ thống quản lý thu phí chung cư: React + JavaScript + CSS + Vite,
+Spring Boot + Java 21, PostgreSQL. Backend Sprint 1 có RBAC, căn hộ/cư trú,
+loại phí/kỳ thu, bảng kê thủ công, thu tiền/biên lai và quỹ bảo trì.
+Frontend hiện vẫn là trang kiểm tra kết nối.
+
+Xem [bàn giao backend Sprint 1 của Hiệp](docs/sprint-1-hiep.md) để khởi tạo admin,
+chạy migration, tích hợp API và kiểm thử. Các API khác còn ở mức thiết kế được
+phân biệt bằng `x-implemented` trong OpenAPI.
 
 ## Yêu cầu
 
@@ -142,3 +147,9 @@ docs/
 
 Tài liệu: [kiến trúc](docs/architecture.md), [API](docs/api-contract.md),
 [database](docs/database-design.md).
+
+### Sơ đồ và nhánh Sprint 1
+
+Sơ đồ hiện hành: [ERD](docs/BlueMoon_ERD.drawio), [UML](docs/BlueMoon_UML.drawio).
+File Astah và ảnh preview trước đây là bản lịch sử. Xem [các nhánh tính năng](docs/feature-branches.md)
+và [hướng dẫn Sprint 1](docs/sprint-1-hiep.md) để chạy và tích hợp.
