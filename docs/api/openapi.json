@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "BlueMoon API Contract",
-    "version": "1.0.0-design",
-    "description": "Contract thiết kế dựa trên ERD_00–06 ngày 05/11/2026. Chỉ GET /hello và /health đã được triển khai. Xem api-contract.md cho giả định, phân quyền và các bất biến nghiệp vụ."
+    "version": "1.1.0-sprint1",
+    "description": "Thiết kế và phạm vi triển khai Sprint 1. Xem docs/sprint-1-hiep.md cho các endpoint đã triển khai, bổ sung US09 và các module còn ở mức thiết kế."
   },
   "servers": [
     {
@@ -47,6 +47,9 @@
     },
     {
       "name": "Hệ thống"
+    },
+    {
+      "name": "Bảo trì"
     }
   ],
   "security": [
