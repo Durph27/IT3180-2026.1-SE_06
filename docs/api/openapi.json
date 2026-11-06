@@ -2311,7 +2311,7 @@
         },
         "x-permission": "residence-change.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -2387,7 +2387,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/residence-changes/{id}": {
@@ -2457,7 +2457,7 @@
         },
         "x-permission": "residence-change.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/residence-changes/{id}/approve": {
