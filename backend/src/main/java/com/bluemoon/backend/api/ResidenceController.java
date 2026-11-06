@@ -117,4 +117,38 @@ public class ResidenceController {
         return api.execute("GET /occupancies/{id}", path, query, body, request);
     }
 
+    @RequestMapping(value = "/occupancies/{id}/end", method = RequestMethod.POST)
+    public ResponseEntity<?> post_occupancies_by_id_end(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /occupancies/{id}/end", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/households/{id}/members", method = RequestMethod.GET)
+    public ResponseEntity<?> get_households_by_id_members(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /households/{id}/members", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/households/{id}/members", method = RequestMethod.POST)
+    public ResponseEntity<?> post_households_by_id_members(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /households/{id}/members", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/households/{id}/members/{memberId}/end", method = RequestMethod.POST)
+    public ResponseEntity<?> post_households_by_id_members_by_memberId_end(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /households/{id}/members/{memberId}/end", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/households/{id}/head", method = RequestMethod.PUT)
+    public ResponseEntity<?> put_households_by_id_head(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PUT /households/{id}/head", path, query, body, request);
+    }
 }
