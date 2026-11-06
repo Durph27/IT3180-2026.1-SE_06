@@ -7361,7 +7361,8 @@
           }
         },
         "x-permission": "notice.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -7441,7 +7442,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/notices/{id}": {
@@ -7510,7 +7512,8 @@
           }
         },
         "x-permission": "notice.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notices/{id}/recipients": {
@@ -7607,7 +7610,8 @@
           }
         },
         "x-permission": "notice.delivery.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/me/notice-recipients": {
@@ -7688,7 +7692,8 @@
           }
         },
         "x-permission": "AUTHENTICATED",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notice-recipients/{id}/read": {
@@ -7757,7 +7762,8 @@
           }
         },
         "x-permission": "AUTHENTICATED",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notice-recipients/{id}/retry": {
@@ -7826,7 +7832,8 @@
           }
         },
         "x-permission": "notice.write",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/notices/fee-reminders": {
@@ -7899,7 +7906,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/tickets": {
@@ -7996,7 +8004,8 @@
           }
         },
         "x-permission": "ticket.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       },
       "post": {
         "tags": [
@@ -8071,7 +8080,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/tickets/{id}": {
@@ -8140,7 +8150,8 @@
           }
         },
         "x-permission": "ticket.read",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/tickets/{id}/assignee": {
@@ -8219,7 +8230,8 @@
               }
             }
           }
-        }
+        },
+        "x-implemented": false
       }
     },
     "/tickets/{id}/updates": {
