@@ -12523,13 +12523,13 @@
             "type": "object",
             "additionalProperties": true,
             "nullable": true,
-            "description": "ERD: before_data : jsonb ?"
+            "description": "ERD: before_data : text (JSON) ?"
           },
           "afterData": {
             "type": "object",
             "additionalProperties": true,
             "nullable": true,
-            "description": "ERD: after_data : jsonb ?"
+            "description": "ERD: after_data : text (JSON) ?"
           },
           "occurredAt": {
             "type": "string",
