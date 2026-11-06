@@ -94,4 +94,43 @@ class SprintOneTests {
     void issue(Bill bill)throws Exception {assertThat(call("POST","/billing-periods/"+bill.period()+"/issue",null,admin,unique()).status()).isEqualTo(200);}
     Map<String,Object> payment(Bill bill,String amount) {return map("householdId",bill.home().household(),"channel","CASH","amount",amount,"paidAt",Instant.now().minusSeconds(1).toString(),"allocations",List.of(map("invoiceLineId",bill.line(),"amount",amount)));}
 
+    @Test void exactlyFiveRolesAndAuthorityCannotReadFinanceOrWriteResidence() throws Exception {
+        assertThat(roleIds.keySet()).containsExactlyInAnyOrder("ADMIN","MANAGER","AUTHORITY","ACCOUNTANT","RESIDENT");
+        assertThat(call("POST","/roles",map("code","STAFF","name","Staff"),admin,null).status()).isEqualTo(400);
+        assertThat(call("POST","/roles",map("code","ADMIN","name","Duplicate"),admin,null).status()).isEqualTo(409);
+        var person=resident(); String authority=token(user("AUTHORITY",null));
+        assertThat(call("GET","/residents/"+id(person),null,authority,null).body().get("identityNo")).isEqualTo(person.get("identityNo"));
+        assertThat(call("GET","/households",null,authority,null).status()).isEqualTo(200);
+        assertThat(call("GET","/payments",null,authority,null).status()).isEqualTo(403);
+        assertThat(call("GET","/roles",null,authority,null).status()).isEqualTo(403);
+        assertThat(call("POST","/residents",map("fullName","Forbidden","birthDate","1990-01-01","gender","MALE","identityNo",null),authority,null).status()).isEqualTo(403);
+        var paymentPermission=db.where("Permission","code","payment.record").getFirst();
+        assertThat(call("PUT","/roles/"+roleIds.get("AUTHORITY")+"/permissions",map("permissionIds",List.of(id(paymentPermission))),admin,null).status()).isEqualTo(409);
+    }
+    @Test void everyApiStorageFieldExistsInMigratedDatabase() {
+        for (String model : contract.section("entities").keySet()) {
+            var entity=contract.entity(model);
+            var fields=object(entity.get("fields"));
+            String columns=String.join(",",fields.values().stream().map(v->text(object(v),"column")).toList());
+            assertThatCode(()->db.jdbc().queryForList("SELECT "+columns+" FROM "+text(entity,"table")+" WHERE 1=0"))
+                .as("API storage mapping for %s",model).doesNotThrowAnyException();
+        }
+    }
+
+    @Test void schemasRejectUnknownFieldsInvalidTypesAndDuplicateApartments()throws Exception {
+        var home=home();var apartment=call("GET","/apartments/"+home.apartment(),null,admin,null).body();
+        assertThat(apartment.get("status")).isEqualTo("OCCUPIED");
+        var body=map("buildingId",apartment.get("buildingId"),"code",apartment.get("code"),"floorNo",2,"areaM2","80.00");
+        assertThat(call("POST","/apartments",body,admin,null).status()).isEqualTo(409);
+        body.put("code",unique());body.put("areaM2","0.00");assertThat(call("POST","/apartments",body,admin,null).status()).isEqualTo(400);
+        body.put("areaM2",80);assertThat(call("POST","/apartments",body,admin,null).status()).isEqualTo(400);
+        body.put("areaM2","80.00");body.put("floorNo",Long.MAX_VALUE);assertThat(call("POST","/apartments",body,admin,null).status()).isEqualTo(400);
+        body.put("floorNo",2);body.put("status","VACANT");assertThat(call("POST","/apartments",body,admin,null).status()).isEqualTo(400);
+        assertThat(call("GET","/apartments?unknown=x",null,admin,null).status()).isEqualTo(400);
+        assertThat(call("GET","/apartments?size=0",null,admin,null).status()).isEqualTo(400);
+        assertThat(call("GET","/apartments?sort=passwordHash,asc",null,admin,null).status()).isEqualTo(400);
+        assertThat(call("PATCH","/apartments/"+home.apartment(),Map.of(),admin,null).status()).isEqualTo(400);
+        assertThat(call("POST","/occupancies",map("householdId",home.household(),"apartmentId",home.apartment(),"validFrom",today().toString()),admin,null).status()).isEqualTo(422);
+        contract.validate(apartment,object(contract.section("schemas").get("Apartment")),"response");
+    }
 }
