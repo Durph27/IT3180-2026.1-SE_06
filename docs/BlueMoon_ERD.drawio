@@ -183,4 +183,63 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram id="physical-3" name="04 - Tài khoản và hạ tầng">
+    <mxGraphModel grid="1" page="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="note" value="&lt;b&gt;ERD vật lý Sprint 1&lt;/b&gt;&lt;br/&gt;Nguồn: Flyway V1–V3. JSON snapshot lưu TEXT; FK ghi tên cột. Quan hệ qua trang tham chiếu tên bảng.&lt;br/&gt;app_role.code: ADMIN, MANAGER, AUTHORITY, ACCOUNTANT, RESIDENT." parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="10" width="1440" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="app_user" value="&lt;b&gt;app_user&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;resident_id UUID UNIQUE&lt;br/&gt;username VARCHAR(60) NOT NULL UNIQUE&lt;br/&gt;display_name VARCHAR(120) NOT NULL&lt;br/&gt;status VARCHAR(20) NOT NULL CHECK (status IN (&amp;#x27;ACTIVE&amp;#x27;,&amp;#x27;LOCKED&amp;#x27;,&amp;#x27;DISABLED&amp;#x27;))&lt;br/&gt;created_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;password_hash VARCHAR(255) NOT NULL&lt;br/&gt;FK resident_id → resident.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="app_role" value="&lt;b&gt;app_role&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;code VARCHAR(30) NOT NULL UNIQUE&lt;br/&gt;name VARCHAR(100) NOT NULL" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="530" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="app_permission" value="&lt;b&gt;app_permission&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;code VARCHAR(80) NOT NULL UNIQUE&lt;br/&gt;description TEXT NOT NULL" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="1040" y="140" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="user_role" value="&lt;b&gt;user_role&lt;/b&gt;&lt;hr/&gt;user_id UUID REFERENCES app_user(id)&lt;br/&gt;role_id UUID REFERENCES app_role(id)&lt;br/&gt;PRIMARY KEY(user_id, role_id)&lt;br/&gt;FK user_id → app_user.id&lt;br/&gt;FK role_id → app_role.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="role_permission" value="&lt;b&gt;role_permission&lt;/b&gt;&lt;hr/&gt;role_id UUID REFERENCES app_role(id)&lt;br/&gt;permission_id UUID REFERENCES app_permission(id)&lt;br/&gt;PRIMARY KEY(role_id, permission_id)&lt;br/&gt;FK role_id → app_role.id&lt;br/&gt;FK permission_id → app_permission.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="530" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="audit_log" value="&lt;b&gt;audit_log&lt;/b&gt;&lt;hr/&gt;id UUID PRIMARY KEY&lt;br/&gt;actor_id UUID&lt;br/&gt;action VARCHAR(40) NOT NULL&lt;br/&gt;entity_type VARCHAR(60) NOT NULL&lt;br/&gt;entity_id UUID NOT NULL&lt;br/&gt;before_data TEXT&lt;br/&gt;after_data TEXT&lt;br/&gt;occurred_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;request_id VARCHAR(80) NOT NULL&lt;br/&gt;FK actor_id → app_user.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="1040" y="730" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="access_session" value="&lt;b&gt;access_session&lt;/b&gt;&lt;hr/&gt;token_hash VARCHAR(64) PRIMARY KEY&lt;br/&gt;user_id UUID NOT NULL REFERENCES app_user(id)&lt;br/&gt;expires_at TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;FK user_id → app_user.id" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="1320" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="login_attempt" value="&lt;b&gt;login_attempt&lt;/b&gt;&lt;hr/&gt;attempt_key VARCHAR(64) PRIMARY KEY&lt;br/&gt;window_start TIMESTAMP WITH TIME ZONE NOT NULL&lt;br/&gt;attempts INTEGER NOT NULL" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="530" y="1320" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="command_result" value="&lt;b&gt;command_result&lt;/b&gt;&lt;hr/&gt;command_key VARCHAR(80) PRIMARY KEY&lt;br/&gt;fingerprint VARCHAR(64) NOT NULL&lt;br/&gt;status INTEGER NOT NULL&lt;br/&gt;location TEXT&lt;br/&gt;response_body TEXT NOT NULL" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="1040" y="1320" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="business_lock" value="&lt;b&gt;business_lock&lt;/b&gt;&lt;hr/&gt;id INTEGER PRIMARY KEY" parent="1" vertex="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=10;fillColor=#f8fafc;strokeColor=#64748b;">
+          <mxGeometry x="20" y="1910" width="460" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="fk0" source="app_user" target="user_role" value="user_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk1" source="app_role" target="user_role" value="role_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk2" source="app_role" target="role_permission" value="role_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk3" source="app_permission" target="role_permission" value="permission_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk4" source="app_user" target="access_session" value="user_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk57" source="app_user" target="audit_log" value="actor_id" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
