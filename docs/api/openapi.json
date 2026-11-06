@@ -5472,7 +5472,7 @@
         },
         "x-permission": "payment.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       },
       "post": {
         "tags": [
@@ -5553,7 +5553,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/payments/{id}": {
@@ -5623,7 +5623,7 @@
         },
         "x-permission": "payment.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/payments/{id}/void": {
@@ -5706,7 +5706,7 @@
             }
           }
         },
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/payments/{id}/receipt": {
@@ -5776,7 +5776,7 @@
         },
         "x-permission": "receipt.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/receipts/{id}": {
@@ -5846,7 +5846,7 @@
         },
         "x-permission": "receipt.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/receipts/{id}/pdf": {
@@ -5925,7 +5925,7 @@
         },
         "x-permission": "receipt.read",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/providers": {
