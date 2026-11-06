@@ -47,4 +47,17 @@ public class RbacController {
         return api.execute("GET /roles/{id}/permissions", path, query, body, request);
     }
 
+    @RequestMapping(value = "/roles/{id}/permissions", method = RequestMethod.PUT)
+    public ResponseEntity<?> put_roles_by_id_permissions(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("PUT /roles/{id}/permissions", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/permissions", method = RequestMethod.GET)
+    public ResponseEntity<?> get_permissions(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /permissions", path, query, body, request);
+    }
 }
