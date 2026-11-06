@@ -107,3 +107,65 @@ CREATE TABLE fee_type (
     mandatory BOOLEAN NOT NULL,
     active BOOLEAN NOT NULL
 );
+
+CREATE TABLE fee_rate (
+    id UUID PRIMARY KEY,
+    fee_type_id UUID NOT NULL,
+    vehicle_type VARCHAR(20) CHECK (vehicle_type IN ('MOTORBIKE','CAR','BICYCLE','OTHER')),
+    unit_price NUMERIC(18,2) NOT NULL CHECK (unit_price >= 0),
+    effective_from DATE NOT NULL,
+    effective_to DATE,
+    CHECK(effective_to IS NULL OR effective_to > effective_from)
+);
+
+CREATE TABLE billing_period (
+    id UUID PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    due_date DATE NOT NULL,
+    snapshot_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('DRAFT','ISSUED','CLOSED'))
+);
+
+CREATE TABLE invoice (
+    id UUID PRIMARY KEY,
+    occupancy_id UUID NOT NULL,
+    period_id UUID NOT NULL,
+    invoice_no VARCHAR(40) NOT NULL UNIQUE,
+    issued_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('DRAFT','ISSUED','PARTIALLY_PAID','PAID','CANCELLED')),
+    version BIGINT NOT NULL,
+    UNIQUE(occupancy_id, period_id)
+);
+
+CREATE TABLE invoice_line (
+    id UUID PRIMARY KEY,
+    invoice_id UUID NOT NULL,
+    fee_type_id UUID NOT NULL,
+    rate_id UUID,
+    vehicle_id UUID,
+    utility_bill_id UUID UNIQUE,
+    description TEXT NOT NULL,
+    quantity NUMERIC(12,3) NOT NULL CHECK (quantity >= 0),
+    unit_price NUMERIC(18,2) NOT NULL CHECK (unit_price >= 0),
+    amount NUMERIC(18,2) NOT NULL CHECK (amount >= 0)
+);
+
+CREATE TABLE contribution_campaign (
+    id UUID PRIMARY KEY,
+    name VARCHAR(160) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    suggested_amount NUMERIC(18,2) CHECK (suggested_amount >= 0),
+    purpose TEXT NOT NULL
+);
+
+CREATE TABLE contribution (
+    id UUID PRIMARY KEY,
+    campaign_id UUID NOT NULL,
+    household_id UUID NOT NULL,
+    pledged_amount NUMERIC(18,2) CHECK (pledged_amount >= 0),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    UNIQUE(campaign_id, household_id)
+);
