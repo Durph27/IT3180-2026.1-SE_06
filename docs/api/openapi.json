@@ -10576,7 +10576,8 @@
           }
         },
         "x-permission": "report.export",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/contributions": {
@@ -10661,7 +10662,8 @@
           }
         },
         "x-permission": "report.contributions",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/contributions/export": {
@@ -10746,7 +10748,8 @@
           }
         },
         "x-permission": "report.export",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/collections": {
@@ -10831,7 +10834,8 @@
           }
         },
         "x-permission": "report.collections",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/reports/collections/export": {
@@ -10916,7 +10920,8 @@
           }
         },
         "x-permission": "report.export",
-        "x-implementation-status": "planned"
+        "x-implementation-status": "planned",
+        "x-implemented": false
       }
     },
     "/hello": {
@@ -10942,7 +10947,8 @@
         },
         "x-permission": "PUBLIC",
         "x-implementation-status": "implemented",
-        "security": []
+        "security": [],
+        "x-implemented": true
       }
     },
     "/health": {
@@ -10977,7 +10983,8 @@
         },
         "x-permission": "PUBLIC",
         "x-implementation-status": "implemented",
-        "security": []
+        "security": [],
+        "x-implemented": true
       }
     }
   },
