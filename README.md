@@ -5,8 +5,8 @@ Spring Boot + Java 21, PostgreSQL. Backend Sprint 1 có RBAC, căn hộ/cư trú
 loại phí/kỳ thu, bảng kê thủ công, thu tiền/biên lai và quỹ bảo trì.
 Frontend hiện vẫn là trang kiểm tra kết nối.
 
-Xem [bàn giao backend Sprint 1 của Hiệp](docs/sprint-1-hiep.md) để khởi tạo admin,
-chạy migration, tích hợp API và kiểm thử. Các API khác còn ở mức thiết kế được
+Xem [tài liệu API contract](docs/api-contract.md) và [quy ước thiết kế API](docs/api/design.md) để
+khởi tạo admin, tích hợp API và kiểm thử. Các API khác còn ở mức thiết kế được
 phân biệt bằng `x-implemented` trong OpenAPI.
 
 ## Yêu cầu
@@ -98,6 +98,48 @@ npm.cmd run dev
 Mở <http://localhost:5173>. Trang chủ hiển thị trạng thái React, backend và PostgreSQL.
 Trên macOS/Linux dùng `npm` thay cho `npm.cmd`.
 
+## 5. Sao lưu và phục hồi database
+
+Dự án cung cấp công cụ `tools/backup_restore.py` hỗ trợ sao lưu và phục hồi database PostgreSQL. Script tự động đọc thông số kết nối từ file `.env` ở thư mục gốc (hoặc biến môi trường hệ thống).
+
+### Sao lưu (Backup)
+
+Tạo bản sao lưu định dạng nén (`.dump`, khuyến nghị) vào thư mục `backups/`:
+
+```powershell
+python tools/backup_restore.py backup
+```
+
+Tùy chọn:
+- `--format plain`: Xuất file SQL thuần (`.sql`).
+- `-o <path>` hoặc `--output <path>`: Tùy chọn đường dẫn file/thư mục lưu bản sao lưu.
+- `-d <dbname>`: Ghi đè tên database mục tiêu (mặc định lấy từ `DB_NAME` trong `.env`).
+- `--schema-only`: Chỉ sao lưu cấu trúc bảng (schema), không sao lưu dữ liệu.
+- `--data-only`: Chỉ sao lưu dữ liệu, không sao lưu cấu trúc bảng.
+
+### Phục hồi (Restore)
+
+Phục hồi từ bản sao lưu gần nhất hoặc chỉ định file:
+
+```powershell
+# Tự động chọn bản sao lưu mới nhất trong thư mục backups/
+python tools/backup_restore.py restore
+
+# Phục hồi từ file cụ thể
+python tools/backup_restore.py restore backups/bluemoon_db_20261107_162924.dump
+
+# Bỏ qua xác nhận (phù hợp cho script tự động hóa)
+python tools/backup_restore.py restore -y backups/bluemoon_db_20261107_162924.dump
+```
+
+Script tự động nhận diện định dạng (`.dump` dùng `pg_restore`, `.sql` dùng `psql`), mặc định dọn dẹp đối tượng cũ trước khi phục hồi (`--clean --if-exists`), và hỗ trợ cờ `--create-db` nếu database mục tiêu chưa tồn tại.
+
+### Xem danh sách bản sao lưu
+
+```powershell
+python tools/backup_restore.py list
+```
+
 ## Build và test
 
 ```powershell
@@ -130,9 +172,18 @@ backend/src/main/resources/application.properties
 backend/pom.xml
 backend/mvnw.cmd
 docs/
-  architecture.md
+  api/
+    data-dictionary.md
+    design.md
+    endpoints.md
+    openapi.json
   api-contract.md
-  database-design.md
+  BlueMoon_ERD.drawio
+  BlueMoon_UML.drawio
+tools/
+  backup_restore.py
+  sync_model_diagrams.py
+  sync_sprint1_contract.py
 ```
 
 ## Xử lý lỗi
@@ -145,11 +196,10 @@ docs/
 - Cổng 5173 bị chiếm: dừng tiến trình khác hoặc đổi cổng Vite và cập nhật CORS.
 - Health HTTP 503: API còn chạy nhưng truy vấn database thất bại; kiểm tra log backend.
 
-Tài liệu: [kiến trúc](docs/architecture.md), [API](docs/api-contract.md),
-[database](docs/database-design.md).
+Tài liệu: [API contract](docs/api-contract.md), [quy ước và nghiệp vụ API](docs/api/design.md),
+[danh mục endpoint](docs/api/endpoints.md), [đối chiếu thực thể database](docs/api/data-dictionary.md).
 
-### Sơ đồ và nhánh Sprint 1
+### Sơ đồ thiết kế
 
 Sơ đồ hiện hành: [ERD](docs/BlueMoon_ERD.drawio), [UML](docs/BlueMoon_UML.drawio).
-File Astah và ảnh preview trước đây là bản lịch sử. Xem [các nhánh tính năng](docs/feature-branches.md)
-và [hướng dẫn Sprint 1](docs/sprint-1-hiep.md) để chạy và tích hợp.
+File Astah và ảnh preview trong `docs/UML_Preview`, `docs/ERD_Preview` là bản thiết kế lịch sử.
