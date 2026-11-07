@@ -1,5 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
-<mxfile host="app.diagrams.net" version="24.7.17">
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6" pages="38">
   <diagram id="rbac" name="00 - RBAC m-n">
     <mxGraphModel grid="1" page="0" background="#ffffff">
       <root>
@@ -1388,51 +1387,51 @@
     </mxGraphModel>
   </diagram>
   <diagram id="payment_allocation" name="17 - payment_allocation">
-    <mxGraphModel grid="1" page="0" background="#ffffff">
+    <mxGraphModel dx="1880" dy="1323" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="payment_allocation" value="payment_allocation" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="370" y="125.0" width="320" height="70" as="geometry" />
+        <mxCell id="payment_allocation" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="payment_allocation" vertex="1">
+          <mxGeometry height="70" width="320" x="370" y="125" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-id" value="id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;fontStyle=4;">
-          <mxGeometry x="0" y="0" width="310" height="55" as="geometry" />
+        <mxCell id="payment_allocation-id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;fontStyle=4;" value="id" vertex="1">
+          <mxGeometry height="55" width="310" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-id-edge" source="payment_allocation" target="payment_allocation-id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_allocation-id-edge" edge="1" parent="1" source="payment_allocation" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_allocation-id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-payment_id" value="payment_id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="0" width="310" height="55" as="geometry" />
+        <mxCell id="payment_allocation-payment_id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="payment_id" vertex="1">
+          <mxGeometry height="55" width="310" x="750" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-payment_id-edge" source="payment_allocation" target="payment_allocation-payment_id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_allocation-payment_id-edge" edge="1" parent="1" source="payment_allocation" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_allocation-payment_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-invoice_line_id" value="invoice_line_id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="90" width="310" height="55" as="geometry" />
+        <mxCell id="payment_allocation-invoice_line_id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="invoice_line_id" vertex="1">
+          <mxGeometry height="55" width="310" y="90" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-invoice_line_id-edge" source="payment_allocation" target="payment_allocation-invoice_line_id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_allocation-invoice_line_id-edge" edge="1" parent="1" source="payment_allocation" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_allocation-invoice_line_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-contribution_id" value="contribution_id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="90" width="310" height="55" as="geometry" />
+        <mxCell id="payment_allocation-contribution_id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="contribution_id" vertex="1">
+          <mxGeometry height="55" width="310" x="750" y="90" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-contribution_id-edge" source="payment_allocation" target="payment_allocation-contribution_id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_allocation-contribution_id-edge" edge="1" parent="1" source="payment_allocation" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_allocation-contribution_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-amount" value="amount" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="180" width="310" height="55" as="geometry" />
+        <mxCell id="payment_allocation-amount" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="amount" vertex="1">
+          <mxGeometry height="55" width="310" y="180" as="geometry" />
         </mxCell>
-        <mxCell id="payment_allocation-amount-edge" source="payment_allocation" target="payment_allocation-amount" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_allocation-amount-edge" edge="1" parent="1" source="payment_allocation" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_allocation-amount" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rel0" value="Gắn_thanh_toán" parent="1" vertex="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="400" y="330" width="300" height="110" as="geometry" />
+        <mxCell id="rel0" parent="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="Gắn_thanh_toán" vertex="1">
+          <mxGeometry height="110" width="300" x="400" y="330" as="geometry" />
         </mxCell>
-        <mxCell id="parent0" value="payment" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="780" y="355" width="320" height="60" as="geometry" />
+        <mxCell id="parent0" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="payment" vertex="1">
+          <mxGeometry height="60" width="320" x="780" y="355" as="geometry" />
         </mxCell>
-        <mxCell id="a0" source="payment_allocation" target="rel0" value="n" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;">
-          <mxGeometry relative="1" as="geometry" x="1">
+        <mxCell id="a0" edge="1" parent="1" source="payment_allocation" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="rel0" value="n">
+          <mxGeometry relative="1" x="1" as="geometry">
             <mxPoint x="-32" y="-18" as="offset" />
             <Array as="points">
               <mxPoint x="530" y="300" />
@@ -1441,17 +1440,17 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="b0" source="rel0" target="parent0" value="1" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="b0" edge="1" parent="1" source="rel0" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="parent0" value="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rel1" value="Gắn_dòng_bảng_kê" parent="1" vertex="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="400" y="480" width="300" height="110" as="geometry" />
+        <mxCell id="rel1" parent="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="Gắn_dòng_bảng_kê" vertex="1">
+          <mxGeometry height="110" width="300" x="400" y="480" as="geometry" />
         </mxCell>
-        <mxCell id="parent1" value="invoice_line" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="780" y="505" width="320" height="60" as="geometry" />
+        <mxCell id="parent1" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="invoice_line" vertex="1">
+          <mxGeometry height="60" width="320" x="780" y="505" as="geometry" />
         </mxCell>
-        <mxCell id="a1" source="payment_allocation" target="rel1" value="n" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;">
-          <mxGeometry relative="1" as="geometry" x="1">
+        <mxCell id="a1" edge="1" parent="1" source="payment_allocation" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="rel1" value="n">
+          <mxGeometry relative="1" x="1" as="geometry">
             <mxPoint x="-32" y="-18" as="offset" />
             <Array as="points">
               <mxPoint x="530" y="300" />
@@ -1460,17 +1459,17 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="b1" source="rel1" target="parent1" value="1" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="b1" edge="1" parent="1" source="rel1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="parent1" value="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rel2" value="Gắn_đóng_góp" parent="1" vertex="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="400" y="630" width="300" height="110" as="geometry" />
+        <mxCell id="rel2" parent="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="Gắn_đóng_góp" vertex="1">
+          <mxGeometry height="110" width="300" x="400" y="630" as="geometry" />
         </mxCell>
-        <mxCell id="parent2" value="contribution" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="780" y="655" width="320" height="60" as="geometry" />
+        <mxCell id="parent2" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="contribution" vertex="1">
+          <mxGeometry height="60" width="320" x="780" y="655" as="geometry" />
         </mxCell>
-        <mxCell id="a2" source="payment_allocation" target="rel2" value="n" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;">
-          <mxGeometry relative="1" as="geometry" x="1">
+        <mxCell id="a2" edge="1" parent="1" source="payment_allocation" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="rel2" value="n">
+          <mxGeometry relative="1" x="1" as="geometry">
             <mxPoint x="-32" y="-18" as="offset" />
             <Array as="points">
               <mxPoint x="530" y="300" />
@@ -1479,7 +1478,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="b2" source="rel2" target="parent2" value="1" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="b2" edge="1" parent="1" source="rel2" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="parent2" value="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
@@ -1546,105 +1545,105 @@
     </mxGraphModel>
   </diagram>
   <diagram id="payment_intent" name="19 - payment_intent">
-    <mxGraphModel grid="1" page="0" background="#ffffff">
+    <mxGraphModel dx="1625" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="payment_intent" value="payment_intent" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="370" y="305.0" width="320" height="70" as="geometry" />
+        <mxCell id="payment_intent" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="payment_intent" vertex="1">
+          <mxGeometry height="70" width="320" x="370" y="305" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-id" value="id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;fontStyle=4;">
-          <mxGeometry x="0" y="0" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;fontStyle=4;" value="id" vertex="1">
+          <mxGeometry height="55" width="310" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-id-edge" source="payment_intent" target="payment_intent-id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-id-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-household_id" value="household_id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="0" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-household_id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="household_id" vertex="1">
+          <mxGeometry height="55" width="310" x="750" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-household_id-edge" source="payment_intent" target="payment_intent-household_id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-household_id-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-household_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-created_by" value="created_by" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="90" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-created_by" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="created_by" vertex="1">
+          <mxGeometry height="55" width="310" y="90" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-created_by-edge" source="payment_intent" target="payment_intent-created_by" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-created_by-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-created_by" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-provider_code" value="provider_code" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="90" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-provider_code" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="provider_code" vertex="1">
+          <mxGeometry height="55" width="310" x="750" y="90" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-provider_code-edge" source="payment_intent" target="payment_intent-provider_code" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-provider_code-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-provider_code" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-merchant_order_id" value="merchant_order_id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="180" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-merchant_order_id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="merchant_order_id" vertex="1">
+          <mxGeometry height="55" width="310" y="180" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-merchant_order_id-edge" source="payment_intent" target="payment_intent-merchant_order_id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-merchant_order_id-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-merchant_order_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-idempotency_key" value="idempotency_key" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="180" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-idempotency_key" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="idempotency_key" vertex="1">
+          <mxGeometry height="55" width="310" x="750" y="180" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-idempotency_key-edge" source="payment_intent" target="payment_intent-idempotency_key" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-idempotency_key-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-idempotency_key" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-expected_amount" value="expected_amount" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="270" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-expected_amount" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="expected_amount" vertex="1">
+          <mxGeometry height="55" width="310" y="270" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-expected_amount-edge" source="payment_intent" target="payment_intent-expected_amount" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-expected_amount-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-expected_amount" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-currency" value="currency" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="270" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-currency" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="currency" vertex="1">
+          <mxGeometry height="55" width="310" x="750" y="270" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-currency-edge" source="payment_intent" target="payment_intent-currency" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-currency-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-currency" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-status" value="status" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="360" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-status" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="status" vertex="1">
+          <mxGeometry height="55" width="310" y="360" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-status-edge" source="payment_intent" target="payment_intent-status" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-status-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-status" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-expires_at" value="expires_at" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="360" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-expires_at" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="expires_at" vertex="1">
+          <mxGeometry height="55" width="310" x="750" y="360" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-expires_at-edge" source="payment_intent" target="payment_intent-expires_at" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-expires_at-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-expires_at" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-version" value="version" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="450" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-version" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="version" vertex="1">
+          <mxGeometry height="55" width="310" y="450" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-version-edge" source="payment_intent" target="payment_intent-version" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-version-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-version" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-payment_id" value="payment_id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="450" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-payment_id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="payment_id" vertex="1">
+          <mxGeometry height="55" width="310" x="750" y="450" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-payment_id-edge" source="payment_intent" target="payment_intent-payment_id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-payment_id-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-payment_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-qr_content" value="qr_content" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="540" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-qr_content" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="qr_content" vertex="1">
+          <mxGeometry height="55" width="310" y="540" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-qr_content-edge" source="payment_intent" target="payment_intent-qr_content" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-qr_content-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-qr_content" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-checkout_url" value="checkout_url" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="540" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent-checkout_url" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="checkout_url" vertex="1">
+          <mxGeometry height="55" width="310" x="750" y="540" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent-checkout_url-edge" source="payment_intent" target="payment_intent-checkout_url" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent-checkout_url-edge" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent-checkout_url" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rel0" value="Thuộc_hộ" parent="1" vertex="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="400" y="690" width="300" height="110" as="geometry" />
+        <mxCell id="rel0" parent="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="Thuộc_hộ" vertex="1">
+          <mxGeometry height="110" width="300" x="400" y="690" as="geometry" />
         </mxCell>
-        <mxCell id="parent0" value="household" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="780" y="715" width="320" height="60" as="geometry" />
+        <mxCell id="parent0" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="household" vertex="1">
+          <mxGeometry height="60" width="320" x="780" y="715" as="geometry" />
         </mxCell>
-        <mxCell id="a0" source="payment_intent" target="rel0" value="n" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;">
-          <mxGeometry relative="1" as="geometry" x="1">
+        <mxCell id="a0" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="rel0" value="n">
+          <mxGeometry relative="1" x="1" as="geometry">
             <mxPoint x="-32" y="-18" as="offset" />
             <Array as="points">
               <mxPoint x="530" y="660" />
@@ -1653,17 +1652,17 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="b0" source="rel0" target="parent0" value="1" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="b0" edge="1" parent="1" source="rel0" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="parent0" value="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rel1" value="Gắn_thanh_toán" parent="1" vertex="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="400" y="840" width="300" height="110" as="geometry" />
+        <mxCell id="rel1" parent="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="Gắn_thanh_toán" vertex="1">
+          <mxGeometry height="110" width="300" x="400" y="840" as="geometry" />
         </mxCell>
-        <mxCell id="parent1" value="payment" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="780" y="865" width="320" height="60" as="geometry" />
+        <mxCell id="parent1" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="payment" vertex="1">
+          <mxGeometry height="60" width="320" x="780" y="865" as="geometry" />
         </mxCell>
-        <mxCell id="a1" source="payment_intent" target="rel1" value="n" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;">
-          <mxGeometry relative="1" as="geometry" x="1">
+        <mxCell id="a1" edge="1" parent="1" source="payment_intent" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="rel1" value="n">
+          <mxGeometry relative="1" x="1" as="geometry">
             <mxPoint x="-32" y="-18" as="offset" />
             <Array as="points">
               <mxPoint x="530" y="660" />
@@ -1672,58 +1671,58 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="b1" source="rel1" target="parent1" value="1" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="b1" edge="1" parent="1" source="rel1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="parent1" value="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="payment_intent_item" name="20 - payment_intent_item">
-    <mxGraphModel grid="1" page="0" background="#ffffff">
+    <mxGraphModel dx="1531" dy="1323" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="payment_intent_item" value="payment_intent_item" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="370" y="125.0" width="320" height="70" as="geometry" />
+        <mxCell id="payment_intent_item" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="payment_intent_item" vertex="1">
+          <mxGeometry height="70" width="320" x="370" y="125" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-id" value="id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;fontStyle=4;">
-          <mxGeometry x="0" y="0" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent_item-id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;fontStyle=4;" value="id" vertex="1">
+          <mxGeometry height="55" width="310" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-id-edge" source="payment_intent_item" target="payment_intent_item-id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent_item-id-edge" edge="1" parent="1" source="payment_intent_item" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent_item-id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-intent_id" value="intent_id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="0" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent_item-intent_id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="intent_id" vertex="1">
+          <mxGeometry height="55" width="310" x="750" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-intent_id-edge" source="payment_intent_item" target="payment_intent_item-intent_id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent_item-intent_id-edge" edge="1" parent="1" source="payment_intent_item" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent_item-intent_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-invoice_line_id" value="invoice_line_id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="90" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent_item-invoice_line_id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="invoice_line_id" vertex="1">
+          <mxGeometry height="55" width="310" y="90" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-invoice_line_id-edge" source="payment_intent_item" target="payment_intent_item-invoice_line_id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent_item-invoice_line_id-edge" edge="1" parent="1" source="payment_intent_item" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent_item-invoice_line_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-contribution_id" value="contribution_id" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="750" y="90" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent_item-contribution_id" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="contribution_id" vertex="1">
+          <mxGeometry height="55" width="310" x="750" y="90" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-contribution_id-edge" source="payment_intent_item" target="payment_intent_item-contribution_id" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent_item-contribution_id-edge" edge="1" parent="1" source="payment_intent_item" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent_item-contribution_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-amount" value="amount" parent="1" vertex="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="0" y="180" width="310" height="55" as="geometry" />
+        <mxCell id="payment_intent_item-amount" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="amount" vertex="1">
+          <mxGeometry height="55" width="310" y="180" as="geometry" />
         </mxCell>
-        <mxCell id="payment_intent_item-amount-edge" source="payment_intent_item" target="payment_intent_item-amount" value="" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="payment_intent_item-amount-edge" edge="1" parent="1" source="payment_intent_item" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="payment_intent_item-amount" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rel0" value="Gắn_yêu_cầu_TT" parent="1" vertex="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="400" y="330" width="300" height="110" as="geometry" />
+        <mxCell id="rel0" parent="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="Gắn_yêu_cầu_TT" vertex="1">
+          <mxGeometry height="110" width="300" x="400" y="330" as="geometry" />
         </mxCell>
-        <mxCell id="parent0" value="payment_intent" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="780" y="355" width="320" height="60" as="geometry" />
+        <mxCell id="parent0" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="payment_intent" vertex="1">
+          <mxGeometry height="60" width="320" x="780" y="355" as="geometry" />
         </mxCell>
-        <mxCell id="a0" source="payment_intent_item" target="rel0" value="n" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;">
-          <mxGeometry relative="1" as="geometry" x="1">
+        <mxCell id="a0" edge="1" parent="1" source="payment_intent_item" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="rel0" value="n">
+          <mxGeometry relative="1" x="1" as="geometry">
             <mxPoint x="-32" y="-18" as="offset" />
             <Array as="points">
               <mxPoint x="530" y="300" />
@@ -1732,17 +1731,17 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="b0" source="rel0" target="parent0" value="1" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="b0" edge="1" parent="1" source="rel0" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="parent0" value="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rel1" value="Gắn_dòng_bảng_kê" parent="1" vertex="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="400" y="480" width="300" height="110" as="geometry" />
+        <mxCell id="rel1" parent="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="Gắn_dòng_bảng_kê" vertex="1">
+          <mxGeometry height="110" width="300" x="400" y="480" as="geometry" />
         </mxCell>
-        <mxCell id="parent1" value="invoice_line" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="780" y="505" width="320" height="60" as="geometry" />
+        <mxCell id="parent1" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="invoice_line" vertex="1">
+          <mxGeometry height="60" width="320" x="780" y="505" as="geometry" />
         </mxCell>
-        <mxCell id="a1" source="payment_intent_item" target="rel1" value="n" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;">
-          <mxGeometry relative="1" as="geometry" x="1">
+        <mxCell id="a1" edge="1" parent="1" source="payment_intent_item" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="rel1" value="n">
+          <mxGeometry relative="1" x="1" as="geometry">
             <mxPoint x="-32" y="-18" as="offset" />
             <Array as="points">
               <mxPoint x="530" y="300" />
@@ -1751,17 +1750,17 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="b1" source="rel1" target="parent1" value="1" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="b1" edge="1" parent="1" source="rel1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="parent1" value="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rel2" value="Gắn_đóng_góp" parent="1" vertex="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="400" y="630" width="300" height="110" as="geometry" />
+        <mxCell id="rel2" parent="1" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="Gắn_đóng_góp" vertex="1">
+          <mxGeometry height="110" width="300" x="400" y="630" as="geometry" />
         </mxCell>
-        <mxCell id="parent2" value="contribution" parent="1" vertex="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;">
-          <mxGeometry x="780" y="655" width="320" height="60" as="geometry" />
+        <mxCell id="parent2" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;" value="contribution" vertex="1">
+          <mxGeometry height="60" width="320" x="780" y="655" as="geometry" />
         </mxCell>
-        <mxCell id="a2" source="payment_intent_item" target="rel2" value="n" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;">
-          <mxGeometry relative="1" as="geometry" x="1">
+        <mxCell id="a2" edge="1" parent="1" source="payment_intent_item" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="rel2" value="n">
+          <mxGeometry relative="1" x="1" as="geometry">
             <mxPoint x="-32" y="-18" as="offset" />
             <Array as="points">
               <mxPoint x="530" y="300" />
@@ -1770,7 +1769,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="b2" source="rel2" target="parent2" value="1" parent="1" edge="1" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;">
+        <mxCell id="b2" edge="1" parent="1" source="rel2" style="endArrow=none;startArrow=none;html=1;strokeColor=#111111;strokeWidth=2;fontFamily=Arial;fontSize=22;labelBackgroundColor=#ffffff;" target="parent2" value="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
