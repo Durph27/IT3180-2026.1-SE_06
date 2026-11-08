@@ -7,6 +7,7 @@ import ChangePasswordModal from './components/ChangePasswordModal'
 import UserManagement from './components/UserManagement'
 import ApartmentManagement from './components/ApartmentManagement'
 import HomePage from './pages/HomePage'
+import ErrorBoundary from './components/ErrorBoundary'
 import './App.css'
 
 function AppContent() {
@@ -62,8 +63,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }

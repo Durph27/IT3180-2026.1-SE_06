@@ -6,8 +6,8 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
   const canManageUsers = hasPermission('user.read') || hasPermission('user.manage')
   const canViewApartments = hasPermission('apartment.read')
   const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
-  const roleCode = roles[0]?.code || 'USER'
-  const roleName = roles[0]?.name || roles[0]?.code || 'Người dùng'
+  const roleCode = roles?.[0]?.code || 'USER'
+  const roleName = roles?.[0]?.name || roles?.[0]?.code || 'Người dùng'
 
   return (
     <header className="navbar">

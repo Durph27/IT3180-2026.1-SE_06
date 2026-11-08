@@ -11,7 +11,7 @@ export default function HomePage({ onNavigateToUsers, onNavigateToApartments, on
   const pending = state === 'loading'
   const canViewApartments = hasPermission('apartment.read')
 
-  const roleName = roles[0]?.name || roles[0]?.code || 'Quản trị viên'
+  const roleName = roles?.[0]?.name || roles?.[0]?.code || 'Quản trị viên'
 
   return (
     <div className="dashboard-container">
@@ -36,7 +36,7 @@ export default function HomePage({ onNavigateToUsers, onNavigateToApartments, on
             </div>
             <div className="meta-chip">
               <span className="chip-label">Quyền hạn kích hoạt:</span>
-              <span className="chip-value chip-perms">{permissions.length} quyền hệ thống</span>
+              <span className="chip-value chip-perms">{(permissions || []).length} quyền hệ thống</span>
             </div>
             <div className="meta-chip">
               <span className="chip-label">Phiên làm việc:</span>
