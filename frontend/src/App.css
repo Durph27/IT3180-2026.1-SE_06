@@ -7,8 +7,13 @@
 .forbidden-view { max-width: 640px; margin: 3rem auto; padding: 2rem; text-align: left; }
 .forbidden-code { color: var(--primary); font-size: 2rem; font-weight: 700; margin: 0; }
 .forbidden-view p { max-width: 65ch; }
-.household-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-.household-selection select { width: auto; max-width: 100%; }
+.household-selection { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem; margin-bottom: 1.5rem; }
+.household-select-field { flex: 1 1 280px; min-width: 0; max-width: 480px; }
+.household-select-field label { display: block; margin-bottom: 6px; font-weight: 600; }
+.household-selection select { display: block; width: 100%; min-width: 0; max-width: 100%; min-height: 44px; font-size: 1rem; text-overflow: ellipsis; }
+.household-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; }
+.household-pagination .btn { min-width: 0; min-height: 44px; white-space: normal; }
+.household-pagination span { text-align: center; }
 .access-note { color: var(--slate-700); }
 
 :root {
@@ -1810,6 +1815,18 @@ dialog::backdrop {
 }
 
 @media (max-width: 600px) {
+  .household-select-field {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+
+  .household-pagination {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    width: 100%;
+    gap: 8px;
+  }
+
   .navbar-nav {
     width: 100%;
   }

@@ -69,13 +69,17 @@ function Management({ buildingWide }) {
   return <section className="resident-management" aria-labelledby="residents-title">
     <div className="section-title-row"><div><h1 id="residents-title">Quản lý nhân khẩu căn hộ</h1><p>Chọn hộ gia đình để xem và cập nhật thông tin thành viên.</p></div>
       {writable && <button type="button" className="btn btn-primary" onClick={() => { setNotice(''); setModal({ resident: null }) }}>Thêm nhân khẩu</button>}</div>
-    <div className="household-selection"><label htmlFor="resident-household">Hộ gia đình</label>
-      <select id="resident-household" className="form-control" disabled={householdLoading} value={householdId} onChange={(event) => changeHousehold(event.target.value)}>
-        {!options.length && <option value="">{householdLoading ? 'Đang tải…' : 'Chưa có hộ gia đình'}</option>}
-        {options.map((item) => <option key={item.id} value={item.id}>{item.code}{item.closedAt ? ' (Đã đóng)' : ''}</option>)}
-      </select>
-      {buildingWide && householdPages > 1 && <><button type="button" className="btn btn-outline" disabled={householdLoading || householdPage === 0} onClick={() => { changeHousehold(''); setHouseholdPage(householdPage - 1) }}>Hộ trước</button>
-        <span>Trang hộ {householdPage + 1}/{householdPages}</span><button type="button" className="btn btn-outline" disabled={householdLoading || householdPage + 1 >= householdPages} onClick={() => { changeHousehold(''); setHouseholdPage(householdPage + 1) }}>Hộ tiếp</button></>}
+    <div className="household-selection">
+      <div className="household-select-field"><label htmlFor="resident-household">Hộ gia đình</label>
+        <select id="resident-household" className="form-control" disabled={householdLoading} value={householdId} onChange={(event) => changeHousehold(event.target.value)}>
+          {!options.length && <option value="">{householdLoading ? 'Đang tải…' : 'Chưa có hộ gia đình'}</option>}
+          {options.map((item) => <option key={item.id} value={item.id}>{item.code}{item.closedAt ? ' (Đã đóng)' : ''}</option>)}
+        </select>
+      </div>
+      {buildingWide && householdPages > 1 && <nav className="household-pagination" aria-label="Phân trang hộ gia đình">
+        <button type="button" className="btn btn-outline" disabled={householdLoading || householdPage === 0} onClick={() => { changeHousehold(''); setHouseholdPage(householdPage - 1) }}>Hộ trước</button>
+        <span>Trang hộ {householdPage + 1}/{householdPages}</span><button type="button" className="btn btn-outline" disabled={householdLoading || householdPage + 1 >= householdPages} onClick={() => { changeHousehold(''); setHouseholdPage(householdPage + 1) }}>Hộ tiếp</button>
+      </nav>}
     </div>
     {householdError && <div role="alert"><p>{householdError}</p><button type="button" className="btn btn-outline" onClick={() => setHouseholdRetry(householdRetry + 1)}>Tải lại hộ gia đình</button></div>}
     {notice && <p className="alert alert-info" role="status">{notice}</p>}
