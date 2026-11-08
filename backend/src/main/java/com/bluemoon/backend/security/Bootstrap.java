@@ -57,7 +57,8 @@ public class Bootstrap implements ApplicationRunner {
         String group=p.split("\\.")[0];
         return switch(role) {
             case "ADMIN" -> true;
-            case "MANAGER" -> !p.equals("maintenance-expense.record") && !Set.of("user","role","rbac","audit","payment","receipt","payment-intent","payment-event").contains(group);
+            case "MANAGER" -> Set.of("user.read","user.write","user.manage").contains(p)
+                || !p.equals("maintenance-expense.record") && !Set.of("user","role","rbac","audit","payment","receipt","payment-intent","payment-event").contains(group);
             case "ACCOUNTANT" -> Set.of("maintenance-fund","maintenance-round","maintenance-expense","fee-type","fee-rate","billing-period","invoice","campaign","contribution","provider","subscription","utility-bill","reconciliation","report").contains(group)
                 || Set.of("payment.read","payment.record","payment.void","receipt.read","payment-intent.read","payment-event.read","notice.read","notice.remind","building.read","apartment.read","household.read","occupancy.read","resident.read","resident.identity.read","vehicle.read","residence-change.read").contains(p);
             case "AUTHORITY" -> Set.of("building.read","apartment.read","household.read","occupancy.read","resident.read","resident.identity.read","residence-change.read").contains(p);

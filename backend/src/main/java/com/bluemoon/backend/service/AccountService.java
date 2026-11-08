@@ -35,6 +35,13 @@ public class AccountService {
             return null;
         }
         if (path.startsWith("/users")) {
+            if (id != null && !method.equals("GET") && !actor.roles().contains("ADMIN")) {
+                boolean adminTarget = db.jdbc().queryForObject(
+                        "SELECT COUNT(*) FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=? AND r.code='ADMIN'",
+                        Integer.class, UUID.fromString(id)) > 0;
+                if (adminTarget)
+                    throw new ApiException(403, "PERMISSION_DENIED", "Chỉ Admin được thay đổi tài khoản Admin.");
+            }
             if (path.endsWith("/roles")) return roles(method, id, b);
             if (path.endsWith("/reset-password")) {
                 db.get("AppUser", id);
