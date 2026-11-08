@@ -8,7 +8,8 @@ Nhánh cơ sở: `main` (đồng bộ từ `origin/main`).
 1. Đã hoàn thành: policy độc lập và unit test ma trận (`1d79e41`).
 2. Đã triển khai: `RoleGuard.jsx`, `PermissionGate.jsx`, `ForbiddenView.jsx`;
    tích hợp AuthProvider, Navbar, Dashboard và trang quản lý tài khoản.
-3. Tiếp theo: mở rộng test luồng phiên đăng nhập, xử lý API 403 và hoàn thiện mô tả PR tiếng Việt.
+3. Đã triển khai: xử lý API 403 và kiểm thử effect/luồng phiên đăng nhập.
+   Mô tả PR tiếng Việt được nhập trực tiếp trên GitHub.
 
 ## Quy tắc policy
 
@@ -43,18 +44,21 @@ bị từ chối cho đến khi được bổ sung cùng test.
 Nguồn hiện tại: `backend/.../security/Bootstrap.java`, `Actor.java`,
 `docs/api/design.md` và `docs/api/endpoints.md`.
 
-- Seed MANAGER đang loại nhóm `user`, `payment`, `receipt`, `payment-intent`,
-  `payment-event` và `maintenance-expense.record`. US21 yêu cầu nhóm Ban quản trị
-  quản lý toàn hệ thống, gồm tài khoản. Cần thống nhất/cập nhật quyền backend;
-  frontend giữ nguyên nguyên tắc yêu cầu permission thật và sẽ ẩn chức năng
-  chưa được cấp. Không sửa seed backend trong PR giao diện này.
+- Code từ `main` đã có PR #19 bổ sung `user.read`, `user.write`, `user.manage`
+  cho MANAGER trong seed và migration `V4__manager_account_permissions.sql`.
+  Chạy backend để Flyway áp dụng V4 vào database cũ, sau đó đăng nhập lại để
+  frontend nhận hồ sơ quyền mới. PR giao diện không sửa migration này.
+- MANAGER vẫn không được seed các nhóm `payment`, `receipt`, `payment-intent`,
+  `payment-event` và `maintenance-expense.record`. Nếu “quản trị toàn hệ thống”
+  bao gồm các nghiệp vụ đó, cần thống nhất backend trước khi tích hợp màn hình
+  tương ứng. Frontend tiếp tục yêu cầu permission thật, không tự mở quyền.
 - Cần xác nhận backend áp dụng `householdIds` cho mọi API dữ liệu hộ của cư dân,
   bao gồm khoản thu, đơn biến động và phản ánh.
 - Chưa gửi thông báo cho người phối hợp; tài liệu này ghi nhận các điểm cần đối chiếu.
 
 ## Kiểm thử bước 1
 
-Chạy `npm test` trong `frontend`. Dùng Node test runner, không thêm dependency.
+Chạy `npm test` trong `frontend`. Policy dùng Node test runner.
 Ma trận dùng kỳ vọng độc lập cho 5 mã vai trò / 4 nhóm nghiệp vụ; cố ý cấp toàn
 bộ permission đầu vào để phát hiện quyền vượt policy. Có kiểm tra thiếu quyền
 backend, phiên chưa sẵn sàng, vai trò không hợp lệ, phạm vi hộ và nhiều vai trò.
@@ -94,4 +98,53 @@ backend, phiên chưa sẵn sàng, vai trò không hợp lệ, phạm vi hộ v�
   hình từ chối và không gọi `/users`, kể cả khi đầu vào có toàn bộ permission.
   MANAGER chỉ có `user.read` xem được bảng, không có dialog sửa; thu hồi quyền
   đọc khi đang mở trang làm bảng bị unmount và hiển thị màn hình từ chối.
-- Cần kiểm tra E2E với backend thật sau khi thống nhất quyền MANAGER.
+- Cần kiểm tra E2E với backend thật sau khi áp dụng migration V4.
+
+## Hoàn thiện bước 3
+
+### Đồng bộ main
+
+Đã fetch lại `origin` và đối chiếu lịch sử: nhánh chứa toàn bộ `origin/main`
+tại `c25a24a` (gồm quyền MANAGER và Tailwind); không cần thêm merge commit.
+
+### Hành vi API và phiên
+
+- Request có token hiện tại trả 403: giữ token và danh tính, tải lại `/auth/me`
+  rồi kiểm tra lại quyền. Nhiều 403 đồng thời dùng chung request tải quyền.
+  Không gửi lại request đã bị từ chối, đặc biệt không lặp POST/PUT.
+- `/auth/me` trả 403 không kích hoạt tải quyền đệ quy. Nếu không xác minh được
+  quyền, xóa role/permission/phạm vi hộ ở frontend, giữ danh tính để có thể
+  đăng xuất. Nếu tải quyền trả 401 thì kết thúc phiên.
+- API danh sách tài khoản trả 403: gỡ bảng/dữ liệu và hiện `ForbiddenView`
+  với nút về Tổng quan. Tạo/khóa/mở khóa trả 403: hiện thông báo tiếng Việt.
+  Nếu tạo bị từ chối, đóng dialog và xóa mật khẩu đang nhập, kể cả khi quyền
+  tạo vừa bị thu hồi và dialog không còn được render.
+- Quyền thu hồi được cập nhật khi một request bị backend từ chối; chưa có
+  cơ chế push/polling để phát hiện thay đổi quyền khi người dùng không thao tác.
+- API bảo vệ trả 401: xóa token và quyền, quay lại đăng nhập. Response lỗi
+  mang token cũ không làm mất phiên mới.
+- Login sai hoặc nhập sai mật khẩu hiện tại khi đổi mật khẩu không làm mất
+  phiên đang có do interceptor. Riêng `TOKEN_EXPIRED` khi đổi mật khẩu vẫn
+  kết thúc phiên. Backend dùng chung mã lỗi cho một số trường hợp 401 nên
+  trường hợp token không hợp lệ tại endpoint đổi mật khẩu vẫn cần xác minh
+  khi request bảo vệ kế tiếp được gửi.
+- AuthProvider quản lý việc lưu/xóa token sau login/đổi mật khẩu. Response
+  restore, login hoặc tải quyền cũ không khôi phục phiên sau logout/đổi tài
+  khoản; callback API được gỡ khi provider unmount, hỗ trợ React StrictMode.
+
+### Kiểm thử và duyệt
+
+- Tổng cộng 153 test tự động: 137 test policy/render có sẵn và 16 test tích hợp
+  DOM/effect mới trong `AuthProvider.test.js`, dùng `happy-dom` làm dev dependency.
+- Test mới kiểm tra hết hạn token, 403 đọc/ghi, không gửi lại mutation,
+  gom request tải quyền, chống vòng lặp 403, dữ liệu phiên cũ, StrictMode,
+  đổi tài khoản, tab/modal và quyền tạo bị thu hồi trong khi gửi form.
+- Lint, build và `git diff --check` đã đạt. Trình duyệt với Axios adapter giả
+  lập xác nhận trang 403 giữ phiên, tải lại quyền đúng một lần và có nút quay về.
+- Người dùng đã xác nhận hoàn tất kiểm tra giao diện và luồng 403, đồng thời
+  duyệt tách commit. Agent chưa chạy bộ E2E đầy đủ với database/backend thật;
+  các xác nhận tự động vẫn dựa trên API giả lập.
+- Navbar được kiểm tra thêm tại 320/375/390/600/768/900/1024/1280px: hai nút
+  đổi mật khẩu/đăng xuất không tràn hoặc chồng nhau, kể cả tên người dùng dài.
+  Trên mobile, thông tin tài khoản nằm riêng phía trên hai nút rộng bằng nhau.
+- Chỉ commit hoặc push sau khi người dùng duyệt rõ ràng.
