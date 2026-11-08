@@ -25,7 +25,7 @@ const resident = [
 ]
 const management = [
   ...residenceRead, ...residenceWrite, ...finance, ...resident,
-  'user.read', 'user.manage',
+  'user.read', 'user.write', 'user.manage',
 ]
 
 // Four business groups; ADMIN and MANAGER share the management UI policy.

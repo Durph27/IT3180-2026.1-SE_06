@@ -6,12 +6,13 @@ import LoginForm from './components/LoginForm'
 import ChangePasswordModal from './components/ChangePasswordModal'
 import UserManagement from './components/UserManagement'
 import HomePage from './pages/HomePage'
+import RoleGuard from './components/RoleGuard'
+import ForbiddenView from './components/ForbiddenView'
+import { ROLE_PERMISSIONS } from './auth/rbac'
 import './App.css'
 
 function AppContent() {
-  const { isAuthenticated, isLoading } = useAuth()
-  const [currentTab, setCurrentTab] = useState('overview')
-  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
+  const { user, isAuthenticated, isLoading } = useAuth()
 
   if (isLoading) {
     return (
@@ -31,6 +32,14 @@ function AppContent() {
     )
   }
 
+  return <Workspace key={user.id} />
+}
+
+function Workspace() {
+  const [currentTab, setCurrentTab] = useState('overview')
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
+  const goToOverview = () => setCurrentTab('overview')
+
   return (
     <div className="app-layout">
       <Navbar
@@ -40,13 +49,15 @@ function AppContent() {
       />
 
       <main className="main-content">
-        {currentTab === 'overview' && (
-          <HomePage
-            onNavigateToUsers={() => setCurrentTab('users')}
-            onOpenChangePassword={() => setIsChangePasswordOpen(true)}
-          />
-        )}
-        {currentTab === 'users' && <UserManagement />}
+        <RoleGuard roles={Object.keys(ROLE_PERMISSIONS)} fallback={<ForbiddenView />}>
+          {currentTab === 'overview' && (
+            <HomePage
+              onNavigateToUsers={() => setCurrentTab('users')}
+              onOpenChangePassword={() => setIsChangePasswordOpen(true)}
+            />
+          )}
+          {currentTab === 'users' && <UserManagement onBack={goToOverview} />}
+        </RoleGuard>
       </main>
 
       <ChangePasswordModal

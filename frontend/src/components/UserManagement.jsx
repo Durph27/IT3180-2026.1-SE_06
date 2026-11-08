@@ -2,10 +2,21 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { getUsersApi, updateUserStatusApi, createUserApi } from '../api/users'
 import { useAuth } from '../hooks/useAuth'
 import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon } from './Icons'
+import PermissionGate from './PermissionGate'
+import ForbiddenView from './ForbiddenView'
 
-export default function UserManagement() {
+export default function UserManagement({ onBack }) {
+  return (
+    <PermissionGate permission="user.read" fallback={<ForbiddenView onBack={onBack} />}>
+      <UserManagementContent />
+    </PermissionGate>
+  )
+}
+
+function UserManagementContent() {
   const { user: currentUser, hasPermission } = useAuth()
   const canManage = hasPermission('user.manage')
+  const canCreate = hasPermission('user.write')
 
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -40,7 +51,7 @@ export default function UserManagement() {
     } else {
       if (dialog.open) dialog.close()
     }
-  }, [actionTarget])
+  }, [actionTarget, canManage])
 
   // Native <dialog> controls for Create User Modal
   useEffect(() => {
@@ -52,7 +63,7 @@ export default function UserManagement() {
     } else {
       if (dialog.open) dialog.close()
     }
-  }, [isCreateOpen])
+  }, [isCreateOpen, canCreate])
 
   // Click-outside light dismiss handler for both dialogs
   const actionPressedOutsideRef = useRef(false)
@@ -92,7 +103,7 @@ export default function UserManagement() {
       unbindAction()
       unbindCreate()
     }
-  }, [])
+  }, [canManage, canCreate])
 
   const refreshUsers = useCallback(async () => {
     try {
@@ -128,6 +139,7 @@ export default function UserManagement() {
   }, [])
 
   const handleStatusChange = async (targetUser, newStatus) => {
+    if (!canManage) return
     setActionLoading(true)
     setError('')
     setSuccessMsg('')
@@ -155,6 +167,7 @@ export default function UserManagement() {
 
   const handleCreateUser = async (e) => {
     e.preventDefault()
+    if (!canCreate) return
     setCreateError('')
 
     if (!newUsername.trim()) {
@@ -226,7 +239,7 @@ export default function UserManagement() {
           </div>
         </div>
 
-        {canManage && (
+        {canCreate && (
           <button
             type="button"
             className="btn btn-primary btn-add-user"
@@ -438,7 +451,7 @@ export default function UserManagement() {
       </div>
 
       {/* Confirmation Dialog via Native HTML5 <dialog> */}
-      <dialog
+      {canManage && <dialog
         ref={actionDialogRef}
         className="native-modal-dialog"
         aria-labelledby="confirm-dialog-title"
@@ -491,10 +504,10 @@ export default function UserManagement() {
             </div>
           </div>
         )}
-      </dialog>
+      </dialog>}
 
       {/* Create User Modal via Native HTML5 <dialog> */}
-      <dialog
+      {canCreate && <dialog
         ref={createDialogRef}
         className="native-modal-dialog"
         aria-labelledby="create-user-title"
@@ -604,7 +617,7 @@ export default function UserManagement() {
             </div>
           </form>
         </div>
-      </dialog>
+      </dialog>}
     </div>
   )
 }

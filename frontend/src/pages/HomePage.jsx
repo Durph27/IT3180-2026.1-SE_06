@@ -1,145 +1,91 @@
-import StatusCard from '../components/StatusCard'
-import { useHealth } from '../hooks/useHealth'
+import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { ServerIcon, DatabaseIcon, ShieldCheckIcon, BuildingIcon, UsersIcon, KeyIcon } from '../components/Icons'
+import PermissionGate from '../components/PermissionGate'
+import RoleGuard from '../components/RoleGuard'
+import SystemHealth from '../components/SystemHealth'
+import { UsersIcon, KeyIcon } from '../components/Icons'
 
 export default function HomePage({ onNavigateToUsers, onOpenChangePassword }) {
-  const state = useHealth()
-  const { user, roles, permissions } = useAuth()
-  const connected = state === 'connected'
-  const backendConnected = connected || state === 'database-error'
-  const pending = state === 'loading'
-
-  const roleName = roles[0]?.name || roles[0]?.code || 'Quản trị viên'
+  const { user, roles, householdIds, hasPermission, hasRole } = useAuth()
+  const [selectedHousehold, setSelectedHousehold] = useState('')
+  const householdId = householdIds.includes(selectedHousehold) ? selectedHousehold : householdIds[0]
+  const buildingWide = ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUTHORITY'].some(hasRole)
+  const ownHousehold = !buildingWide && hasRole('RESIDENT')
+  const scope = ownHousehold ? { householdId } : undefined
+  const roleName = roles.map((role) => typeof role === 'string' ? role : role?.name || role?.code).filter(Boolean).join(', ') || 'Chưa có vai trò'
+  const hasModules = hasPermission('household.read', scope) || hasPermission('invoice.read', scope)
+    || hasPermission('maintenance-fund.read') || hasPermission('user.read') || hasPermission('ticket.write', scope)
 
   return (
     <div className="dashboard-container">
-      {/* Welcome Hero Banner */}
       <section className="welcome-banner">
         <div className="welcome-content">
-          <div className="welcome-badge">
-            <span className="welcome-sparkle">✨</span>
-            <span>Không gian làm việc BlueMoon</span>
-          </div>
-          <h1 className="welcome-title">
-            Xin chào, <span className="highlight-text">{user?.displayName || user?.username || 'Bạn'}</span>!
-          </h1>
-          <p className="welcome-subtitle">
-            Hệ thống quản lý cư trú, lập bảng kê và đối soát thu phí chung cư đang vận hành ổn định.
-          </p>
-
+          <h1 className="welcome-title">Xin chào, {user?.displayName || user?.username || 'Bạn'}!</h1>
+          <p className="welcome-subtitle">{ownHousehold ? 'Theo dõi thông tin cư trú, khoản thu và yêu cầu của hộ gia đình bạn.' : 'Các phân hệ dưới đây hiển thị theo quyền truy cập của tài khoản.'}</p>
           <div className="welcome-meta-chips">
-            <div className="meta-chip">
-              <span className="chip-label">Vai trò:</span>
-              <span className="chip-value chip-role">{roleName}</span>
-            </div>
-            <div className="meta-chip">
-              <span className="chip-label">Quyền hạn kích hoạt:</span>
-              <span className="chip-value chip-perms">{permissions.length} quyền hệ thống</span>
-            </div>
-            <div className="meta-chip">
-              <span className="chip-label">Phiên làm việc:</span>
-              <span className="chip-value chip-secure">Bearer Token (1800s)</span>
-            </div>
+            <div className="meta-chip"><span className="chip-label">Vai trò:</span><span className="chip-value chip-role">{roleName}</span></div>
+            <div className="meta-chip"><span className="chip-label">Phạm vi:</span><span className="chip-value">{ownHousehold ? 'Hộ gia đình của bạn' : 'Toàn chung cư'}</span></div>
           </div>
         </div>
-
         <div className="welcome-quick-actions">
-          {onNavigateToUsers && (
-            <button type="button" className="btn btn-primary" onClick={onNavigateToUsers}>
-              <UsersIcon size={16} />
-              <span>Quản lý tài khoản</span>
-            </button>
-          )}
-          {onOpenChangePassword && (
-            <button type="button" className="btn btn-secondary" onClick={onOpenChangePassword}>
-              <KeyIcon size={16} />
-              <span>Đổi mật khẩu</span>
-            </button>
-          )}
+          <PermissionGate permission="user.read">
+            {onNavigateToUsers && <button type="button" className="btn btn-primary" onClick={onNavigateToUsers}><UsersIcon size={16} /><span>Quản lý tài khoản</span></button>}
+          </PermissionGate>
+          {onOpenChangePassword && <button type="button" className="btn btn-secondary" onClick={onOpenChangePassword}><KeyIcon size={16} /><span>Đổi mật khẩu</span></button>}
         </div>
       </section>
 
-      {/* System Infrastructure Health Section */}
-      <section className="dashboard-section">
-        <div className="section-title-row">
-          <div>
-            <h2 className="section-heading">Trạng thái hạ tầng hệ thống</h2>
-            <p className="section-subheading">Giám sát kết nối thời gian thực giữa giao diện, API và cơ sở dữ liệu</p>
-          </div>
+      {ownHousehold && householdIds.length > 0 && (
+        <div className="household-selection">
+          <label htmlFor="dashboard-household">Hộ gia đình đang xem</label>
+          <select id="dashboard-household" className="form-control" value={householdId} onChange={(event) => setSelectedHousehold(event.target.value)}>
+            {householdIds.map((id) => <option key={id} value={id}>Hộ {id}</option>)}
+          </select>
         </div>
+      )}
+      {ownHousehold && householdIds.length === 0 && <p className="alert alert-info" role="status">Tài khoản chưa được liên kết với hộ gia đình. Liên hệ Ban quản trị để cập nhật thông tin.</p>}
 
-        <div className="status-grid">
-          <StatusCard
-            label="Giao diện Frontend"
-            value="Đang hoạt động"
-            description="React 19 · Vite 8 · Single Page App"
-            connected={true}
-            icon={BuildingIcon}
-          />
-          <StatusCard
-            label="Backend REST API"
-            value={pending ? 'Đang kiểm tra…' : backendConnected ? 'Đã kết nối' : 'Mất kết nối'}
-            description="Spring Boot 3 · Java 21 · Port 8080"
-            connected={backendConnected}
-            icon={ServerIcon}
-          />
-          <StatusCard
-            label="Cơ sở dữ liệu"
-            value={pending ? 'Đang kiểm tra…' : connected ? 'Sẵn sàng' : 'Chưa kết nối'}
-            description="PostgreSQL 17 (Docker) · Port 5432"
-            connected={connected}
-            icon={DatabaseIcon}
-          />
-          <StatusCard
-            label="Xác thực & Bảo mật"
-            value="Chuẩn RBAC"
-            description="BCrypt Hashing · Token Revocation"
-            connected={true}
-            icon={ShieldCheckIcon}
-          />
-        </div>
+      <RoleGuard roles={['ADMIN', 'MANAGER']} fallback={null}><SystemHealth /></RoleGuard>
 
-        {!pending && !connected && (
-          <div className="alert alert-error" role="alert">
-            ⚠️ <strong>Cảnh báo kết nối:</strong> Không thể kết nối tới cơ sở dữ liệu PostgreSQL. Vui lòng kiểm tra container docker <code>bluemoon-postgres</code> và file cấu hình <code>.env</code>.
-          </div>
-        )}
-      </section>
-
-      {/* Sprint 1 Scope Overview Cards */}
-      <section className="dashboard-section">
-        <div className="section-title-row">
-          <div>
-            <h2 className="section-heading">Các phân hệ quản lý đã kích hoạt</h2>
-            <p className="section-subheading">Phạm vi nghiệp vụ Sprint 1 sẵn sàng phục vụ ban quản lý chung cư</p>
-          </div>
-        </div>
-
+      <section className="dashboard-section" aria-labelledby="modules-title">
+        <div className="section-title-row"><div>
+          <h2 id="modules-title" className="section-heading">Phạm vi nghiệp vụ của bạn</h2>
+          <p className="section-subheading">Thông tin và thao tác được cấp cho tài khoản hiện tại</p>
+        </div></div>
+        {!hasModules && <p role="status">Chưa có phân hệ được cấp quyền trong phạm vi hiện tại. Liên hệ Ban quản trị để được hỗ trợ.</p>}
         <div className="features-grid">
-          <div className="feature-card">
-            <div className="feature-icon bg-indigo">🏢</div>
-            <h3>Căn hộ & Cư trú</h3>
-            <p>Quản lý danh sách tòa nhà, căn hộ, chủ hộ, nhân khẩu cư trú và lịch sử biến động tạm trú/tạm vắng.</p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon bg-emerald">🧾</div>
-            <h3>Thu phí & Bảng kê</h3>
-            <p>Tạo loại phí bắt buộc/tự nguyện, định mức theo diện tích hoặc số người, phát hành kỳ thu và bảng kê hóa đơn.</p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon bg-amber">💰</div>
-            <h3>Thu tiền & Quỹ bảo trì</h3>
-            <p>Ghi nhận thu tiền mặt/chuyển khoản, in biên lai, theo dõi số dư quỹ bảo trì và phân bổ chi phí sửa chữa.</p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon bg-sky">🛡️</div>
-            <h3>Quản trị & Phân quyền</h3>
-            <p>Kiểm soát 5 vai trò hệ thống (Admin, Ban quản trị, Kế toán, Cơ quan, Cư dân), khóa và mở khóa tài khoản.</p>
-          </div>
+          <PermissionGate permission="household.read" householdId={scope?.householdId}>
+            <article className="feature-card">
+              <h3>{ownHousehold ? 'Thông tin hộ gia đình' : 'Căn hộ & Cư trú'}</h3>
+              <p>{ownHousehold ? 'Xem thông tin thành viên và lịch sử cư trú của hộ đang chọn.' : 'Tra cứu hộ gia đình, nhân khẩu và lịch sử cư trú toàn chung cư.'}</p>
+              {!ownHousehold && <p className="access-note">{hasPermission('resident.write') ? 'Được cập nhật thông tin cư trú.' : 'Chỉ đọc thông tin cư trú.'}</p>}
+              <PermissionGate permission="residence-change.approve"><p className="access-note">Được duyệt yêu cầu biến động cư trú.</p></PermissionGate>
+              <PermissionGate permission="residence-change.write" householdId={scope?.householdId}><p className="access-note">Được nộp đơn biến động cư trú{ownHousehold ? ' cho hộ đang chọn' : ''}.</p></PermissionGate>
+            </article>
+          </PermissionGate>
+          <PermissionGate permission="invoice.read" householdId={scope?.householdId}>
+            <article className="feature-card">
+              <h3>{ownHousehold ? 'Khoản thu của hộ' : 'Thu phí & Công nợ'}</h3>
+              <p>{ownHousehold ? 'Xem bảng kê và khoản thu của hộ đang chọn.' : 'Theo dõi bảng kê thu phí toàn chung cư.'}</p>
+              <PermissionGate permission="invoice.generate"><p className="access-note">Được lập bảng kê thu phí.</p></PermissionGate>
+              <PermissionGate permission="billing-period.issue"><p className="access-note">Được phát hành kỳ thu.</p></PermissionGate>
+              <PermissionGate permission="report.debts"><p className="access-note">Được tra cứu công nợ toàn chung cư.</p></PermissionGate>
+            </article>
+          </PermissionGate>
+          <PermissionGate permission="maintenance-fund.read">
+            <article className="feature-card"><h3>Quỹ bảo trì</h3><p>Theo dõi quỹ bảo trì và các đợt phân bổ chi phí.</p>
+              <PermissionGate permission="maintenance-expense.record"><p className="access-note">Được ghi nhận chi phí bảo trì.</p></PermissionGate>
+            </article>
+          </PermissionGate>
+          <PermissionGate permission="ticket.write" householdId={scope?.householdId}>
+            <article className="feature-card"><h3>Phản ánh</h3><p>{ownHousehold ? 'Được gửi phản ánh của hộ đang chọn đến Ban quản trị.' : 'Được gửi phản ánh đến Ban quản trị.'}</p></article>
+          </PermissionGate>
+          <PermissionGate permission="user.read">
+            <article className="feature-card"><h3>Quản lý tài khoản</h3><p>Xem danh sách tài khoản hệ thống.</p>
+              <PermissionGate permission="user.write"><p className="access-note">Được tạo tài khoản.</p></PermissionGate>
+              <PermissionGate permission="user.manage"><p className="access-note">Được khóa và mở khóa tài khoản.</p></PermissionGate>
+            </article>
+          </PermissionGate>
         </div>
       </section>
     </div>

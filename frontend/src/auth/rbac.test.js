@@ -37,6 +37,7 @@ const matrix = [
   ['payment-intent.create',     1,    1,       0,         1,       0],
   ['ticket.write',              1,    1,       0,         1,       0],
   ['user.read',                 1,    1,       0,         0,       0],
+  ['user.write',                1,    1,       0,         0,       0],
   ['user.manage',               1,    1,       0,         0,       0],
 ]
 const roles = ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'RESIDENT', 'AUTHORITY']

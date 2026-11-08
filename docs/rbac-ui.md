@@ -5,9 +5,10 @@ Nhánh cơ sở: `main` (đồng bộ từ `origin/main`).
 
 ## Tiến độ theo commit
 
-1. Policy độc lập và unit test ma trận: bước đầu, chưa thay đổi giao diện.
-2. `RoleGuard.jsx`, `PermissionGate.jsx`, `ForbiddenView.jsx`; tích hợp AuthProvider, Navbar và Dashboard.
-3. Test tích hợp ngăn mount/gọi API trái quyền, kiểm tra build/lint và mô tả PR tiếng Việt.
+1. Đã hoàn thành: policy độc lập và unit test ma trận (`1d79e41`).
+2. Đã triển khai: `RoleGuard.jsx`, `PermissionGate.jsx`, `ForbiddenView.jsx`;
+   tích hợp AuthProvider, Navbar, Dashboard và trang quản lý tài khoản.
+3. Tiếp theo: mở rộng test luồng phiên đăng nhập, xử lý API 403 và hoàn thiện mô tả PR tiếng Việt.
 
 ## Quy tắc policy
 
@@ -57,3 +58,40 @@ Chạy `npm test` trong `frontend`. Dùng Node test runner, không thêm depende
 Ma trận dùng kỳ vọng độc lập cho 5 mã vai trò / 4 nhóm nghiệp vụ; cố ý cấp toàn
 bộ permission đầu vào để phát hiện quyền vượt policy. Có kiểm tra thiếu quyền
 backend, phiên chưa sẵn sàng, vai trò không hợp lệ, phạm vi hộ và nhiều vai trò.
+
+## Tích hợp bước 2
+
+- `RoleGuard` nhận `roles` là danh sách vai trò được phép; mặc định hiển thị
+  `ForbiddenView` khi bị từ chối. `fallback={null}` dùng cho vùng cần ẩn.
+- `PermissionGate` nhận một `permission`, `householdId` tùy chọn; mặc định ẩn
+  khi bị từ chối. Cả hai guard không render children trong lúc tải phiên.
+- `useAuth().hasPermission(permission, { householdId })` nay kiểm tra policy
+  và quyền backend; không chỉ tìm chuỗi permission trong hồ sơ.
+- Navbar, nút Dashboard và toàn bộ `UserManagement` yêu cầu `user.read`.
+  `user.manage` riêng lẻ không cho phép gọi API danh sách tài khoản. Nút,
+  dialog và handler tạo tài khoản yêu cầu `user.write`; khóa/mở khóa yêu cầu
+  `user.manage`, đúng hợp đồng endpoint backend.
+- Tách `SystemHealth` và chỉ mount dưới guard ADMIN/MANAGER, tránh gọi health
+  API ở Dashboard kế toán, cư dân và cơ quan chức năng.
+- Dashboard chọn hộ chỉ trong `householdIds`; thiếu liên kết hộ thì ẩn vùng
+  dữ liệu hộ. Vai trò cơ quan chức năng chỉ thấy cư trú với nhãn chỉ đọc.
+- Các thẻ nghiệp vụ là mô tả phạm vi quyền. Bước này chưa triển khai màn hình
+  tra cứu cư trú, khoản thu hay gửi phản ánh thực tế.
+- Workspace unmount sau đăng xuất và được key theo user ID để không giữ tab,
+  hộ đang chọn và modal của tài khoản trước.
+- Sửa thiếu import `useCallback` có sẵn trong `ChangePasswordModal`, lỗi này
+  làm màn hình sau đăng nhập crash khi kiểm tra trình duyệt.
+
+### Kiểm tra
+
+- `npm test`: 137 test policy và render component qua Vite SSR/React. Test guard
+  xác nhận children không render khi bị từ chối; SSR không chạy effect nên
+  kiểm tra request được thực hiện riêng trên trình duyệt.
+- Kiểm tra trình duyệt với Axios adapter giả lập (không gọi backend thật):
+  cả 5 mã vai trò, MANAGER thiếu `user.read`, chọn hộ, mobile không tràn ngang;
+  kế toán/cư dân/cơ quan chức năng không gọi `/health` hoặc `/users` trái quyền.
+- Mount trực tiếp `UserManagement` cho kế toán/cư dân/cơ quan chức năng trả màn
+  hình từ chối và không gọi `/users`, kể cả khi đầu vào có toàn bộ permission.
+  MANAGER chỉ có `user.read` xem được bảng, không có dialog sửa; thu hồi quyền
+  đọc khi đang mở trang làm bảng bị unmount và hiển thị màn hình từ chối.
+- Cần kiểm tra E2E với backend thật sau khi thống nhất quyền MANAGER.

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { getStoredToken, clearStoredToken, registerUnauthorizedCallback } from '../api/client'
 import { loginApi, getMeApi, changePasswordApi } from '../api/auth'
 import { AuthContext } from './AuthContext'
+import { canAccess, hasRole as matchesRole } from '../auth/rbac'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -93,13 +94,13 @@ export function AuthProvider({ children }) {
     }
   }, [logout])
 
-  const hasPermission = useCallback((permCode) => {
-    return permissions.includes(permCode)
-  }, [permissions])
+  const hasPermission = useCallback((permCode, scope) => {
+    return canAccess({ user, roles, permissions, householdIds, isLoading }, permCode, scope)
+  }, [user, roles, permissions, householdIds, isLoading])
 
   const hasRole = useCallback((roleCode) => {
-    return roles.some((r) => r.code === roleCode)
-  }, [roles])
+    return !!user && !isLoading && matchesRole(roles, roleCode)
+  }, [user, roles, isLoading])
 
   const value = useMemo(() => ({
     user,

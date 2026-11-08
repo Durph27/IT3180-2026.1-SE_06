@@ -1,12 +1,12 @@
 import { useAuth } from '../hooks/useAuth'
+import PermissionGate from './PermissionGate'
 import { MoonLogoIcon, BuildingIcon, UsersIcon, KeyIcon, LogoutIcon } from './Icons'
 
 export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }) {
-  const { user, roles, logout, hasPermission } = useAuth()
-  const canManageUsers = hasPermission('user.read') || hasPermission('user.manage')
+  const { user, roles, logout } = useAuth()
   const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
-  const roleCode = roles[0]?.code || 'USER'
-  const roleName = roles[0]?.name || roles[0]?.code || 'Người dùng'
+  const roleCode = (typeof roles[0] === 'string' ? roles[0] : roles[0]?.code) || 'USER'
+  const roleName = roles.map((role) => typeof role === 'string' ? role : role?.name || role?.code).filter(Boolean).join(', ') || 'Chưa có vai trò'
 
   return (
     <header className="navbar">
@@ -23,25 +23,27 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
         </div>
 
         {/* Navigation Tabs */}
-        <nav className="navbar-nav">
+        <nav className="navbar-nav" aria-label="Điều hướng chính">
           <button
             type="button"
             className={`nav-link ${currentTab === 'overview' ? 'active' : ''}`}
+            aria-current={currentTab === 'overview' ? 'page' : undefined}
             onClick={() => onSelectTab('overview')}
           >
             <BuildingIcon size={16} />
             <span>Tổng quan</span>
           </button>
-          {canManageUsers && (
+          <PermissionGate permission="user.read">
             <button
               type="button"
               className={`nav-link ${currentTab === 'users' ? 'active' : ''}`}
+              aria-current={currentTab === 'users' ? 'page' : undefined}
               onClick={() => onSelectTab('users')}
             >
               <UsersIcon size={16} />
               <span>Quản lý tài khoản</span>
             </button>
-          )}
+          </PermissionGate>
         </nav>
 
         {/* User profile & actions */}
