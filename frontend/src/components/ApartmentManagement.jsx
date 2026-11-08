@@ -4,7 +4,6 @@ import { useAuth } from '../hooks/useAuth'
 import ApartmentFormModal from './ApartmentFormModal'
 import {
   ApartmentIcon,
-  BuildingIcon,
   PlusIcon,
   SearchIcon,
   RefreshIcon,
@@ -236,272 +235,240 @@ export default function ApartmentManagement() {
         </div>
       )}
 
-      {/* Metric Stat Cards */}
-      <div className="metrics-grid">
-        <div className="metric-card">
-          <div className="metric-card-header">
-            <span className="metric-title">Tổng số Căn hộ</span>
-            <div className="metric-icon-box metric-blue">
-              <ApartmentIcon size={18} />
-            </div>
+      {/* Sleek Metric Strip */}
+      <div className="stats-strip" aria-label="Thống kê căn hộ">
+        <div className="stats-item">
+          <span className="stats-label">TỔNG SỐ CĂN HỘ</span>
+          <div className="stats-value-row">
+            <span className="stats-number stats-highlight-cobalt">{stats.total}</span>
+            <span className="stats-subtext">Hồ sơ hệ thống</span>
           </div>
-          <div className="metric-value">{stats.total}</div>
-          <div className="metric-footer text-muted">Bản ghi hệ thống</div>
         </div>
 
-        <div className="metric-card">
-          <div className="metric-card-header">
-            <span className="metric-title">Đang có người ở</span>
-            <div className="metric-icon-box metric-indigo">
-              <BuildingIcon size={18} />
-            </div>
+        <div className="stats-item">
+          <span className="stats-label">ĐANG CÓ NGƯỜI Ở</span>
+          <div className="stats-value-row">
+            <span className="stats-number stats-highlight-teal">{stats.pageOccupied}</span>
+            <span className="stats-subtext">Cư trú thực tế</span>
           </div>
-          <div className="metric-value">{stats.pageOccupied}</div>
-          <div className="metric-footer text-success">Đã bàn giao & cư trú</div>
         </div>
 
-        <div className="metric-card">
-          <div className="metric-card-header">
-            <span className="metric-title">Căn còn trống</span>
-            <div className="metric-icon-box metric-emerald">
-              <CheckCircleIcon size={18} />
-            </div>
+        <div className="stats-item">
+          <span className="stats-label">CĂN TRỐNG SẴN SÀNG</span>
+          <div className="stats-value-row">
+            <span className="stats-number">{stats.pageVacant}</span>
+            <span className="stats-subtext">Sẵn sàng bàn giao</span>
           </div>
-          <div className="metric-value">{stats.pageVacant}</div>
-          <div className="metric-footer text-muted">Sẵn sàng bàn giao</div>
         </div>
 
-        <div className="metric-card">
-          <div className="metric-card-header">
-            <span className="metric-title">Tạm ngưng / Bảo trì</span>
-            <div className="metric-icon-box metric-amber">
-              <ApartmentIcon size={18} />
-            </div>
-          </div>
-          <div className="metric-value">{stats.pageInactive}</div>
-          <div className="metric-footer text-muted">Chưa khả dụng</div>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="filter-card">
-        <div className="filter-grid">
-          {/* Search by room code */}
-          <div className="filter-item search-filter-item">
-            <label htmlFor="search-apt-code" className="filter-label">
-              Mã căn hộ:
-            </label>
-            <div className="search-input-wrapper">
-              <SearchIcon size={16} className="search-icon" />
-              <input
-                type="search"
-                id="search-apt-code"
-                placeholder="Tìm mã phòng (VD: P1001)…"
-                value={searchCode}
-                onChange={(e) => {
-                  setSearchCode(e.target.value)
-                  setPage(0)
-                }}
-                className="form-input search-input"
-              />
-            </div>
-          </div>
-
-          {/* Filter by Building */}
-          <div className="filter-item">
-            <label htmlFor="filter-building" className="filter-label">
-              Tòa nhà:
-            </label>
-            <select
-              id="filter-building"
-              value={buildingFilter}
-              onChange={(e) => {
-                setBuildingFilter(e.target.value)
-                setPage(0)
-              }}
-              className="form-input form-select"
-            >
-              <option value="ALL">Tất cả tòa nhà</option>
-              {buildings.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name} ({b.code})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Filter by Status */}
-          <div className="filter-item">
-            <label htmlFor="filter-status" className="filter-label">
-              Trạng thái:
-            </label>
-            <select
-              id="filter-status"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value)
-                setPage(0)
-              }}
-              className="form-input form-select"
-            >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="VACANT">Căn trống (VACANT)</option>
-              <option value="OCCUPIED">Đang có người ở (OCCUPIED)</option>
-              <option value="INACTIVE">Tạm ngưng (INACTIVE)</option>
-            </select>
+        <div className="stats-item">
+          <span className="stats-label">TẠM NGƯNG / BẢO TRÌ</span>
+          <div className="stats-value-row">
+            <span className="stats-number stats-highlight-amber">{stats.pageInactive}</span>
+            <span className="stats-subtext">Chưa khả dụng</span>
           </div>
         </div>
       </div>
 
-      {/* Responsive Table Wrapper per Modern Web Guidance */}
-      <div
-        tabIndex={0}
-        role="region"
-        aria-labelledby="apt-table-caption"
-        className="table-container-wrapper"
-      >
-        <table className="modern-table apartment-table">
-          <caption id="apt-table-caption" className="visually-hidden">
-            Danh sách căn hộ trong khu đô thị BlueMoon
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col" className="col-code">Mã căn hộ</th>
-              <th scope="col" className="col-building">Tòa nhà</th>
-              <th scope="col" className="col-floor">Tầng</th>
-              <th scope="col" className="col-area">Diện tích (m²)</th>
-              <th scope="col" className="col-status">Trạng thái</th>
-              {canWrite && <th scope="col" className="col-actions">Thao tác</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={canWrite ? 6 : 5} className="table-loading-cell">
-                  <div className="table-spinner">
-                    <span className="spinner-dot" />
-                    <span>Đang tải dữ liệu hồ sơ căn hộ…</span>
-                  </div>
-                </td>
-              </tr>
-            ) : apartments.length === 0 ? (
-              <tr>
-                <td colSpan={canWrite ? 6 : 5} className="table-empty-cell">
-                  <div className="empty-state">
-                    <div className="empty-icon-box">
-                      <ApartmentIcon size={36} />
-                    </div>
-                    <h3>Chưa có hồ sơ căn hộ nào phù hợp</h3>
-                    <p className="text-muted">
-                      {searchCode || buildingFilter !== 'ALL' || statusFilter !== 'ALL'
-                        ? 'Không tìm thấy căn hộ thỏa mãn bộ lọc hiện tại. Hãy thử thay đổi từ khóa.'
-                        : 'Bắt đầu khởi tạo dữ liệu bằng cách thêm căn hộ đầu tiên vào hệ thống.'}
-                    </p>
-                    {canWrite && (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm mt-3"
-                        onClick={handleOpenCreate}
-                      >
-                        <PlusIcon size={16} />
-                        <span>Thêm căn hộ mới</span>
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              apartments.map((apt) => {
-                const b = buildingMap[apt.buildingId]
-                const bName = b ? `${b.name} (${b.code})` : '—'
+      {/* Integrated Filter Toolbar */}
+      <div className="filter-toolbar">
+        <div className="filter-group-left">
+          <div className="search-input-box">
+            <SearchIcon size={15} className="search-icon-inside" />
+            <input
+              type="search"
+              id="search-apt-code"
+              placeholder="Tìm theo mã phòng (VD: P1001)…"
+              value={searchCode}
+              onChange={(e) => {
+                setSearchCode(e.target.value)
+                setPage(0)
+              }}
+              className="form-input-search"
+            />
+          </div>
 
-                return (
-                  <tr key={apt.id}>
-                    <th scope="row" className="cell-code" data-label="Mã căn hộ">
-                      <div className="apt-code-badge">
-                        <ApartmentIcon size={15} className="apt-badge-icon" />
-                        <span className="code-text">{apt.code}</span>
+          <select
+            id="filter-building"
+            value={buildingFilter}
+            onChange={(e) => {
+              setBuildingFilter(e.target.value)
+              setPage(0)
+            }}
+            className="filter-select"
+            aria-label="Lọc theo tòa nhà"
+          >
+            <option value="ALL">Tất cả tòa nhà</option>
+            {buildings.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name} ({b.code})
+              </option>
+            ))}
+          </select>
+
+          <select
+            id="filter-status"
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value)
+              setPage(0)
+            }}
+            className="filter-select"
+            aria-label="Lọc theo trạng thái"
+          >
+            <option value="ALL">Tất cả trạng thái</option>
+            <option value="VACANT">Căn trống (VACANT)</option>
+            <option value="OCCUPIED">Đang có người ở (OCCUPIED)</option>
+            <option value="INACTIVE">Tạm ngưng (INACTIVE)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Responsive Table Card per Modern Web Guidance */}
+      <div className="table-surface-card">
+        <div
+          tabIndex={0}
+          role="region"
+          aria-labelledby="apt-table-caption"
+          className="table-scroll-region"
+        >
+          <table className="data-table">
+            <caption id="apt-table-caption" className="visually-hidden">
+              Danh sách căn hộ khu đô thị BlueMoon
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Mã căn hộ</th>
+                <th scope="col">Tòa nhà</th>
+                <th scope="col">Tầng</th>
+                <th scope="col" className="col-num">Diện tích (m²)</th>
+                <th scope="col">Trạng thái</th>
+                {canWrite && <th scope="col" style={{ textAlign: 'right' }}>Thao tác</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={canWrite ? 6 : 5} style={{ textAlign: 'center', padding: '36px' }}>
+                    <span style={{ color: 'var(--slate-muted)' }}>Đang tải danh sách hồ sơ căn hộ…</span>
+                  </td>
+                </tr>
+              ) : apartments.length === 0 ? (
+                <tr>
+                  <td colSpan={canWrite ? 6 : 5}>
+                    <div className="empty-table-state">
+                      <div className="empty-table-icon">
+                        <ApartmentIcon size={36} />
                       </div>
-                    </th>
-                    <td data-label="Tòa nhà" className="cell-building">
-                      <span className="building-text">{bName}</span>
-                    </td>
-                    <td data-label="Tầng" className="cell-floor">
-                      <span className="floor-badge">Tầng {apt.floorNo}</span>
-                    </td>
-                    <td data-label="Diện tích" className="cell-area">
-                      <strong>{apt.areaM2}</strong> m²
-                    </td>
-                    <td data-label="Trạng thái" className="cell-status">
-                      {apt.status === 'VACANT' && (
-                        <span className="status-badge status-vacant">
-                          ● Trống
-                        </span>
-                      )}
-                      {apt.status === 'OCCUPIED' && (
-                        <span className="status-badge status-occupied">
-                          ● Đang ở
-                        </span>
-                      )}
-                      {apt.status === 'INACTIVE' && (
-                        <span className="status-badge status-inactive">
-                          ● Tạm ngưng
-                        </span>
-                      )}
-                      {!['VACANT', 'OCCUPIED', 'INACTIVE'].includes(apt.status) && (
-                        <span className="status-badge status-other">
-                          {apt.status}
-                        </span>
-                      )}
-                    </td>
-                    {canWrite && (
-                      <td data-label="Thao tác" className="cell-actions">
+                      <div className="empty-table-title">Chưa có hồ sơ căn hộ phù hợp</div>
+                      <p className="empty-table-desc">
+                        {searchCode || buildingFilter !== 'ALL' || statusFilter !== 'ALL'
+                          ? 'Không tìm thấy căn hộ khớp với điều kiện lọc hiện tại.'
+                          : 'Bắt đầu khởi tạo dữ liệu bằng cách thêm căn hộ đầu tiên vào hệ thống.'}
+                      </p>
+                      {canWrite && (
                         <button
                           type="button"
-                          className="btn btn-secondary btn-xs btn-action-edit"
-                          onClick={() => handleOpenEdit(apt)}
-                          title={`Chỉnh sửa căn hộ ${apt.code}`}
+                          className="btn btn-primary btn-sm"
+                          onClick={handleOpenCreate}
                         >
-                          <EditIcon size={14} />
-                          <span>Sửa</span>
+                          <PlusIcon size={15} />
+                          <span>Thêm căn hộ mới</span>
                         </button>
-                      </td>
-                    )}
-                  </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                apartments.map((apt) => {
+                  const b = buildingMap[apt.buildingId]
+                  const bName = b ? `${b.name} (${b.code})` : '—'
 
-      {/* Pagination controls */}
-      {totalPages > 1 && (
-        <div className="pagination-bar">
-          <div className="pagination-info">
-            Trang <strong>{page + 1}</strong> trên <strong>{totalPages}</strong>{' '}
-            (Tổng cộng {totalElements} căn hộ)
-          </div>
-          <div className="pagination-buttons">
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              disabled={page === 0 || loading}
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-            >
-              Trang trước
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              disabled={page >= totalPages - 1 || loading}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Trang sau
-            </button>
-          </div>
+                  return (
+                    <tr key={apt.id}>
+                      <th scope="row" data-label="Mã căn hộ">
+                        <span className="code-tag">{apt.code}</span>
+                      </th>
+                      <td data-label="Tòa nhà">
+                        <span style={{ fontWeight: 500 }}>{bName}</span>
+                      </td>
+                      <td data-label="Tầng">
+                        <span className="floor-tag">Tầng {apt.floorNo}</span>
+                      </td>
+                      <td data-label="Diện tích" className="col-num">
+                        <strong>{apt.areaM2}</strong> m²
+                      </td>
+                      <td data-label="Trạng thái">
+                        {apt.status === 'VACANT' && (
+                          <span className="badge-pill badge-vacant">
+                            ● Trống
+                          </span>
+                        )}
+                        {apt.status === 'OCCUPIED' && (
+                          <span className="badge-pill badge-occupied">
+                            ● Đang ở
+                          </span>
+                        )}
+                        {apt.status === 'INACTIVE' && (
+                          <span className="badge-pill badge-inactive">
+                            ● Tạm ngưng
+                          </span>
+                        )}
+                        {!['VACANT', 'OCCUPIED', 'INACTIVE'].includes(apt.status) && (
+                          <span className="badge-pill">
+                            {apt.status}
+                          </span>
+                        )}
+                      </td>
+                      {canWrite && (
+                        <td data-label="Thao tác" style={{ textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-xs"
+                            onClick={() => handleOpenEdit(apt)}
+                            title={`Chỉnh sửa thông tin căn hộ ${apt.code}`}
+                          >
+                            <EditIcon size={13} />
+                            <span>Sửa</span>
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+
+        {/* Pagination Strip */}
+        {totalPages > 1 && (
+          <div className="pagination-strip">
+            <div>
+              Trang <strong>{page + 1}</strong> trên <strong>{totalPages}</strong>{' '}
+              (Tổng cộng {totalElements} căn hộ)
+            </div>
+            <div className="pagination-controls">
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={page === 0 || loading}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                Trang trước
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={page >= totalPages - 1 || loading}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Trang sau
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Create / Edit Form Modal */}
       {isModalOpen && (

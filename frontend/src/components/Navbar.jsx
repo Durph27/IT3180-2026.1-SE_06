@@ -6,25 +6,28 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
   const canManageUsers = hasPermission('user.read') || hasPermission('user.manage')
   const canViewApartments = hasPermission('apartment.read')
   const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
-  const roleCode = roles?.[0]?.code || 'USER'
   const roleName = roles?.[0]?.name || roles?.[0]?.code || 'Người dùng'
 
   return (
     <header className="navbar">
       <div className="navbar-container">
         {/* Brand */}
-        <div className="navbar-brand" onClick={() => onSelectTab('overview')} style={{ cursor: 'pointer' }}>
+        <div
+          className="navbar-brand"
+          onClick={() => onSelectTab('overview')}
+          title="Về Trang tổng quan BlueMoon"
+        >
           <div className="brand-logo-wrapper">
-            <MoonLogoIcon size={20} className="brand-moon-icon" />
+            <MoonLogoIcon size={20} />
           </div>
           <div className="brand-text">
             <span className="navbar-title">BlueMoon</span>
-            <span className="brand-subtitle">Fee Management</span>
+            <span className="brand-subtitle">Quản lý thu phí chung cư</span>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <nav className="navbar-nav">
+        <nav className="navbar-nav" aria-label="Thanh điều hướng chính">
           <button
             type="button"
             className={`nav-link ${currentTab === 'overview' ? 'active' : ''}`}
@@ -63,7 +66,7 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             </div>
             <div className="user-details">
               <span className="user-name">{user?.displayName || user?.username}</span>
-              <span className={`user-role-badge role-${roleCode.toLowerCase()}`}>
+              <span className="user-role-badge">
                 {roleName}
               </span>
             </div>
@@ -72,16 +75,16 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
           <div className="navbar-actions">
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
+              className="btn-nav-action"
               onClick={onOpenChangePassword}
-              title="Đổi mật khẩu tài khoản"
+              title="Đổi mật khẩu tài khoản hiện tại"
             >
               <KeyIcon size={14} />
               <span>Đổi mật khẩu</span>
             </button>
             <button
               type="button"
-              className="btn btn-outline btn-sm btn-logout"
+              className="btn-nav-action btn-nav-logout"
               onClick={logout}
               title="Đăng xuất khỏi hệ thống"
             >

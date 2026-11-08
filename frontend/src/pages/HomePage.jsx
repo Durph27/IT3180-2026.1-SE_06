@@ -1,152 +1,211 @@
-import StatusCard from '../components/StatusCard'
+import { useState, useEffect } from 'react'
 import { useHealth } from '../hooks/useHealth'
 import { useAuth } from '../hooks/useAuth'
-import { ServerIcon, DatabaseIcon, ShieldCheckIcon, BuildingIcon, UsersIcon, KeyIcon, ApartmentIcon } from '../components/Icons'
+import { getApartmentsApi } from '../api/apartments'
+import { ApartmentIcon, UsersIcon, BuildingIcon } from '../components/Icons'
 
-export default function HomePage({ onNavigateToUsers, onNavigateToApartments, onOpenChangePassword }) {
+export default function HomePage({ onNavigateToUsers, onNavigateToApartments }) {
   const state = useHealth()
   const { user, roles, permissions, hasPermission } = useAuth()
   const connected = state === 'connected'
   const backendConnected = connected || state === 'database-error'
   const pending = state === 'loading'
   const canViewApartments = hasPermission('apartment.read')
+  const canManageUsers = hasPermission('user.read') || hasPermission('user.manage')
 
   const roleName = roles?.[0]?.name || roles?.[0]?.code || 'Quản trị viên'
 
+  // Live apartment metrics
+  const [aptStats, setAptStats] = useState({
+    total: 0,
+    occupied: 0,
+    vacant: 0,
+    occupancyRate: '—',
+  })
+
+  useEffect(() => {
+    if (!canViewApartments) return
+
+    let ignore = false
+    getApartmentsApi({ size: 100 })
+      .then((data) => {
+        if (ignore) return
+        const list = data.content || data.items || []
+        const total = data.totalElements ?? list.length
+        let occ = 0
+        let vac = 0
+        list.forEach((a) => {
+          if (a.status === 'OCCUPIED') occ += 1
+          if (a.status === 'VACANT') vac += 1
+        })
+        const rate = total > 0 ? `${Math.round((occ / total) * 100)}%` : '0%'
+        setAptStats({ total, occupied: occ, vacant: vac, occupancyRate: rate })
+      })
+      .catch(() => {})
+
+    return () => {
+      ignore = true
+    }
+  }, [canViewApartments])
+
   return (
-    <div className="dashboard-container">
-      {/* Welcome Hero Banner */}
-      <section className="welcome-banner">
-        <div className="welcome-content">
-          <div className="welcome-badge">
-            <span className="welcome-sparkle">✨</span>
-            <span>Không gian làm việc BlueMoon</span>
-          </div>
-          <h1 className="welcome-title">
-            Xin chào, <span className="highlight-text">{user?.displayName || user?.username || 'Bạn'}</span>!
+    <div className="dashboard-exec">
+      {/* Executive Hero Banner */}
+      <section className="exec-hero">
+        <div>
+          <h1 className="exec-hero-title">
+            Trung tâm Điều hành BlueMoon
           </h1>
-          <p className="welcome-subtitle">
-            Hệ thống quản lý cư trú, lập bảng kê và đối soát thu phí chung cư đang vận hành ổn định.
+          <p className="exec-hero-subtitle">
+            Hệ thống quản lý cư trú, lập bảng kê và đối soát thu phí chung cư · Xin chào, {user?.displayName || user?.username} ({roleName})
           </p>
-
-          <div className="welcome-meta-chips">
-            <div className="meta-chip">
-              <span className="chip-label">Vai trò:</span>
-              <span className="chip-value chip-role">{roleName}</span>
-            </div>
-            <div className="meta-chip">
-              <span className="chip-label">Quyền hạn kích hoạt:</span>
-              <span className="chip-value chip-perms">{(permissions || []).length} quyền hệ thống</span>
-            </div>
-            <div className="meta-chip">
-              <span className="chip-label">Phiên làm việc:</span>
-              <span className="chip-value chip-secure">Bearer Token (1800s)</span>
-            </div>
-          </div>
         </div>
 
-        <div className="welcome-quick-actions">
+        <div className="exec-actions">
           {canViewApartments && onNavigateToApartments && (
-            <button type="button" className="btn btn-primary" onClick={onNavigateToApartments}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={onNavigateToApartments}
+            >
               <ApartmentIcon size={16} />
-              <span>Quản lý Căn hộ</span>
+              <span>Hồ sơ Căn hộ</span>
             </button>
           )}
-          {onNavigateToUsers && (
-            <button type="button" className="btn btn-secondary" onClick={onNavigateToUsers}>
+          {canManageUsers && onNavigateToUsers && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onNavigateToUsers}
+            >
               <UsersIcon size={16} />
-              <span>Quản lý tài khoản</span>
-            </button>
-          )}
-          {onOpenChangePassword && (
-            <button type="button" className="btn btn-secondary" onClick={onOpenChangePassword}>
-              <KeyIcon size={16} />
-              <span>Đổi mật khẩu</span>
+              <span>Quản trị Tài khoản</span>
             </button>
           )}
         </div>
       </section>
 
-      {/* System Infrastructure Health Section */}
-      <section className="dashboard-section">
-        <div className="section-title-row">
-          <div>
-            <h2 className="section-heading">Trạng thái hạ tầng hệ thống</h2>
-            <p className="section-subheading">Giám sát kết nối thời gian thực giữa giao diện, API và cơ sở dữ liệu</p>
+      {/* Sleek Live Metric Strip */}
+      <section className="stats-strip" aria-label="Chỉ số hoạt động thời gian thực">
+        <div className="stats-item">
+          <span className="stats-label">TỶ LỆ LẤP ĐẦY CĂN HỘ</span>
+          <div className="stats-value-row">
+            <span className="stats-number stats-highlight-teal">{aptStats.occupancyRate}</span>
+            <span className="stats-subtext">Đã bàn giao & cư trú</span>
           </div>
         </div>
 
-        <div className="status-grid">
-          <StatusCard
-            label="Giao diện Frontend"
-            value="Đang hoạt động"
-            description="React 19 · Vite 8 · Single Page App"
-            connected={true}
-            icon={BuildingIcon}
-          />
-          <StatusCard
-            label="Backend REST API"
-            value={pending ? 'Đang kiểm tra…' : backendConnected ? 'Đã kết nối' : 'Mất kết nối'}
-            description="Spring Boot 3 · Java 21 · Port 8080"
-            connected={backendConnected}
-            icon={ServerIcon}
-          />
-          <StatusCard
-            label="Cơ sở dữ liệu"
-            value={pending ? 'Đang kiểm tra…' : connected ? 'Sẵn sàng' : 'Chưa kết nối'}
-            description="PostgreSQL 17 (Docker) · Port 5432"
-            connected={connected}
-            icon={DatabaseIcon}
-          />
-          <StatusCard
-            label="Xác thực & Bảo mật"
-            value="Chuẩn RBAC"
-            description="BCrypt Hashing · Token Revocation"
-            connected={true}
-            icon={ShieldCheckIcon}
-          />
+        <div className="stats-item">
+          <span className="stats-label">TỔNG SỐ CĂN HỘ</span>
+          <div className="stats-value-row">
+            <span className="stats-number stats-highlight-cobalt">{aptStats.total}</span>
+            <span className="stats-subtext">Hồ sơ trong hệ thống</span>
+          </div>
         </div>
 
-        {!pending && !connected && (
-          <div className="alert alert-error" role="alert">
-            ⚠️ <strong>Cảnh báo kết nối:</strong> Không thể kết nối tới cơ sở dữ liệu PostgreSQL. Vui lòng kiểm tra container docker <code>bluemoon-postgres</code> và file cấu hình <code>.env</code>.
+        <div className="stats-item">
+          <span className="stats-label">CĂN TRỐNG SẴN SÀNG</span>
+          <div className="stats-value-row">
+            <span className="stats-number">{aptStats.vacant}</span>
+            <span className="stats-subtext">Sẵn sàng phân bổ</span>
           </div>
-        )}
+        </div>
+
+        <div className="stats-item">
+          <span className="stats-label">QUYỀN HẠN PHIÊN LÀM VIỆC</span>
+          <div className="stats-value-row">
+            <span className="stats-number">{(permissions || []).length}</span>
+            <span className="stats-subtext">Quyền RBAC kích hoạt</span>
+          </div>
+        </div>
       </section>
 
-      {/* Sprint 1 Scope Overview Cards */}
-      <section className="dashboard-section">
-        <div className="section-title-row">
-          <div>
-            <h2 className="section-heading">Các phân hệ quản lý đã kích hoạt</h2>
-            <p className="section-subheading">Phạm vi nghiệp vụ Sprint 1 sẵn sàng phục vụ ban quản lý chung cư</p>
+      {/* Compact Telemetry Strip */}
+      <section className="telemetry-strip" aria-label="Giám sát hạ tầng kỹ thuật">
+        <div className="telemetry-title">Hạ tầng hệ thống</div>
+        <div className="telemetry-items">
+          <div className="telemetry-node">
+            <span className="status-dot status-dot-up" />
+            <span>Giao diện React 19 (Port 5173)</span>
+          </div>
+          <div className="telemetry-node">
+            <span className={`status-dot ${pending ? '' : backendConnected ? 'status-dot-up' : 'status-dot-down'}`} />
+            <span>Backend REST API ({pending ? 'Kiểm tra…' : backendConnected ? '8080 UP' : 'Mất kết nối'})</span>
+          </div>
+          <div className="telemetry-node">
+            <span className={`status-dot ${pending ? '' : connected ? 'status-dot-up' : 'status-dot-down'}`} />
+            <span>PostgreSQL 17 ({pending ? 'Kiểm tra…' : connected ? '5432 Sẵn sàng' : 'Chưa kết nối'})</span>
+          </div>
+          <div className="telemetry-node">
+            <span className="status-dot status-dot-up" />
+            <span>Bảo mật JWT & RBAC</span>
           </div>
         </div>
+      </section>
 
-        <div className="features-grid">
-          <div className="feature-card">
-            <div className="feature-icon bg-indigo">🏢</div>
-            <h3>Căn hộ & Cư trú</h3>
-            <p>Quản lý danh sách tòa nhà, căn hộ, chủ hộ, nhân khẩu cư trú và lịch sử biến động tạm trú/tạm vắng.</p>
+      {/* Operational Modules Breakdown */}
+      <section className="modules-grid" aria-label="Các phân hệ quản lý">
+        <div className="module-card">
+          <div className="module-header">
+            <div className="module-icon">
+              <ApartmentIcon size={20} />
+            </div>
+            <div>
+              <h2 className="module-title">Căn hộ & Cư trú</h2>
+              <p className="module-desc">
+                Quản lý danh sách tòa nhà, hồ sơ căn hộ, diện tích $m^2$, số tầng và tình trạng cư trú thực tế.
+              </p>
+            </div>
           </div>
+          {canViewApartments && onNavigateToApartments && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={onNavigateToApartments}
+            >
+              Mở danh sách căn hộ →
+            </button>
+          )}
+        </div>
 
-          <div className="feature-card">
-            <div className="feature-icon bg-emerald">🧾</div>
-            <h3>Thu phí & Bảng kê</h3>
-            <p>Tạo loại phí bắt buộc/tự nguyện, định mức theo diện tích hoặc số người, phát hành kỳ thu và bảng kê hóa đơn.</p>
+        <div className="module-card">
+          <div className="module-header">
+            <div className="module-icon">
+              <UsersIcon size={20} />
+            </div>
+            <div>
+              <h2 className="module-title">Quản trị & Phân quyền</h2>
+              <p className="module-desc">
+                Quản lý danh sách tài khoản, khóa và mở khóa tài khoản người dùng, phân quyền theo vai trò RBAC.
+              </p>
+            </div>
           </div>
+          {canManageUsers && onNavigateToUsers && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={onNavigateToUsers}
+            >
+              Mở danh sách tài khoản →
+            </button>
+          )}
+        </div>
 
-          <div className="feature-card">
-            <div className="feature-icon bg-amber">💰</div>
-            <h3>Thu tiền & Quỹ bảo trì</h3>
-            <p>Ghi nhận thu tiền mặt/chuyển khoản, in biên lai, theo dõi số dư quỹ bảo trì và phân bổ chi phí sửa chữa.</p>
+        <div className="module-card">
+          <div className="module-header">
+            <div className="module-icon">
+              <BuildingIcon size={20} />
+            </div>
+            <div>
+              <h2 className="module-title">Thu phí & Bảng kê</h2>
+              <p className="module-desc">
+                Cấu hình định mức phí quản lý, phí phương tiện, phát hành kỳ thu và bảng kê hóa đơn cư dân.
+              </p>
+            </div>
           </div>
-
-          <div className="feature-card">
-            <div className="feature-icon bg-sky">🛡️</div>
-            <h3>Quản trị & Phân quyền</h3>
-            <p>Kiểm soát 5 vai trò hệ thống (Admin, Ban quản trị, Kế toán, Cơ quan, Cư dân), khóa và mở khóa tài khoản.</p>
-          </div>
+          <span className="text-muted" style={{ fontSize: '0.8rem' }}>
+            Phân hệ sẵn sàng kết nối kỳ thu Sprint 1
+          </span>
         </div>
       </section>
     </div>

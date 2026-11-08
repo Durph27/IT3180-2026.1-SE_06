@@ -211,16 +211,16 @@ export default function UserManagement() {
   const lockedCount = users.filter((u) => u.status === 'LOCKED').length
 
   return (
-    <div className="user-management-container">
+    <div className="user-management-page">
       {/* Page Header */}
-      <div className="page-header-card">
-        <div className="header-info">
-          <div className="header-icon-circle">
+      <div className="page-header">
+        <div className="page-title-group">
+          <div className="page-icon-wrapper">
             <UsersIcon size={24} />
           </div>
           <div>
-            <h1 className="header-title">Quản lý Tài khoản Hệ thống</h1>
-            <p className="header-desc">
+            <h1 className="page-title">Quản trị Tài khoản Hệ thống</h1>
+            <p className="page-description">
               Kiểm soát danh mục người dùng, phân quyền truy cập và chuyển đổi trạng thái Khóa / Kích hoạt
             </p>
           </div>
@@ -229,114 +229,100 @@ export default function UserManagement() {
         {canManage && (
           <button
             type="button"
-            className="btn btn-primary btn-add-user"
+            className="btn btn-primary"
             onClick={() => {
               setIsCreateOpen(true)
               setCreateError('')
             }}
           >
-            <PlusIcon size={18} />
+            <PlusIcon size={16} />
             <span>Thêm tài khoản mới</span>
           </button>
         )}
       </div>
 
-      {/* Metric summary counters */}
-      <div className="metrics-row">
-        <div className="metric-card">
-          <span className="metric-label">Tổng số tài khoản</span>
-          <span className="metric-number">{totalCount}</span>
+      {/* Sleek Metric Strip */}
+      <div className="stats-strip" aria-label="Thống kê tài khoản">
+        <div className="stats-item">
+          <span className="stats-label">TỔNG SỐ TÀI KHOẢN</span>
+          <div className="stats-value-row">
+            <span className="stats-number stats-highlight-cobalt">{totalCount}</span>
+            <span className="stats-subtext">Hồ sơ người dùng</span>
+          </div>
         </div>
-        <div className="metric-card metric-card-active">
-          <span className="metric-label">Đang hoạt động</span>
-          <span className="metric-number color-success">{activeCount}</span>
+        <div className="stats-item">
+          <span className="stats-label">ĐANG HOẠT ĐỘNG</span>
+          <div className="stats-value-row">
+            <span className="stats-number stats-highlight-teal">{activeCount}</span>
+            <span className="stats-subtext">Được phép đăng nhập</span>
+          </div>
         </div>
-        <div className="metric-card metric-card-locked">
-          <span className="metric-label">Đang bị khóa</span>
-          <span className="metric-number color-danger">{lockedCount}</span>
+        <div className="stats-item">
+          <span className="stats-label">ĐANG BỊ KHÓA</span>
+          <div className="stats-value-row">
+            <span className="stats-number stats-highlight-crimson">{lockedCount}</span>
+            <span className="stats-subtext">Bị vô hiệu hóa phiên</span>
+          </div>
         </div>
       </div>
 
       {/* Alerts */}
       {successMsg && (
-        <div className="alert alert-success animate-fade-in" role="status">
+        <div className="alert-banner alert-success" role="status">
           <span>✓</span>
           <div>{successMsg}</div>
         </div>
       )}
       {error && (
-        <div className="alert alert-error animate-fade-in" role="alert">
+        <div className="alert-banner alert-danger" role="alert">
           <span>⚠️</span>
           <div>{error}</div>
         </div>
       )}
 
-      {/* Main Table Container Card */}
-      <div className="table-card">
-        {/* Table Filters & Search Bar */}
-        <div className="table-toolbar">
-          <div className="search-box">
-            <SearchIcon size={16} className="search-icon" />
+      {/* Filter Toolbar */}
+      <div className="filter-toolbar">
+        <div className="filter-group-left">
+          <div className="search-input-box">
+            <SearchIcon size={15} className="search-icon-inside" />
             <input
               type="search"
-              className="search-input"
-              placeholder="Tìm theo username hoặc tên hiển thị..."
+              className="form-input-search"
+              placeholder="Tìm theo username hoặc tên hiển thị…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               aria-label="Tìm kiếm tài khoản"
             />
-            {searchTerm && (
-              <button
-                type="button"
-                className="search-clear-btn"
-                onClick={() => setSearchTerm('')}
-                aria-label="Xóa nội dung tìm kiếm"
-              >
-                &times;
-              </button>
-            )}
           </div>
 
-          <div className="filter-buttons-group" role="group" aria-label="Lọc theo trạng thái">
-            <button
-              type="button"
-              className={`filter-btn ${statusFilter === 'ALL' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('ALL')}
-            >
-              Tất cả ({totalCount})
-            </button>
-            <button
-              type="button"
-              className={`filter-btn ${statusFilter === 'ACTIVE' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('ACTIVE')}
-            >
-              Hoạt động ({activeCount})
-            </button>
-            <button
-              type="button"
-              className={`filter-btn ${statusFilter === 'LOCKED' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('LOCKED')}
-            >
-              Bị khóa ({lockedCount})
-            </button>
-          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="filter-select"
+            aria-label="Lọc theo trạng thái"
+          >
+            <option value="ALL">Tất cả trạng thái ({totalCount})</option>
+            <option value="ACTIVE">Hoạt động ({activeCount})</option>
+            <option value="LOCKED">Bị khóa ({lockedCount})</option>
+          </select>
         </div>
+      </div>
 
-        {/* User Table per responsive-table guidance */}
+      {/* User Table Card */}
+      <div className="table-surface-card">
         {loading ? (
-          <div className="table-loading-box">
-            <div className="loading-spinner-ring" />
-            <p>Đang tải danh sách tài khoản từ máy chủ…</p>
+          <div style={{ textAlign: 'center', padding: '36px', color: 'var(--slate-muted)' }}>
+            Đang tải danh sách tài khoản từ máy chủ…
           </div>
         ) : (
           <div
             tabIndex={0}
             role="region"
             aria-labelledby="user-table-caption"
-            className="table-wrapper"
+            className="table-scroll-region"
           >
-            <table className="modern-table">
-              <caption id="user-table-caption" className="table-caption">
+            <table className="data-table">
+              <caption id="user-table-caption" className="visually-hidden">
                 Danh sách người dùng và phân quyền hệ thống
               </caption>
               <thead>
@@ -351,10 +337,10 @@ export default function UserManagement() {
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={canManage ? 5 : 4} className="empty-table-cell">
-                      <div className="empty-state-box">
-                        <span>🔍</span>
-                        <p>Không tìm thấy tài khoản nào phù hợp với bộ lọc.</p>
+                    <td colSpan={canManage ? 5 : 4}>
+                      <div className="empty-table-state">
+                        <div className="empty-table-title">Không tìm thấy tài khoản</div>
+                        <p className="empty-table-desc">Không có người dùng nào khớp với từ khóa hoặc bộ lọc hiện tại.</p>
                       </div>
                     </td>
                   </tr>
@@ -366,29 +352,30 @@ export default function UserManagement() {
                     const initialLetter = (u.displayName || u.username || 'U').charAt(0).toUpperCase()
 
                     return (
-                      <tr key={u.id} className={isCurrent ? 'row-is-current' : ''}>
-                        <th scope="row" className="row-header-th">
-                          <div className="user-cell">
-                            <div className={`user-table-avatar ${isLocked ? 'avatar-locked' : ''}`}>
+                      <tr key={u.id}>
+                        <th scope="row" data-label="Tài khoản">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div className="user-avatar" style={{ width: '28px', height: '28px', fontSize: '0.75rem' }}>
                               {initialLetter}
                             </div>
-                            <div className="user-cell-meta">
-                              <span className="user-username">{u.username}</span>
-                              {isCurrent && <span className="tag-self">Chính bạn</span>}
-                            </div>
+                            <span className="code-tag">{u.username}</span>
+                            {isCurrent && <span className="floor-tag">Chính bạn</span>}
                           </div>
                         </th>
                         <td data-label="Tên hiển thị">
-                          <span className="user-display-name">{u.displayName}</span>
+                          <strong style={{ fontWeight: 600 }}>{u.displayName}</strong>
                         </td>
                         <td data-label="Trạng thái">
-                          <div className={`status-pill pill-${u.status.toLowerCase()}`}>
-                            <span className="pill-dot" />
-                            <span>{isActive ? 'Hoạt động (ACTIVE)' : isLocked ? 'Đã khóa (LOCKED)' : u.status}</span>
-                          </div>
+                          {isActive ? (
+                            <span className="badge-pill badge-active">● Hoạt động</span>
+                          ) : isLocked ? (
+                            <span className="badge-pill badge-locked">● Đã khóa</span>
+                          ) : (
+                            <span className="badge-pill">{u.status}</span>
+                          )}
                         </td>
                         <td data-label="Ngày tạo">
-                          <span className="date-cell">
+                          <span style={{ color: 'var(--slate-muted)', fontSize: '0.8rem' }}>
                             {new Date(u.createdAt).toLocaleString('vi-VN', {
                               year: 'numeric',
                               month: '2-digit',
@@ -403,27 +390,27 @@ export default function UserManagement() {
                             {isActive ? (
                               <button
                                 type="button"
-                                className="action-btn action-btn-lock"
+                                className="btn btn-outline-danger btn-xs"
                                 onClick={() => setActionTarget({ user: u, action: 'LOCK' })}
                                 disabled={actionLoading}
                                 title="Khóa tài khoản này"
                               >
-                                <LockIcon size={14} />
+                                <LockIcon size={13} />
                                 <span>Khóa</span>
                               </button>
                             ) : isLocked ? (
                               <button
                                 type="button"
-                                className="action-btn action-btn-unlock"
+                                className="btn btn-secondary btn-xs"
                                 onClick={() => setActionTarget({ user: u, action: 'UNLOCK' })}
                                 disabled={actionLoading}
                                 title="Mở khóa tài khoản này"
                               >
-                                <UnlockIcon size={14} />
+                                <UnlockIcon size={13} />
                                 <span>Mở khóa</span>
                               </button>
                             ) : (
-                              <span className="text-muted">—</span>
+                              <span style={{ color: 'var(--slate-muted)' }}>—</span>
                             )}
                           </td>
                         )}
@@ -440,35 +427,45 @@ export default function UserManagement() {
       {/* Confirmation Dialog via Native HTML5 <dialog> */}
       <dialog
         ref={actionDialogRef}
-        className="native-modal-dialog"
+        className="modern-dialog"
         aria-labelledby="confirm-dialog-title"
       >
         {actionTarget && (
-          <div className="modal-dialog">
+          <div>
             <div className="dialog-header">
-              <div className={`dialog-icon-circle ${actionTarget.action === 'LOCK' ? 'icon-danger' : 'icon-success'}`}>
-                {actionTarget.action === 'LOCK' ? <LockIcon size={24} /> : <UnlockIcon size={24} />}
+              <div className="dialog-header-title">
+                <div className="dialog-icon-badge" style={{ color: actionTarget.action === 'LOCK' ? 'var(--signal-crimson)' : 'var(--ledger-teal)' }}>
+                  {actionTarget.action === 'LOCK' ? <LockIcon size={20} /> : <UnlockIcon size={20} />}
+                </div>
+                <div>
+                  <h3 id="confirm-dialog-title" className="dialog-title">
+                    {actionTarget.action === 'LOCK' ? 'Xác nhận Khóa tài khoản' : 'Xác nhận Mở khóa tài khoản'}
+                  </h3>
+                  <p className="dialog-subtitle">
+                    Thao tác quản trị phân quyền truy cập hệ thống
+                  </p>
+                </div>
               </div>
-              <h3 id="confirm-dialog-title" className="dialog-title">
-                {actionTarget.action === 'LOCK' ? 'Xác nhận Khóa tài khoản' : 'Xác nhận Mở khóa tài khoản'}
-              </h3>
-              <p className="dialog-desc">
+            </div>
+
+            <div className="dialog-body">
+              <p style={{ fontSize: '0.875rem', color: 'var(--ink-slate)', marginBottom: '14px' }}>
                 Bạn có chắc chắn muốn {actionTarget.action === 'LOCK' ? 'khóa' : 'mở khóa'} tài khoản{' '}
                 <strong>{actionTarget.user.username}</strong> ({actionTarget.user.displayName})?
               </p>
+
+              {actionTarget.action === 'LOCK' && (
+                <div className="alert-banner alert-danger">
+                  <span>⚠️</span>
+                  <span>Tài khoản sau khi khóa sẽ bị hủy phiên làm việc và không thể đăng nhập tiếp tục.</span>
+                </div>
+              )}
             </div>
 
-            {actionTarget.action === 'LOCK' && (
-              <div className="dialog-warning-banner">
-                <span>⚠️</span>
-                <span>Tài khoản sau khi khóa sẽ bị ngắt phiên và từ chối mọi yêu cầu đăng nhập tiếp theo.</span>
-              </div>
-            )}
-
-            <div className="modal-actions">
+            <div className="dialog-footer">
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-secondary btn-sm"
                 onClick={() => setActionTarget(null)}
                 disabled={actionLoading}
               >
@@ -476,7 +473,7 @@ export default function UserManagement() {
               </button>
               <button
                 type="button"
-                className={`btn ${actionTarget.action === 'LOCK' ? 'btn-danger' : 'btn-success'}`}
+                className={`btn btn-sm ${actionTarget.action === 'LOCK' ? 'btn-danger' : 'btn-primary'}`}
                 onClick={() =>
                   handleStatusChange(
                     actionTarget.user,
@@ -486,7 +483,11 @@ export default function UserManagement() {
                 disabled={actionLoading}
                 autoFocus
               >
-                {actionLoading ? 'Đang cập nhật…' : actionTarget.action === 'LOCK' ? 'Đồng ý khóa tài khoản' : 'Đồng ý mở khóa'}
+                {actionLoading
+                  ? 'Đang cập nhật…'
+                  : actionTarget.action === 'LOCK'
+                  ? 'Đồng ý khóa tài khoản'
+                  : 'Đồng ý mở khóa'}
               </button>
             </div>
           </div>
@@ -496,20 +497,23 @@ export default function UserManagement() {
       {/* Create User Modal via Native HTML5 <dialog> */}
       <dialog
         ref={createDialogRef}
-        className="native-modal-dialog"
+        className="modern-dialog"
         aria-labelledby="create-user-title"
       >
-        <div className="modal-content">
-          <div className="modal-header">
-            <div className="modal-title-with-icon">
-              <div className="modal-title-icon">
-                <PlusIcon size={18} />
+        <div>
+          <div className="dialog-header">
+            <div className="dialog-header-title">
+              <div className="dialog-icon-badge">
+                <PlusIcon size={20} />
               </div>
-              <h3 id="create-user-title">Tạo mới Tài khoản Người dùng</h3>
+              <div>
+                <h3 id="create-user-title" className="dialog-title">Tạo mới Tài khoản</h3>
+                <p className="dialog-subtitle">Khởi tạo thông tin người dùng và phân quyền ban đầu</p>
+              </div>
             </div>
             <button
               type="button"
-              className="modal-close"
+              className="dialog-close-btn"
               onClick={() => setIsCreateOpen(false)}
               aria-label="Đóng hộp thoại"
             >
@@ -517,22 +521,25 @@ export default function UserManagement() {
             </button>
           </div>
 
-          <form onSubmit={handleCreateUser} className="modal-body modern-form">
+          <form onSubmit={handleCreateUser} className="dialog-body">
             {createError && (
-              <div className="alert alert-error" role="alert">
+              <div className="alert-banner alert-danger" role="alert">
                 <span>⚠️</span>
                 <div>{createError}</div>
               </div>
             )}
 
             <div className="form-group">
-              <label htmlFor="new-user-name">Tên đăng nhập (username)</label>
+              <label htmlFor="new-user-name" className="form-label">
+                Tên đăng nhập (username) <span className="req-star">*</span>
+              </label>
+              <span className="field-hint">Chữ cái thường, chữ số; viết liền không dấu.</span>
               <input
                 id="new-user-name"
                 name="username"
                 type="text"
-                className="form-control"
-                placeholder="Ví dụ: resident_a101"
+                className="form-input"
+                placeholder="Ví dụ: accountant_01"
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
                 disabled={createLoading}
@@ -541,17 +548,18 @@ export default function UserManagement() {
                 autoCapitalize="none"
                 required
               />
-              <span className="field-hint">Không phân biệt chữ hoa, chữ thường; viết liền không dấu.</span>
             </div>
 
             <div className="form-group">
-              <label htmlFor="new-display-name">Tên hiển thị</label>
+              <label htmlFor="new-display-name" className="form-label">
+                Tên hiển thị <span className="req-star">*</span>
+              </label>
               <input
                 id="new-display-name"
                 name="displayName"
                 type="text"
-                className="form-control"
-                placeholder="Ví dụ: Nguyễn Văn A (Căn 1204)"
+                className="form-input"
+                placeholder="Ví dụ: Nguyễn Văn A (Kế toán)"
                 value={newDisplayName}
                 onChange={(e) => setNewDisplayName(e.target.value)}
                 disabled={createLoading}
@@ -560,13 +568,16 @@ export default function UserManagement() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="new-user-password">Mật khẩu ban đầu (tối thiểu 12 ký tự)</label>
+              <label htmlFor="new-user-password" className="form-label">
+                Mật khẩu ban đầu <span className="req-star">*</span>
+              </label>
+              <span className="field-hint">Quy chuẩn tối thiểu 12 ký tự ({newPassword.length}/12).</span>
               <input
                 id="new-user-password"
                 name="password"
                 type="password"
-                className="form-control"
-                placeholder="Nhập ít nhất 12 ký tự..."
+                className="form-input"
+                placeholder="••••••••••••"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 disabled={createLoading}
@@ -574,29 +585,20 @@ export default function UserManagement() {
                 required
                 aria-describedby="new-user-password-hint"
               />
-              <div className="password-strength-bar">
-                <div
-                  className={`strength-progress ${newPassword.length >= 12 ? 'is-valid' : ''}`}
-                  style={{ width: `${Math.min(100, (newPassword.length / 12) * 100)}%` }}
-                />
-              </div>
-              <span id="new-user-password-hint" className="field-hint">
-                Độ dài: {newPassword.length}/12 ký tự {newPassword.length >= 12 ? '✓ Đạt chuẩn bảo mật' : '(chưa đủ)'}
-              </span>
             </div>
 
-            <div className="modal-actions">
+            <div className="dialog-footer" style={{ margin: '20px -24px -20px', padding: '16px 24px' }}>
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-secondary btn-sm"
                 onClick={() => setIsCreateOpen(false)}
                 disabled={createLoading}
               >
-                Hủy
+                Hủy bỏ
               </button>
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary btn-sm"
                 disabled={createLoading || newPassword.length < 12}
               >
                 {createLoading ? 'Đang khởi tạo…' : 'Tạo tài khoản'}
