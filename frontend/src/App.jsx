@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import LoginForm from './components/LoginForm'
 import ChangePasswordModal from './components/ChangePasswordModal'
 import UserManagement from './components/UserManagement'
+import ApartmentManagement from './components/ApartmentManagement'
 import HomePage from './pages/HomePage'
 import './App.css'
 
@@ -43,9 +44,11 @@ function AppContent() {
         {currentTab === 'overview' && (
           <HomePage
             onNavigateToUsers={() => setCurrentTab('users')}
+            onNavigateToApartments={() => setCurrentTab('apartments')}
             onOpenChangePassword={() => setIsChangePasswordOpen(true)}
           />
         )}
+        {currentTab === 'apartments' && <ApartmentManagement />}
         {currentTab === 'users' && <UserManagement />}
       </main>
 

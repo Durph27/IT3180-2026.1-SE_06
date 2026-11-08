@@ -1,14 +1,15 @@
 import StatusCard from '../components/StatusCard'
 import { useHealth } from '../hooks/useHealth'
 import { useAuth } from '../hooks/useAuth'
-import { ServerIcon, DatabaseIcon, ShieldCheckIcon, BuildingIcon, UsersIcon, KeyIcon } from '../components/Icons'
+import { ServerIcon, DatabaseIcon, ShieldCheckIcon, BuildingIcon, UsersIcon, KeyIcon, ApartmentIcon } from '../components/Icons'
 
-export default function HomePage({ onNavigateToUsers, onOpenChangePassword }) {
+export default function HomePage({ onNavigateToUsers, onNavigateToApartments, onOpenChangePassword }) {
   const state = useHealth()
-  const { user, roles, permissions } = useAuth()
+  const { user, roles, permissions, hasPermission } = useAuth()
   const connected = state === 'connected'
   const backendConnected = connected || state === 'database-error'
   const pending = state === 'loading'
+  const canViewApartments = hasPermission('apartment.read')
 
   const roleName = roles[0]?.name || roles[0]?.code || 'Quản trị viên'
 
@@ -45,8 +46,14 @@ export default function HomePage({ onNavigateToUsers, onOpenChangePassword }) {
         </div>
 
         <div className="welcome-quick-actions">
+          {canViewApartments && onNavigateToApartments && (
+            <button type="button" className="btn btn-primary" onClick={onNavigateToApartments}>
+              <ApartmentIcon size={16} />
+              <span>Quản lý Căn hộ</span>
+            </button>
+          )}
           {onNavigateToUsers && (
-            <button type="button" className="btn btn-primary" onClick={onNavigateToUsers}>
+            <button type="button" className="btn btn-secondary" onClick={onNavigateToUsers}>
               <UsersIcon size={16} />
               <span>Quản lý tài khoản</span>
             </button>

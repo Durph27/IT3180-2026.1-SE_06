@@ -1,9 +1,10 @@
 import { useAuth } from '../hooks/useAuth'
-import { MoonLogoIcon, BuildingIcon, UsersIcon, KeyIcon, LogoutIcon } from './Icons'
+import { MoonLogoIcon, BuildingIcon, UsersIcon, ApartmentIcon, KeyIcon, LogoutIcon } from './Icons'
 
 export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }) {
   const { user, roles, logout, hasPermission } = useAuth()
   const canManageUsers = hasPermission('user.read') || hasPermission('user.manage')
+  const canViewApartments = hasPermission('apartment.read')
   const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
   const roleCode = roles[0]?.code || 'USER'
   const roleName = roles[0]?.name || roles[0]?.code || 'Người dùng'
@@ -32,6 +33,16 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             <BuildingIcon size={16} />
             <span>Tổng quan</span>
           </button>
+          {canViewApartments && (
+            <button
+              type="button"
+              className={`nav-link ${currentTab === 'apartments' ? 'active' : ''}`}
+              onClick={() => onSelectTab('apartments')}
+            >
+              <ApartmentIcon size={16} />
+              <span>Căn hộ</span>
+            </button>
+          )}
           {canManageUsers && (
             <button
               type="button"
