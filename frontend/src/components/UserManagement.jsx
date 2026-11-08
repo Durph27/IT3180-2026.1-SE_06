@@ -4,16 +4,17 @@ import { useAuth } from '../hooks/useAuth'
 import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon } from './Icons'
 import PermissionGate from './PermissionGate'
 import ForbiddenView from './ForbiddenView'
+import { apiErrorMessage } from '../api/errors'
 
 export default function UserManagement({ onBack }) {
   return (
     <PermissionGate permission="user.read" fallback={<ForbiddenView onBack={onBack} />}>
-      <UserManagementContent />
+      <UserManagementContent onBack={onBack} />
     </PermissionGate>
   )
 }
 
-function UserManagementContent() {
+function UserManagementContent({ onBack }) {
   const { user: currentUser, hasPermission } = useAuth()
   const canManage = hasPermission('user.manage')
   const canCreate = hasPermission('user.write')
@@ -22,6 +23,7 @@ function UserManagementContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+  const [readForbidden, setReadForbidden] = useState(false)
 
   // Search & Filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -112,7 +114,11 @@ function UserManagementContent() {
       setUsers(data.content || [])
       setError('')
     } catch (err) {
-      setError(err.response?.data?.message || 'Không thể tải danh sách tài khoản.')
+      if (err.response?.status === 403) {
+        setUsers([])
+        setReadForbidden(true)
+      }
+      setError(apiErrorMessage(err, 'Không thể tải danh sách tài khoản.'))
     } finally {
       setLoading(false)
     }
@@ -129,7 +135,11 @@ function UserManagementContent() {
       })
       .catch((err) => {
         if (!ignore) {
-          setError(err.response?.data?.message || 'Không thể tải danh sách tài khoản.')
+          if (err.response?.status === 403) {
+            setUsers([])
+            setReadForbidden(true)
+          }
+          setError(apiErrorMessage(err, 'Không thể tải danh sách tài khoản.'))
           setLoading(false)
         }
       })
@@ -152,12 +162,10 @@ function UserManagementContent() {
       await refreshUsers()
     } catch (err) {
       const code = err.response?.data?.code
-      const msg = err.response?.data?.message
-
-      if (code === 'INVALID_STATE') {
+      if (err.response?.status !== 403 && code === 'INVALID_STATE') {
         setError('Không thể khóa: Hệ thống phải duy trì ít nhất một tài khoản Quản trị viên (ADMIN) đang hoạt động.')
       } else {
-        setError(msg || 'Thao tác cập nhật trạng thái thất bại.')
+        setError(apiErrorMessage(err, 'Thao tác cập nhật trạng thái thất bại.'))
       }
       setActionTarget(null)
     } finally {
@@ -198,8 +206,14 @@ function UserManagementContent() {
       setNewPassword('')
       await refreshUsers()
     } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.details?.[0]?.message
-      setCreateError(msg || 'Tạo tài khoản thất bại.')
+      const message = apiErrorMessage(err, 'Tạo tài khoản thất bại.')
+      if (err.response?.status === 403) {
+        setIsCreateOpen(false)
+        setNewPassword('')
+        setError(message)
+      } else {
+        setCreateError(message)
+      }
     } finally {
       setCreateLoading(false)
     }
@@ -222,6 +236,8 @@ function UserManagementContent() {
   const totalCount = users.length
   const activeCount = users.filter((u) => u.status === 'ACTIVE').length
   const lockedCount = users.filter((u) => u.status === 'LOCKED').length
+
+  if (readForbidden) return <ForbiddenView onBack={onBack} />
 
   return (
     <div className="user-management-container">
