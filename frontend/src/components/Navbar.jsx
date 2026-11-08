@@ -3,7 +3,8 @@ import PermissionGate from './PermissionGate'
 import { MoonLogoIcon, BuildingIcon, UsersIcon, KeyIcon, LogoutIcon } from './Icons'
 
 export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }) {
-  const { user, roles, logout } = useAuth()
+  const { user, roles, logout, householdIds, hasPermission } = useAuth()
+  const canReadResidents = [undefined, ...householdIds].some((householdId) => hasPermission('resident.read', { householdId }) && hasPermission('household.read', { householdId }))
   const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
   const roleCode = (typeof roles[0] === 'string' ? roles[0] : roles[0]?.code) || 'USER'
   const roleName = roles.map((role) => typeof role === 'string' ? role : role?.name || role?.code).filter(Boolean).join(', ') || 'Chưa có vai trò'
@@ -33,6 +34,7 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             <BuildingIcon size={16} />
             <span>Tổng quan</span>
           </button>
+          {canReadResidents && <button type="button" className={`nav-link ${currentTab === 'residents' ? 'active' : ''}`} aria-current={currentTab === 'residents' ? 'page' : undefined} onClick={() => onSelectTab('residents')}><UsersIcon size={16} /><span>Nhân khẩu</span></button>}
           <PermissionGate permission="user.read">
             <button
               type="button"

@@ -1859,3 +1859,16 @@ dialog::backdrop {
     flex-shrink: 0;
   }
 }
+
+/* Resident records follow the existing BlueMoon palette and form controls. */
+.resident-management { max-width: 1200px; margin: 0 auto; }
+.resident-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
+.resident-table-scroll { overflow-x: auto; background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-md); }
+.resident-table { width: 100%; border-collapse: collapse; text-align: left; }
+.resident-table caption { text-align: left; padding: 1rem; color: var(--slate-600); }
+.resident-table th, .resident-table td { padding: 1rem; border-top: 1px solid var(--slate-200); }
+.resident-table thead { background: var(--slate-50); }
+.resident-table tbody th { font-weight: 600; }
+.resident-head { display: inline-block; padding: .2rem .5rem; margin-left: .4rem; border-radius: var(--radius-sm); color: var(--primary-active); background: var(--primary-light); font-size: .8rem; }
+.resident-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; margin-top: 1rem; }
+.resident-management .section-title-row { flex-wrap: wrap; gap: 1rem; }

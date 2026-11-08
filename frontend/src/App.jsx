@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import LoginForm from './components/LoginForm'
 import ChangePasswordModal from './components/ChangePasswordModal'
 import UserManagement from './components/UserManagement'
+import ResidentManagement from './components/ResidentManagement'
 import HomePage from './pages/HomePage'
 import RoleGuard from './components/RoleGuard'
 import ForbiddenView from './components/ForbiddenView'
@@ -57,6 +58,7 @@ function Workspace() {
             />
           )}
           {currentTab === 'users' && <UserManagement onBack={goToOverview} />}
+          {currentTab === 'residents' && <ResidentManagement />}
         </RoleGuard>
       </main>
 
