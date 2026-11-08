@@ -13,7 +13,6 @@
 # IDE and OS
 .idea/
 .vscode/
-.github/
 *.iml
 *.iws
 *.ipr
@@ -24,3 +23,19 @@ Thumbs.db
 backups/
 *.dump
 
+# Local project documents and agent skills
+/local/
+/.local/
+/.agents/
+
+# Test and tooling output
+**/coverage/
+**/.vite/
+**/playwright-report/
+**/test-results/
+*.tsbuildinfo
+
+# Python cache (repository maintenance scripts)
+__pycache__/
+*.py[cod]
+.venv/
