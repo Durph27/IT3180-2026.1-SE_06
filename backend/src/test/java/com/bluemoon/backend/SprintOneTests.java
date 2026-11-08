@@ -78,6 +78,22 @@ class SprintOneTests {
         assertThat(call("PUT","/users/"+id(user)+"/roles",map("roleIds",List.of(roleIds.get(role))),admin,null).status()).isEqualTo(200);return user;
     }
     String token(Map<String,Object> user)throws Exception {return login(text(user,"username"),"User-test-password!");}
+    @Test void managerCanManageAccountsButCannotModifyAdminOrAssignRoles() throws Exception {
+        String manager = token(user("MANAGER", null));
+        assertThat(call("GET", "/users", null, manager, null).status()).isEqualTo(200);
+        var created = call("POST", "/users", map("username", "u"+unique(), "displayName", "Managed user",
+                "password", "User-test-password!"), manager, null);
+        assertThat(created.status()).isEqualTo(201);
+        String target = id(created.body());
+        assertThat(call("PATCH", "/users/"+target, map("displayName", "Updated user"), manager, null).status()).isEqualTo(200);
+        assertThat(call("PUT", "/users/"+target+"/status", map("status", "LOCKED"), manager, null).status()).isEqualTo(200);
+        assertThat(call("POST", "/users/"+target+"/reset-password", map("newPassword", "Updated-password!"), manager, null).status()).isEqualTo(204);
+        assertThat(call("PUT", "/users/"+target+"/roles", map("roleIds", List.of(roleIds.get("ADMIN"))), manager, null).status()).isEqualTo(403);
+        String adminId = id(db.where("AppUser", "username", "admin").getFirst());
+        assertThat(call("PATCH", "/users/"+adminId, map("displayName", "Changed"), manager, null).status()).isEqualTo(403);
+        assertThat(call("PUT", "/users/"+adminId+"/status", map("status", "LOCKED"), manager, null).status()).isEqualTo(403);
+        assertThat(call("POST", "/users/"+adminId+"/reset-password", map("newPassword", "Updated-password!"), manager, null).status()).isEqualTo(403);
+    }
     Map<String,Object> fee(boolean mandatory)throws Exception {return create("/fee-types",map("code",unique(),"name","Phí bảo trì","basis","PER_M2","mandatory",mandatory,"active",true));}
     Bill draft()throws Exception {
         Home home=home();var period=create("/billing-periods",map("code",unique(),"startDate",start(),"endDate",today().toString(),"snapshotDate",today().toString(),"dueDate",today().plusDays(7).toString()));
