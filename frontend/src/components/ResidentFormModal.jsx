@@ -29,6 +29,11 @@ function ResidentForm({ resident, householdId, onClose, onSaved }) {
     element.showModal()
     return () => element.close()
   }, [])
+  useEffect(() => {
+    if (!error && !Object.keys(errors).length) return
+    const target = dialog.current.querySelector(error ? '[role="alert"]' : '[aria-invalid="true"]:not(:disabled)')
+    target?.focus()
+  }, [error, errors])
 
   async function submit(event) {
     event.preventDefault()
@@ -75,32 +80,34 @@ function ResidentForm({ resident, householdId, onClose, onSaved }) {
     {errors[name] && <span id={`resident-${name}-error`} className="text-danger">{errors[name]}</span>}
   </div>
 
-  return <dialog ref={dialog} className="native-modal-dialog" aria-labelledby="resident-form-title"
+  return <dialog ref={dialog} className="native-modal-dialog resident-form-dialog" aria-labelledby="resident-form-title"
     onCancel={(event) => { event.preventDefault(); if (!busy.current) onClose() }}>
     <div className="modal-content">
       <div className="modal-header"><h2 id="resident-form-title">{editing ? 'Cập nhật nhân khẩu' : 'Thêm nhân khẩu'}</h2>
         <button type="button" className="modal-close" disabled={saving} onClick={onClose} aria-label="Đóng hộp thoại">×</button></div>
-      <form className="modal-body modern-form" onSubmit={submit} noValidate>
-        {error && <p className="alert alert-error" role="alert">{error}</p>}
-        {createdId && <p role="status">Đã tạo hồ sơ cư dân (mã: {createdId}). Hãy thử lại bước gắn vào hộ; hồ sơ sẽ không được tạo lại. Nếu đóng hộp thoại, hãy lưu mã hồ sơ để Ban quản trị hỗ trợ gắn hộ.</p>}
-        <fieldset disabled={saving || Boolean(createdId)} className="resident-fields">
-          {field('fullName', 'Họ và tên', { required: true, maxLength: 120, autoComplete: 'name', autoFocus: true })}
-          {(!editing || canReadIdentity) && field('identityNo', 'Số CCCD', { required: true, inputMode: 'numeric', pattern: '[0-9]{12}', minLength: 12, maxLength: 12, autoComplete: 'off' })}
-          {field('dob', 'Ngày sinh', { required: true, type: 'date', max: todayInVietnam(), min: '0001-01-01' })}
-          <div className="form-group"><label htmlFor="resident-gender">Giới tính</label>
-            <select id="resident-gender" className="form-control" value={values.gender} onChange={(event) => setValues({ ...values, gender: event.target.value })}>
-              <option value="UNSPECIFIED">Chưa xác định</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option>
-            </select></div>
-          {field('phone', 'Số điện thoại', { type: 'tel', maxLength: 20, autoComplete: 'tel' })}
-        </fieldset>
-        <div className="form-group"><label htmlFor="resident-relationship">Quan hệ với chủ hộ</label>
-          <select id="resident-relationship" className="form-control" required disabled={saving || editing} value={values.relationship}
-            aria-invalid={Boolean(errors.relationship)} aria-describedby={errors.relationship ? 'resident-relationship-error' : undefined}
-            onChange={(event) => setValues({ ...values, relationship: event.target.value })}>
-            <option value="">Chọn quan hệ</option>{RELATIONSHIPS.map((value) => <option key={value}>{value}</option>)}
-          </select>
-          {errors.relationship && <span id="resident-relationship-error" className="text-danger">{errors.relationship}</span>}
-          {editing && <p>Quan hệ được quản lý theo hồ sơ thành viên hộ và chưa hỗ trợ chỉnh sửa tại đây.</p>}
+      <form className="resident-form modern-form" onSubmit={submit} noValidate>
+        <div className="modal-body">
+          {error && <p className="alert alert-error" role="alert" tabIndex={-1}>{error}</p>}
+          {createdId && <p role="status">Đã tạo hồ sơ cư dân (mã: {createdId}). Hãy thử lại bước gắn vào hộ; hồ sơ sẽ không được tạo lại. Nếu đóng hộp thoại, hãy lưu mã hồ sơ để Ban quản trị hỗ trợ gắn hộ.</p>}
+          <fieldset disabled={saving || Boolean(createdId)} className="resident-fields">
+            {field('fullName', 'Họ và tên', { required: true, maxLength: 120, autoComplete: 'name', autoFocus: true })}
+            {(!editing || canReadIdentity) && field('identityNo', 'Số CCCD', { required: true, inputMode: 'numeric', pattern: '[0-9]{12}', minLength: 12, maxLength: 12, autoComplete: 'off' })}
+            {field('dob', 'Ngày sinh', { required: true, type: 'date', max: todayInVietnam(), min: '0001-01-01' })}
+            <div className="form-group"><label htmlFor="resident-gender">Giới tính</label>
+              <select id="resident-gender" className="form-control" value={values.gender} onChange={(event) => setValues({ ...values, gender: event.target.value })}>
+                <option value="UNSPECIFIED">Chưa xác định</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option>
+              </select></div>
+            {field('phone', 'Số điện thoại', { type: 'tel', maxLength: 20, autoComplete: 'tel' })}
+          </fieldset>
+          <div className="form-group"><label htmlFor="resident-relationship">Quan hệ với chủ hộ</label>
+            <select id="resident-relationship" className="form-control" required disabled={saving || editing} value={values.relationship}
+              aria-invalid={Boolean(errors.relationship)} aria-describedby={errors.relationship ? 'resident-relationship-error' : undefined}
+              onChange={(event) => setValues({ ...values, relationship: event.target.value })}>
+              <option value="">Chọn quan hệ</option>{RELATIONSHIPS.map((value) => <option key={value}>{value}</option>)}
+            </select>
+            {errors.relationship && <span id="resident-relationship-error" className="text-danger">{errors.relationship}</span>}
+            {editing && <p>Quan hệ được quản lý theo hồ sơ thành viên hộ và chưa hỗ trợ chỉnh sửa tại đây.</p>}
+          </div>
         </div>
         <div className="modal-actions"><button type="button" className="btn btn-outline" disabled={saving} onClick={onClose}>Hủy</button>
           <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Đang lưu…' : createdId ? 'Thử gắn vào hộ lại' : 'Lưu thông tin'}</button></div>

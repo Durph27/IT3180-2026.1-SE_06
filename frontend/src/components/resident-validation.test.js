@@ -68,6 +68,7 @@ test('invalid form blocks API submission and displays field errors', async () =>
   await mount(); await fill({ identityNo: '123', dob: '2999-01-01', relationship: '' }); await submit()
   assert.equal(requests.length, 0); assert.equal(saved, 0)
   for (const text of [/12 chữ số/, /không ở tương lai/, /chọn quan hệ/]) assert.match(document.body.textContent, text)
+  assert.equal(document.activeElement, document.getElementById('resident-identityNo'))
 })
 test('create maps dob to birthDate and creates household membership', async () => {
   await mount(); await fill({ relationship: 'CHỦ HỘ' }); await submit()
@@ -93,6 +94,31 @@ test('409 duplicate CCCD stays in form and marks the identity field', async () =
   assert.match(document.querySelector('[role="alert"]').textContent, /CCCD đã tồn tại/)
   assert.equal(document.getElementById('resident-identityNo').getAttribute('aria-invalid'), 'true')
   assert.equal(document.getElementById('resident-identityNo').value, valid.identityNo)
+  assert.equal(document.activeElement, document.querySelector('[role="alert"]'))
+})
+for (const action of ['cancel', 'retry']) test(`failed resident update allows ${action} and preserves entered values`, async () => {
+  adapter((config) => response(config, { code: 'DUPLICATE_RESOURCE' }, 409))
+  await mount(Form, { resident: { ...valid, id: 'resident-1', birthDate: valid.dob } })
+  await fill({ fullName: 'Tên đã chỉnh sửa', phone: '0901234567' }); await submit()
+  assert.equal(saved, 0)
+  assert.equal(document.querySelector('fieldset').disabled, false)
+  assert.equal(document.getElementById('resident-fullName').value, 'Tên đã chỉnh sửa')
+  assert.equal(document.getElementById('resident-phone').value, '0901234567')
+  const cancel = document.querySelector('.modal-actions button[type="button"]')
+  const save = document.querySelector('.modal-actions button[type="submit"]')
+  assert.equal(cancel.disabled, false); assert.equal(save.disabled, false)
+  if (action === 'cancel') {
+    await act(async () => cancel.click())
+    assert.equal(closed, 1); assert.equal(requests.length, 1)
+  } else {
+    adapter((config) => response(config, { id: 'resident-1' }))
+    await fill({ identityNo: '001234567891' })
+    await act(async () => save.click())
+    assert.equal(saved, 1); assert.equal(closed, 0)
+    assert.equal(requests.length, 2)
+    assert.equal(requests[1].method, 'patch')
+    assert.equal(JSON.parse(requests[1].data).identityNo, '001234567891')
+  }
 })
 test('422 membership failure retries linking without recreating the resident', async () => {
   let attempts = 0
