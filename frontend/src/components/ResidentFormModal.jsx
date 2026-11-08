@@ -18,6 +18,7 @@ function ResidentForm({ resident, householdId, onClose, onSaved }) {
     dob: resident?.birthDate || '', gender: resident?.gender || 'UNSPECIFIED', phone: resident?.phone || '',
     relationship: resident?.relationship || '',
   })
+  const phoneRequired = resident?.isHead === true || values.relationship === 'CHỦ HỘ'
   const [errors, setErrors] = useState({})
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -38,14 +39,14 @@ function ResidentForm({ resident, householdId, onClose, onSaved }) {
   async function submit(event) {
     event.preventDefault()
     if (busy.current) return
-    const nextErrors = validateResident(values, { validateIdentity: !editing || canReadIdentity })
+    const nextErrors = validateResident(values, { validateIdentity: !editing || canReadIdentity, isHead: phoneRequired })
     setErrors(nextErrors)
     setError('')
     if (Object.keys(nextErrors).length) return
     busy.current = true
     setSaving(true)
     try {
-      const payload = { fullName: values.fullName.trim(), birthDate: values.dob, gender: values.gender, phone: values.phone.trim() || null }
+      const payload = { fullName: values.fullName.trim(), birthDate: values.dob, gender: values.gender, phone: values.phone || null }
       if (!editing || canReadIdentity) payload.identityNo = values.identityNo
       if (editing) {
         await updateResidentApi(resident.id, payload)
@@ -97,7 +98,9 @@ function ResidentForm({ resident, householdId, onClose, onSaved }) {
               <select id="resident-gender" className="form-control" value={values.gender} onChange={(event) => setValues({ ...values, gender: event.target.value })}>
                 <option value="UNSPECIFIED">Chưa xác định</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option>
               </select></div>
-            {field('phone', 'Số điện thoại', { type: 'tel', maxLength: 20, autoComplete: 'tel' })}
+            {field('phone', `Số điện thoại (${phoneRequired ? 'bắt buộc' : 'không bắt buộc'})`, {
+              type: 'tel', required: phoneRequired, inputMode: 'numeric', pattern: '[0-9]{10}', minLength: 10, maxLength: 10, autoComplete: 'tel', placeholder: '10 chữ số',
+            })}
           </fieldset>
           <div className="form-group"><label htmlFor="resident-relationship">Quan hệ với chủ hộ</label>
             <select id="resident-relationship" className="form-control" required disabled={saving || editing} value={values.relationship}

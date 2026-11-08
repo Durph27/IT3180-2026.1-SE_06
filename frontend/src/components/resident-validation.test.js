@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { Window } from 'happy-dom'
 import { createServer } from 'vite'
 import react from '@vitejs/plugin-react'
-import { isValidIdentityNo, isValidDob, validateResident, todayInVietnam, RELATIONSHIPS } from '../residents/validation.js'
+import { isValidIdentityNo, isValidPhone, isValidDob, validateResident, todayInVietnam, RELATIONSHIPS } from '../residents/validation.js'
 
 const valid = { fullName: 'Nguyễn Văn An', identityNo: '001234567890', dob: '2000-02-29', relationship: 'CON', gender: 'MALE', phone: '' }
 test('CCCD requires twelve ASCII digits and preserves leading zeroes', () => {
@@ -16,10 +16,27 @@ test('dob accepts today and rejects tomorrow and impossible dates', () => {
   assert.equal(todayInVietnam(new Date('2026-11-08T17:01:00Z')), '2026-11-09')
 })
 test('relationship must match the six allowed values', () => {
-  for (const relationship of RELATIONSHIPS) assert.deepEqual(validateResident({ ...valid, relationship }), {})
+  for (const relationship of RELATIONSHIPS) assert.deepEqual(validateResident({ ...valid, relationship, phone: '0901234567' }), {})
   for (const relationship of ['', 'HEAD', 'Bạn bè', null]) assert.ok(validateResident({ ...valid, relationship }).relationship)
   assert.ok(validateResident({ ...valid, fullName: '  ' }).fullName)
   assert.ok(validateResident({ ...valid, fullName: 'a'.repeat(121) }).fullName)
+})
+test('phone accepts exactly ten ASCII digits and preserves leading zeroes', () => {
+  for (const phone of ['0901234567', '0123456789']) assert.equal(isValidPhone(phone), true)
+  for (const phone of ['', '090123456', '09012345678', '090123456a', '+84901234567', '090 1234567', ' 0901234567', '0901234567 ', '0901234567\n', '０９０１２３４５６７', null, 901234567, 0]) {
+    assert.equal(isValidPhone(phone), false, String(phone))
+    if (phone !== '' && phone !== null) assert.ok(validateResident({ ...valid, phone }).phone, String(phone))
+  }
+})
+test('phone is required for household heads and optional for other relationships', () => {
+  for (const relationship of RELATIONSHIPS) {
+    for (const phone of ['', null, undefined]) {
+      const errors = validateResident({ ...valid, relationship, phone })
+      assert.equal(Boolean(errors.phone), relationship === 'CHỦ HỘ', relationship)
+    }
+    assert.deepEqual(validateResident({ ...valid, relationship, phone: '0901234567' }), {})
+  }
+  assert.match(validateResident(valid, { isHead: true }).phone, /Chủ hộ bắt buộc/)
 })
 const window = new Window({ url: 'http://localhost:5173' })
 for (const key of ['window', 'document', 'navigator', 'HTMLElement', 'HTMLDialogElement', 'Event', 'MouseEvent', 'localStorage']) Object.defineProperty(globalThis, key, { configurable: true, value: key === 'window' ? window : window[key] })
@@ -71,12 +88,55 @@ test('invalid form blocks API submission and displays field errors', async () =>
   assert.equal(document.activeElement, document.getElementById('resident-identityNo'))
 })
 test('create maps dob to birthDate and creates household membership', async () => {
-  await mount(); await fill({ relationship: 'CHỦ HỘ' }); await submit()
+  await mount(); await fill({ relationship: 'CHỦ HỘ', phone: '0901234567' }); await submit()
   assert.deepEqual(requests.map((r) => [r.method, r.url]), [['post', '/residents'], ['post', '/households/hh-1/members']])
   const payload = JSON.parse(requests[0].data)
   assert.equal(payload.identityNo, valid.identityNo); assert.equal(payload.birthDate, valid.dob)
+  assert.equal(payload.phone, '0901234567')
   assert.equal(payload.dob, undefined); assert.equal(payload.relationship, undefined)
   assert.deepEqual(JSON.parse(requests[1].data), { residentId: 'resident-1', relationship: 'CHỦ HỘ', isHead: true, validFrom: todayInVietnam(), validTo: null })
+  assert.equal(saved, 1)
+})
+test('changing to household head requires phone and changing back allows it to be empty', async () => {
+  await mount(); await fill({ relationship: 'CHỦ HỘ' }); await submit()
+  const phone = document.getElementById('resident-phone')
+  assert.equal(phone.required, true)
+  assert.match(document.querySelector('label[for="resident-phone"]').textContent, /\(bắt buộc\)/)
+  assert.equal(requests.length, 0); assert.equal(saved, 0)
+  assert.match(document.getElementById('resident-phone-error').textContent, /Chủ hộ bắt buộc/)
+  assert.equal(document.activeElement, phone)
+  await fill({ relationship: 'CON' }); await submit()
+  assert.equal(phone.required, false)
+  assert.equal(JSON.parse(requests[0].data).phone, null)
+  assert.equal(JSON.parse(requests[1].data).isHead, false)
+  assert.equal(saved, 1)
+})
+test('editing a household head requires a valid phone even when relationship differs', async () => {
+  await mount(Form, { resident: { ...valid, id: 'head-1', birthDate: valid.dob, isHead: true } })
+  assert.equal(document.getElementById('resident-phone').required, true)
+  await submit()
+  assert.equal(requests.length, 0)
+  assert.match(document.getElementById('resident-phone-error').textContent, /Chủ hộ bắt buộc/)
+  await fill({ phone: '090123456' }); await submit()
+  assert.equal(requests.length, 0)
+  assert.match(document.getElementById('resident-phone-error').textContent, /10 chữ số/)
+  await fill({ phone: '0901234567' }); await submit()
+  assert.deepEqual(requests.map((r) => [r.method, r.url]), [['patch', '/residents/head-1']])
+  assert.equal(JSON.parse(requests[0].data).phone, '0901234567')
+  assert.equal(saved, 1)
+})
+for (const editing of [false, true]) test(`${editing ? 'edit' : 'create'} non-head blocks an invalid optional phone and allows clearing it`, async () => {
+  await mount(Form, editing ? { resident: { ...valid, id: 'resident-1', birthDate: valid.dob, isHead: false } } : {})
+  await fill({ phone: '090123456a' }); await submit()
+  const phone = document.getElementById('resident-phone')
+  assert.equal(phone.required, false)
+  assert.equal(requests.length, 0); assert.equal(saved, 0)
+  assert.equal(phone.getAttribute('aria-invalid'), 'true')
+  assert.equal(phone.getAttribute('aria-describedby'), 'resident-phone-error')
+  assert.equal(document.activeElement, phone)
+  assert.match(document.getElementById('resident-phone-error').textContent, /10 chữ số/)
+  await fill({ phone: '' }); await submit()
+  assert.equal(JSON.parse(requests[0].data).phone, null)
   assert.equal(saved, 1)
 })
 test('edit prefills fields and PATCHes only the resident resource', async () => {
@@ -146,7 +206,7 @@ test('double submit sends one request and blocks Escape while saving', async () 
 })
 test('identity denial removes raw CCCD from DOM and edit payload', async () => {
   grants = grants.filter((g) => g !== 'resident.identity.read')
-  const resident = { ...valid, id: 'resident-1', memberId: 'member-1', birthDate: valid.dob, isHead: true }
+  const resident = { ...valid, id: 'resident-1', memberId: 'member-1', birthDate: valid.dob, isHead: true, phone: '0901234567' }
   await mount(Table, { residents: [resident] })
   assert.ok(!document.body.innerHTML.includes(valid.identityNo)); assert.match(document.body.textContent, /Chủ hộ/)
   await act(async () => root.unmount()); root = null; document.body.replaceChildren()
