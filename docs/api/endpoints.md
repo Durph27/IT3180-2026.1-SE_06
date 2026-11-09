@@ -43,6 +43,7 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | POST | `/households/{id}/members` | Thêm thành viên hộ | MemberCreate | 201 HouseholdMember | `household.write` |
 | POST | `/households/{id}/members/{memberId}/end` | Kết thúc tư cách thành viên | EndDateRequest | 200 HouseholdMember | `household.write` |
 | PUT | `/households/{id}/head` | Chọn chủ hộ | HeadRequest | 200 HouseholdMember | `household.write` |
+| POST | `/households/{id}/family-members` | Chủ hộ thêm nhân khẩu (không tạo tài khoản) | FamilyMemberCreate | 201 HouseholdMember | `household.family.write` |
 | GET | `/residence-changes` | Danh sách ResidenceChange | — | 200 ResidenceChangePage | `residence-change.read` |
 | POST | `/residence-changes` | Tạo ResidenceChange | ResidenceChangeCreate | 201 ResidenceChange | `residence-change.write` |
 | GET | `/residence-changes/{id}` | Chi tiết ResidenceChange | — | 200 ResidenceChange | `residence-change.read` |

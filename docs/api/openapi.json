@@ -12278,6 +12278,95 @@
         },
         "x-implemented": true
       }
+    },
+    "/households/{id}/family-members": {
+      "post": {
+        "tags": [
+          "Cư trú"
+        ],
+        "summary": "Chủ hộ thêm nhân khẩu",
+        "operationId": "post_households_by_id_family_members",
+        "description": "Quyền: `household.family.write` và phải là chủ hộ đang hiệu lực của chính hộ này. Nhân khẩu có hiệu lực ngay và không được tạo tài khoản.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Đã tạo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdMember"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL chi tiết resource vừa tạo.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "description": "Lỗi hệ thống bất ngờ; code INTERNAL_ERROR, không trả chi tiết nội bộ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "x-permission": "household.family.write",
+        "x-implementation-status": "planned",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FamilyMemberCreate"
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      }
     }
   },
   "components": {
@@ -18571,6 +18660,65 @@
         },
         "required": [
           "householdId"
+        ]
+      },
+      "FamilyMemberCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "ERD: full_name : varchar(120)",
+            "minLength": 1
+          },
+          "identityNo": {
+            "type": "string",
+            "maxLength": 30,
+            "nullable": true,
+            "description": "ERD: identity_no : varchar(30) UQ ?"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "description": "ERD: birth_date : date"
+          },
+          "gender": {
+            "type": "string",
+            "maxLength": 20,
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "UNSPECIFIED"
+            ],
+            "description": "ERD: gender : varchar(20)",
+            "minLength": 1
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "nullable": true,
+            "description": "ERD: phone : varchar(20) ?"
+          },
+          "relationship": {
+            "type": "string",
+            "enum": [
+              "SPOUSE",
+              "CHILD",
+              "PARENT",
+              "SIBLING",
+              "GRANDPARENT",
+              "GRANDCHILD",
+              "OTHER"
+            ]
+          }
+        },
+        "required": [
+          "fullName",
+          "birthDate",
+          "gender",
+          "relationship"
         ]
       }
     },

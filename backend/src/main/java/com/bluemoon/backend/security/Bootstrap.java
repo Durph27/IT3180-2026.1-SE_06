@@ -58,11 +58,11 @@ public class Bootstrap implements ApplicationRunner {
         return switch(role) {
             case "ADMIN" -> true;
             case "MANAGER" -> Set.of("user.read","user.write","user.manage").contains(p)
-                || !p.equals("maintenance-expense.record") && !Set.of("user","role","rbac","audit","payment","receipt","payment-intent","payment-event").contains(group);
+                || !Set.of("maintenance-expense.record","household.family.write").contains(p) && !Set.of("user","role","rbac","audit","payment","receipt","payment-intent","payment-event").contains(group);
             case "ACCOUNTANT" -> Set.of("maintenance-fund","maintenance-round","maintenance-expense","fee-type","fee-rate","billing-period","invoice","campaign","contribution","provider","subscription","utility-bill","reconciliation","report").contains(group)
                 || Set.of("payment.read","payment.record","payment.void","receipt.read","payment-intent.read","payment-event.read","notice.read","notice.remind","building.read","apartment.read","household.read","occupancy.read","resident.read","resident.identity.read","vehicle.read","residence-change.read").contains(p);
             case "AUTHORITY" -> Set.of("building.read","apartment.read","household.read","occupancy.read","resident.read","resident.identity.read","residence-change.read").contains(p);
-            case "RESIDENT" -> Set.of("building.read","apartment.read","household.read","occupancy.read","resident.read","vehicle.read","fee-type.read","fee-rate.read","billing-period.read","invoice.read","campaign.read","contribution.read","contribution.write","subscription.read","utility-bill.read","payment.read","receipt.read","payment-intent.read","payment-intent.create","residence-change.read","residence-change.write","notice.read","ticket.read","ticket.write","ticket.update").contains(p);
+            case "RESIDENT" -> Set.of("household.family.write","building.read","apartment.read","household.read","occupancy.read","resident.read","vehicle.read","fee-type.read","fee-rate.read","billing-period.read","invoice.read","campaign.read","contribution.read","contribution.write","subscription.read","utility-bill.read","payment.read","receipt.read","payment-intent.read","payment-intent.create","residence-change.read","residence-change.write","notice.read","ticket.read","ticket.write","ticket.update").contains(p);
             default -> false;
         };
     }

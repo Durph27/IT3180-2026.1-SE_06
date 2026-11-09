@@ -25,6 +25,7 @@ public class ResidenceService {
     public Object execute(String method, String path, Map<String, String> ids, Map<String, Object> b, Actor actor) {
         String id = ids.get("id");
         if (path.startsWith("/households")) {
+            if (path.endsWith("/family-members")) return familyMember(id, b, actor);
             if (path.endsWith("/members")) return member(id, b);
             if (path.endsWith("/end")) {
                 var row = db.get("HouseholdMember", ids.get("memberId"));
@@ -82,6 +83,19 @@ public class ResidenceService {
         var values = new LinkedHashMap<>(b);
         values.put("householdId", household);
         return db.insert("HouseholdMember", values);
+    }
+
+    // Family members are census records only: this path never creates an AppUser.
+    private Map<String, Object> familyMember(String household, Map<String, Object> b, Actor actor) {
+        Object own = actor.user().get("residentId");
+        boolean head = own != null && db.where("HouseholdMember", "householdId", household).stream()
+                .anyMatch(m -> own.equals(m.get("residentId")) && active(m, today()) && Boolean.TRUE.equals(m.get("isHead")));
+        if (!head) throw new ApiException(403, "PERMISSION_DENIED", "Chỉ chủ hộ được thêm nhân khẩu vào hộ của mình.");
+        rule(!date(b, "birthDate").isAfter(today()), "Ngày sinh không được trong tương lai.");
+        var person = new LinkedHashMap<>(b);
+        person.remove("relationship");
+        var resident = db.insert("Resident", person);
+        return member(household, map("residentId", resident.get("id"), "relationship", b.get("relationship"), "isHead", false, "validFrom", today().toString()));
     }
 
     public Map<String, Object> end(String model, Map<String, Object> row, LocalDate to) {

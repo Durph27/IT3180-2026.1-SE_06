@@ -413,6 +413,22 @@ class SprintOneTests {
         assertThat(call("POST","/auth/register",registration("r"+unique()),null,null).status()).isEqualTo(429);
         db.jdbc().update("DELETE FROM login_attempt");
     }
+    @Test void onlyActiveHeadAddsFamilyMembersAndTheyGetNoAccount()throws Exception {
+        var home=home();var headResident=resident();member(home,headResident,true);var memberResident=resident();member(home,memberResident,false);
+        String head=token(user("RESIDENT",id(headResident))),nonHead=token(user("RESIDENT",id(memberResident)));
+        var person=map("fullName","Bé "+unique(),"birthDate","2015-02-02","gender","MALE","relationship","CHILD");
+        int accounts=db.all("AppUser").size();
+        var added=call("POST","/households/"+home.household()+"/family-members",person,head,null);
+        assertThat(added.status()).as(added.body().toString()).isEqualTo(201);assertThat(added.body().get("isHead")).isEqualTo(false);
+        assertThat(added.response().headers().firstValue("Location").orElse("")).isEqualTo("/api/households/"+home.household());
+        assertThat(db.all("AppUser")).hasSize(accounts);
+        assertThat(db.get("HouseholdMember",id(added.body())).get("validFrom")).isEqualTo(today().toString());
+        assertThat(call("POST","/households/"+home.household()+"/family-members",person,nonHead,null).status()).isEqualTo(403);
+        var other=home();assertThat(call("POST","/households/"+other.household()+"/family-members",person,head,null).status()).isEqualTo(403);
+        assertThat(call("POST","/households/"+home.household()+"/family-members",person,admin,null).status()).isEqualTo(403);
+        var promoted=new LinkedHashMap<>(person);promoted.put("relationship","HEAD");assertThat(call("POST","/households/"+home.household()+"/family-members",promoted,head,null).status()).isEqualTo(400);
+        assertThat(call("POST","/residents",map("fullName","X","birthDate","2000-01-01","gender","MALE"),head,null).status()).isEqualTo(403);
+    }
     @Test void loginThrottlePersistsFailedAttemptsAndCorsAllowsCommandHeaders()throws Exception {
         String name="unknown-"+unique();
         for(int i=0;i<5;i++)assertThat(call("POST","/auth/login",map("username",name,"password","wrong"),null,null).status()).isEqualTo(401);

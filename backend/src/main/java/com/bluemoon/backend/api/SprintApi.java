@@ -70,7 +70,7 @@ public class SprintApi {
             if(http==201 && result instanceof Map<?,?> resultMap && resultMap.get("id")!=null) {
                 String root=path.split("/")[1];
                 if(path.endsWith("/rates"))location="/api/fee-types/"+ids.get("id");
-                else if(path.endsWith("/members"))location="/api/households/"+ids.get("id");
+                else if(path.endsWith("/members") || path.endsWith("/family-members"))location="/api/households/"+ids.get("id");
                 else if(path.endsWith("/lines"))location="/api/invoices/"+ids.get("id");
                 else if(path.endsWith("/contributions"))location="/api/contributions/"+resultMap.get("id");
                 else if(path.endsWith("/expenses"))location="/api/maintenance-funds/"+ids.get("id")+"/expenses";
