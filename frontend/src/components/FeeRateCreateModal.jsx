@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useId, useMemo } from 'react'
+import { useState, useEffect, useRef, useId } from 'react'
 import { createFeeRateApi } from '../api/fees'
 import {
   validateFeeRate,
@@ -23,15 +23,15 @@ export default function FeeRateCreateModal({
   const priceHintId = useId()
   const priceErrorId = useId()
   const fromErrorId = useId()
+  const toHintId = useId()
   const toErrorId = useId()
   const vehicleErrorId = useId()
 
   const isVehicle = feeType?.basis === 'PER_VEHICLE'
   const basisMeta = BASIS_OPTIONS.find((b) => b.value === feeType?.basis)
-  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
 
   const [unitPrice, setUnitPrice] = useState('')
-  const [effectiveFrom, setEffectiveFrom] = useState(todayStr)
+  const [effectiveFrom, setEffectiveFrom] = useState(() => new Date().toISOString().slice(0, 10))
   const [effectiveTo, setEffectiveTo] = useState('')
   const [vehicleType, setVehicleType] = useState(isVehicle ? 'MOTORBIKE' : '')
 
@@ -180,7 +180,7 @@ export default function FeeRateCreateModal({
   return (
     <dialog
       ref={dialogRef}
-      className="modern-dialog"
+      className="modern-dialog fee-rate-dialog"
       aria-labelledby={titleId}
     >
       <div className="dialog-header">
@@ -219,6 +219,7 @@ export default function FeeRateCreateModal({
         <form onSubmit={handleSubmit} noValidate>
           {/* Info banner for FeeType basis */}
           <div
+            className="rate-context"
             style={{
               padding: '10px 14px',
               borderRadius: 'var(--radius-control)',
@@ -229,7 +230,8 @@ export default function FeeRateCreateModal({
             }}
           >
             <div>
-              <strong>Cơ sở tính:</strong> {basisMeta?.label} (Đơn vị tính: <code>{basisMeta?.unit}</code>)
+              <strong>Cơ sở tính:</strong> {basisMeta?.label} (Đơn vị tính:{' '}
+              <code className="rate-unit">{basisMeta?.unit}</code>)
             </div>
           </div>
 
@@ -332,6 +334,9 @@ export default function FeeRateCreateModal({
               <label htmlFor="rate-to" className="form-label">
                 Hiệu lực đến ngày <span className="text-muted-tag">(Tùy chọn)</span>
               </label>
+              <span id={toHintId} className="field-hint">
+                Không áp dụng từ ngày này.
+              </span>
               <input
                 type="date"
                 id="rate-to"
@@ -342,7 +347,11 @@ export default function FeeRateCreateModal({
                 className={`form-input ${
                   touched.effectiveTo && formErrors.effectiveTo ? 'input-error' : ''
                 }`}
-                aria-describedby={toErrorId}
+                aria-describedby={
+                  touched.effectiveTo && formErrors.effectiveTo
+                    ? `${toHintId} ${toErrorId}`
+                    : toHintId
+                }
                 aria-invalid={touched.effectiveTo && Boolean(formErrors.effectiveTo)}
                 disabled={submitting}
               />
@@ -354,7 +363,7 @@ export default function FeeRateCreateModal({
             </div>
           </div>
 
-          <div className="dialog-footer" style={{ marginTop: '24px' }}>
+          <div className="dialog-footer dialog-form-footer" style={{ marginTop: '24px' }}>
             <button
               type="button"
               className="btn btn-secondary"

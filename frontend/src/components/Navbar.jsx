@@ -21,10 +21,11 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
     <header className="navbar">
       <div className="navbar-container">
         {/* Brand */}
-        <div
+        <button
+          type="button"
           className="navbar-brand"
           onClick={() => onSelectTab('overview')}
-          title="Về Trang tổng quan BlueMoon"
+          title="Về tổng quan BlueMoon"
         >
           <div className="brand-logo-wrapper">
             <MoonLogoIcon size={20} />
@@ -33,13 +34,14 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             <span className="navbar-title">BlueMoon</span>
             <span className="brand-subtitle">Quản lý thu phí chung cư</span>
           </div>
-        </div>
+        </button>
 
         {/* Navigation Tabs */}
         <nav className="navbar-nav" aria-label="Thanh điều hướng chính">
           <button
             type="button"
             className={`nav-link ${currentTab === 'overview' ? 'active' : ''}`}
+            aria-current={currentTab === 'overview' ? 'page' : undefined}
             onClick={() => onSelectTab('overview')}
           >
             <BuildingIcon size={16} />
@@ -49,6 +51,7 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             <button
               type="button"
               className={`nav-link ${currentTab === 'apartments' ? 'active' : ''}`}
+              aria-current={currentTab === 'apartments' ? 'page' : undefined}
               onClick={() => onSelectTab('apartments')}
             >
               <ApartmentIcon size={16} />
@@ -59,6 +62,7 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             <button
               type="button"
               className={`nav-link ${currentTab === 'fees' ? 'active' : ''}`}
+              aria-current={currentTab === 'fees' ? 'page' : undefined}
               onClick={() => onSelectTab('fees')}
             >
               <ReceiptTaxIcon size={16} />
@@ -69,6 +73,7 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             <button
               type="button"
               className={`nav-link ${currentTab === 'users' ? 'active' : ''}`}
+              aria-current={currentTab === 'users' ? 'page' : undefined}
               onClick={() => onSelectTab('users')}
             >
               <UsersIcon size={16} />

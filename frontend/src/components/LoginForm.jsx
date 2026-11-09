@@ -34,15 +34,9 @@ export default function LoginForm() {
     }
   }
 
-  const fillAdminCredentials = () => {
-    setUsername('admin')
-    setPassword('Admin@123456!')
-    setErrorMessage('')
-  }
-
   return (
     <div className="login-split-wrapper">
-      {/* Left Column: Architectural Showcase */}
+      {/* Left Column: Operations Showcase */}
       <div className="login-showcase-side">
         <div>
           <div className="login-showcase-brand">
@@ -50,22 +44,21 @@ export default function LoginForm() {
               <MoonLogoIcon size={22} />
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>BlueMoon</div>
-              <div style={{ fontSize: '0.725rem', color: '#94A3B8' }}>Property & Fee Management</div>
+              <div className="login-brand-name">BlueMoon</div>
+              <div className="login-brand-caption">Quản lý căn hộ và thu phí</div>
             </div>
           </div>
 
           <h1 className="login-showcase-title">
-            Hệ thống Quản lý Vận hành Chung cư Hiện đại
+            Thông tin rõ ràng. Quản lý thuận tiện.
           </h1>
           <p className="login-showcase-desc">
-            Nền tảng kiểm soát cư trú, quản lý hồ sơ căn hộ, tự động hóa lập bảng kê chi phí và đối soát thu phí minh bạch, chuẩn xác.
+            Không gian làm việc của ban quản lý và cư dân: tra cứu hồ sơ căn hộ, theo dõi khoản thu và biểu phí trong phạm vi được cấp quyền.
           </p>
         </div>
 
         <div className="login-showcase-footer">
-          <div>Phiên bản Sprint 1 · Kiến trúc Phân quyền RBAC</div>
-          <div style={{ color: '#64748B', marginTop: 4 }}>Bảo mật mã hóa BCrypt · Quản lý phiên Bearer Token</div>
+          <div>Hệ thống quản lý nội bộ BlueMoon</div>
         </div>
       </div>
 
@@ -74,7 +67,7 @@ export default function LoginForm() {
         <div className="login-header-group">
           <h2 className="login-form-title">Đăng nhập tài khoản</h2>
           <p className="login-form-desc">
-            Nhập thông tin xác thực để truy cập bảng điều khiển vận hành
+            Nhập tên đăng nhập và mật khẩu để bắt đầu phiên làm việc
           </p>
         </div>
 
@@ -95,7 +88,7 @@ export default function LoginForm() {
               name="username"
               type="text"
               className="form-input"
-              placeholder="Nhập tên đăng nhập (VD: admin)"
+              placeholder="Nhập tên đăng nhập"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading}
@@ -109,22 +102,16 @@ export default function LoginForm() {
           </div>
 
           <div className="form-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="login-password-label">
               <label htmlFor="login-password" className="form-label">
                 Mật khẩu <span className="req-star">*</span>
               </label>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--cobalt-action)',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  padding: 0
-                }}
+                className="login-password-toggle"
+                aria-pressed={showPassword}
+                aria-controls="login-password"
               >
                 {showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               </button>
@@ -144,25 +131,13 @@ export default function LoginForm() {
             />
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', marginTop: '8px', padding: '10px' }}
-            disabled={loading}
-          >
-            {loading ? 'Đang xác thực thông tin…' : 'Đăng nhập vào hệ thống'}
-          </button>
-
-          {/* Quick Admin fill helper */}
-          <div className="quick-admin-box">
-            <span>Tài khoản thử nghiệm: <code>admin</code></span>
+          <div className="login-form-actions">
             <button
-              type="button"
-              className="btn btn-secondary btn-xs"
-              onClick={fillAdminCredentials}
+              type="submit"
+              className="btn btn-primary"
               disabled={loading}
             >
-              Tự động điền
+              {loading ? 'Đang xác thực thông tin…' : 'Đăng nhập vào hệ thống'}
             </button>
           </div>
         </form>

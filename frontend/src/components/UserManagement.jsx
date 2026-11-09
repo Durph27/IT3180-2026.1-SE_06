@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { getUsersApi, updateUserStatusApi, createUserApi } from '../api/users'
 import { useAuth } from '../hooks/useAuth'
-import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon } from './Icons'
+import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon, RefreshIcon, XIcon } from './Icons'
 
 export default function UserManagement() {
   const { user: currentUser, hasPermission } = useAuth()
@@ -20,6 +20,10 @@ export default function UserManagement() {
   const [actionTarget, setActionTarget] = useState(null)
   const [actionLoading, setActionLoading] = useState(false)
   const actionDialogRef = useRef(null)
+  const actionLoadingRef = useRef(actionLoading)
+  useEffect(() => {
+    actionLoadingRef.current = actionLoading
+  }, [actionLoading])
 
   // Create User modal
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -29,6 +33,10 @@ export default function UserManagement() {
   const [createLoading, setCreateLoading] = useState(false)
   const [createError, setCreateError] = useState('')
   const createDialogRef = useRef(null)
+  const createLoadingRef = useRef(createLoading)
+  useEffect(() => {
+    createLoadingRef.current = createLoading
+  }, [createLoading])
 
   // Native <dialog> controls for Action Confirmation
   useEffect(() => {
@@ -54,7 +62,7 @@ export default function UserManagement() {
     }
   }, [isCreateOpen])
 
-  // Click-outside light dismiss handler for both dialogs
+  // Click-outside light dismiss handler for both dialogs - blocked when busy
   const actionPressedOutsideRef = useRef(false)
   const createPressedOutsideRef = useRef(false)
 
@@ -64,15 +72,22 @@ export default function UserManagement() {
       return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom
     }
 
-    const bindDismiss = (dialog, pressedRef, onDismiss) => {
+    const bindDismiss = (dialog, pressedRef, isBusyRef, onDismiss) => {
       if (!dialog) return () => {}
-      const onDown = (e) => { pressedRef.current = outside(e, dialog) }
+      const onDown = (e) => {
+        pressedRef.current = outside(e, dialog)
+      }
       const onUp = (e) => {
-        if (pressedRef.current && outside(e, dialog)) onDismiss()
+        if (pressedRef.current && outside(e, dialog)) {
+          if (!isBusyRef.current) {
+            onDismiss()
+          }
+        }
         pressedRef.current = false
       }
       const onCancel = (e) => {
         e.preventDefault()
+        if (isBusyRef.current) return
         onDismiss()
       }
       dialog.addEventListener('pointerdown', onDown)
@@ -85,8 +100,18 @@ export default function UserManagement() {
       }
     }
 
-    const unbindAction = bindDismiss(actionDialogRef.current, actionPressedOutsideRef, () => setActionTarget(null))
-    const unbindCreate = bindDismiss(createDialogRef.current, createPressedOutsideRef, () => setIsCreateOpen(false))
+    const unbindAction = bindDismiss(
+      actionDialogRef.current,
+      actionPressedOutsideRef,
+      actionLoadingRef,
+      () => setActionTarget(null)
+    )
+    const unbindCreate = bindDismiss(
+      createDialogRef.current,
+      createPressedOutsideRef,
+      createLoadingRef,
+      () => setIsCreateOpen(false)
+    )
 
     return () => {
       unbindAction()
@@ -219,9 +244,9 @@ export default function UserManagement() {
             <UsersIcon size={24} />
           </div>
           <div>
-            <h1 className="page-title">Quản trị Tài khoản Hệ thống</h1>
+            <h1 className="page-title">Quản trị tài khoản hệ thống</h1>
             <p className="page-description">
-              Kiểm soát danh mục người dùng, phân quyền truy cập và chuyển đổi trạng thái Khóa / Kích hoạt
+              Kiểm soát danh mục người dùng, phân quyền truy cập và chuyển đổi trạng thái khóa / kích hoạt
             </p>
           </div>
         </div>
@@ -244,21 +269,21 @@ export default function UserManagement() {
       {/* Sleek Metric Strip */}
       <div className="stats-strip" aria-label="Thống kê tài khoản">
         <div className="stats-item">
-          <span className="stats-label">TỔNG SỐ TÀI KHOẢN</span>
+          <span className="stats-label">Tổng số tài khoản</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-cobalt">{totalCount}</span>
-            <span className="stats-subtext">Hồ sơ người dùng</span>
+            <span className="stats-subtext">Trong danh sách đã tải</span>
           </div>
         </div>
         <div className="stats-item">
-          <span className="stats-label">ĐANG HOẠT ĐỘNG</span>
+          <span className="stats-label">Đang hoạt động</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-teal">{activeCount}</span>
             <span className="stats-subtext">Được phép đăng nhập</span>
           </div>
         </div>
         <div className="stats-item">
-          <span className="stats-label">ĐANG BỊ KHÓA</span>
+          <span className="stats-label">Đang bị khóa</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-crimson">{lockedCount}</span>
             <span className="stats-subtext">Bị vô hiệu hóa phiên</span>
@@ -276,7 +301,16 @@ export default function UserManagement() {
       {error && (
         <div className="alert-banner alert-danger" role="alert">
           <span>⚠️</span>
-          <div>{error}</div>
+          <div style={{ flex: 1 }}>{error}</div>
+          <button
+            type="button"
+            className="btn btn-secondary btn-xs"
+            onClick={refreshUsers}
+            title="Thử tải lại danh sách"
+          >
+            <RefreshIcon size={12} />
+            <span>Thử lại</span>
+          </button>
         </div>
       )}
 
@@ -311,8 +345,23 @@ export default function UserManagement() {
       {/* User Table Card */}
       <div className="table-surface-card">
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '36px', color: 'var(--slate-muted)' }}>
+          <div className="empty-table-state" style={{ color: 'var(--slate-muted)' }}>
             Đang tải danh sách tài khoản từ máy chủ…
+          </div>
+        ) : error && users.length === 0 ? (
+          <div className="empty-table-state">
+            <div className="empty-table-title" style={{ color: 'var(--signal-crimson)' }}>
+              Không thể tải danh sách tài khoản
+            </div>
+            <p className="empty-table-desc">{error}</p>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={refreshUsers}
+            >
+              <RefreshIcon size={14} />
+              <span>Thử lại</span>
+            </button>
           </div>
         ) : (
           <div
@@ -339,8 +388,14 @@ export default function UserManagement() {
                   <tr>
                     <td colSpan={canManage ? 5 : 4}>
                       <div className="empty-table-state">
-                        <div className="empty-table-title">Không tìm thấy tài khoản</div>
-                        <p className="empty-table-desc">Không có người dùng nào khớp với từ khóa hoặc bộ lọc hiện tại.</p>
+                        <div className="empty-table-title">
+                          {users.length === 0 ? 'Chưa có tài khoản nào' : 'Không tìm thấy tài khoản'}
+                        </div>
+                        <p className="empty-table-desc">
+                          {users.length === 0
+                            ? 'Hệ thống hiện tại chưa có dữ liệu tài khoản người dùng.'
+                            : 'Không có người dùng nào khớp với từ khóa hoặc bộ lọc hiện tại.'}
+                        </p>
                       </div>
                     </td>
                   </tr>
@@ -354,8 +409,8 @@ export default function UserManagement() {
                     return (
                       <tr key={u.id}>
                         <th scope="row" data-label="Tài khoản">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div className="user-avatar" style={{ width: '28px', height: '28px', fontSize: '0.75rem' }}>
+                          <div className="user-identity">
+                            <div className="user-avatar">
                               {initialLetter}
                             </div>
                             <span className="code-tag">{u.username}</span>
@@ -363,7 +418,7 @@ export default function UserManagement() {
                           </div>
                         </th>
                         <td data-label="Tên hiển thị">
-                          <strong style={{ fontWeight: 600 }}>{u.displayName}</strong>
+                          <strong className="font-semibold">{u.displayName}</strong>
                         </td>
                         <td data-label="Trạng thái">
                           {isActive ? (
@@ -439,13 +494,22 @@ export default function UserManagement() {
                 </div>
                 <div>
                   <h3 id="confirm-dialog-title" className="dialog-title">
-                    {actionTarget.action === 'LOCK' ? 'Xác nhận Khóa tài khoản' : 'Xác nhận Mở khóa tài khoản'}
+                    {actionTarget.action === 'LOCK' ? 'Xác nhận khóa tài khoản' : 'Xác nhận mở khóa tài khoản'}
                   </h3>
                   <p className="dialog-subtitle">
                     Thao tác quản trị phân quyền truy cập hệ thống
                   </p>
                 </div>
               </div>
+              <button
+                type="button"
+                className="dialog-close-btn"
+                onClick={() => setActionTarget(null)}
+                disabled={actionLoading}
+                aria-label="Đóng hộp thoại"
+              >
+                <XIcon size={18} />
+              </button>
             </div>
 
             <div className="dialog-body">
@@ -468,6 +532,7 @@ export default function UserManagement() {
                 className="btn btn-secondary btn-sm"
                 onClick={() => setActionTarget(null)}
                 disabled={actionLoading}
+                autoFocus
               >
                 Hủy bỏ
               </button>
@@ -481,7 +546,6 @@ export default function UserManagement() {
                   )
                 }
                 disabled={actionLoading}
-                autoFocus
               >
                 {actionLoading
                   ? 'Đang cập nhật…'
@@ -507,7 +571,7 @@ export default function UserManagement() {
                 <PlusIcon size={20} />
               </div>
               <div>
-                <h3 id="create-user-title" className="dialog-title">Tạo mới Tài khoản</h3>
+                <h3 id="create-user-title" className="dialog-title">Tạo tài khoản mới</h3>
                 <p className="dialog-subtitle">Khởi tạo thông tin người dùng và phân quyền ban đầu</p>
               </div>
             </div>
@@ -515,79 +579,83 @@ export default function UserManagement() {
               type="button"
               className="dialog-close-btn"
               onClick={() => setIsCreateOpen(false)}
+              disabled={createLoading}
               aria-label="Đóng hộp thoại"
             >
-              &times;
+              <XIcon size={18} />
             </button>
           </div>
 
-          <form onSubmit={handleCreateUser} className="dialog-body">
-            {createError && (
-              <div className="alert-banner alert-danger" role="alert">
-                <span>⚠️</span>
-                <div>{createError}</div>
+          <form onSubmit={handleCreateUser}>
+            <div className="dialog-body">
+              {createError && (
+                <div className="alert-banner alert-danger" role="alert">
+                  <span>⚠️</span>
+                  <div>{createError}</div>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label htmlFor="new-user-name" className="form-label">
+                  Tên đăng nhập (username) <span className="req-star">*</span>
+                </label>
+                <span id="new-user-name-hint" className="field-hint">Chữ cái thường, chữ số; viết liền không dấu.</span>
+                <input
+                  id="new-user-name"
+                  name="username"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ví dụ: accountant_01"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  disabled={createLoading}
+                  autoComplete="off"
+                  spellCheck="false"
+                  autoCapitalize="none"
+                  required
+                  aria-describedby="new-user-name-hint"
+                />
               </div>
-            )}
 
-            <div className="form-group">
-              <label htmlFor="new-user-name" className="form-label">
-                Tên đăng nhập (username) <span className="req-star">*</span>
-              </label>
-              <span className="field-hint">Chữ cái thường, chữ số; viết liền không dấu.</span>
-              <input
-                id="new-user-name"
-                name="username"
-                type="text"
-                className="form-input"
-                placeholder="Ví dụ: accountant_01"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-                disabled={createLoading}
-                autoComplete="off"
-                spellCheck="false"
-                autoCapitalize="none"
-                required
-              />
+              <div className="form-group">
+                <label htmlFor="new-display-name" className="form-label">
+                  Tên hiển thị <span className="req-star">*</span>
+                </label>
+                <input
+                  id="new-display-name"
+                  name="displayName"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ví dụ: Nguyễn Văn A (Kế toán)"
+                  value={newDisplayName}
+                  onChange={(e) => setNewDisplayName(e.target.value)}
+                  disabled={createLoading}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="new-user-password" className="form-label">
+                  Mật khẩu ban đầu <span className="req-star">*</span>
+                </label>
+                <span id="new-user-password-hint" className="field-hint">Quy chuẩn tối thiểu 12 ký tự ({newPassword.length}/12).</span>
+                <input
+                  id="new-user-password"
+                  name="password"
+                  type="password"
+                  className="form-input"
+                  placeholder="••••••••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={createLoading}
+                  minLength={12}
+                  required
+                  aria-describedby="new-user-password-hint"
+                />
+              </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="new-display-name" className="form-label">
-                Tên hiển thị <span className="req-star">*</span>
-              </label>
-              <input
-                id="new-display-name"
-                name="displayName"
-                type="text"
-                className="form-input"
-                placeholder="Ví dụ: Nguyễn Văn A (Kế toán)"
-                value={newDisplayName}
-                onChange={(e) => setNewDisplayName(e.target.value)}
-                disabled={createLoading}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="new-user-password" className="form-label">
-                Mật khẩu ban đầu <span className="req-star">*</span>
-              </label>
-              <span className="field-hint">Quy chuẩn tối thiểu 12 ký tự ({newPassword.length}/12).</span>
-              <input
-                id="new-user-password"
-                name="password"
-                type="password"
-                className="form-input"
-                placeholder="••••••••••••"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                disabled={createLoading}
-                minLength={12}
-                required
-                aria-describedby="new-user-password-hint"
-              />
-            </div>
-
-            <div className="dialog-footer" style={{ margin: '20px -24px -20px', padding: '16px 24px' }}>
+            <div className="dialog-footer dialog-form-footer">
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"

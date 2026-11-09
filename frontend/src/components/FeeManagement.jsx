@@ -145,7 +145,7 @@ export default function FeeManagement() {
             <ReceiptTaxIcon size={24} />
           </div>
           <div>
-            <h1 className="page-title">Danh mục Khoản thu & Biểu phí</h1>
+            <h1 className="page-title">Khoản thu và biểu phí</h1>
             <p className="page-description">
               Cấu hình các loại phí chung cư, đơn giá định mức và khoảng thời gian áp dụng
             </p>
@@ -191,9 +191,9 @@ export default function FeeManagement() {
       )}
 
       {/* Metrics strip */}
-      <div className="stats-strip" aria-label="Thống kê danh mục khoản thu">
+      {!loading && !error && <div className="stats-strip" aria-label="Thống kê danh mục khoản thu">
         <div className="stats-item">
-          <span className="stats-label">TỔNG LOẠI KHOẢN THU</span>
+          <span className="stats-label">Khớp bộ lọc</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-cobalt">{stats.total}</span>
             <span className="stats-subtext">Danh mục hiện có</span>
@@ -201,7 +201,7 @@ export default function FeeManagement() {
         </div>
 
         <div className="stats-item">
-          <span className="stats-label">ĐANG ÁP DỤNG (TRANG NÀY)</span>
+          <span className="stats-label">Đang áp dụng · trang này</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-teal">{stats.active}</span>
             <span className="stats-subtext">Hoạt động bình thường</span>
@@ -209,7 +209,7 @@ export default function FeeManagement() {
         </div>
 
         <div className="stats-item">
-          <span className="stats-label">PHÍ BẮT BUỘC (TRANG NÀY)</span>
+          <span className="stats-label">Bắt buộc · trang này</span>
           <div className="stats-value-row">
             <span className="stats-number">{stats.mandatory}</span>
             <span className="stats-subtext">Khoản thu theo quy chế</span>
@@ -217,13 +217,13 @@ export default function FeeManagement() {
         </div>
 
         <div className="stats-item">
-          <span className="stats-label">THEO PHƯƠNG TIỆN (TRANG NÀY)</span>
+          <span className="stats-label">Theo phương tiện · trang này</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-amber">{stats.vehicle}</span>
             <span className="stats-subtext">Phí gửi xe định ngạch</span>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Filter toolbar */}
       <div className="filter-toolbar">
@@ -233,7 +233,8 @@ export default function FeeManagement() {
             <input
               type="search"
               id="search-fee-code"
-              placeholder="Tìm theo mã khoản thu (VD: PHI_QLVH)…"
+              placeholder="Mã khoản thu chính xác…"
+              aria-label="Mã khoản thu chính xác"
               value={searchCode}
               onChange={(e) => {
                 setSearchCode(e.target.value)
@@ -322,6 +323,15 @@ export default function FeeManagement() {
                     <span style={{ color: 'var(--slate-muted)' }}>Đang tải danh mục khoản thu…</span>
                   </td>
                 </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="empty-table-state">
+                      <p className="empty-table-desc">Chưa tải được danh mục khoản thu. Vui lòng thử lại.</p>
+                      <button type="button" className="btn btn-secondary" onClick={refreshFeeTypes}>Thử lại</button>
+                    </div>
+                  </td>
+                </tr>
               ) : feeTypes.length === 0 ? (
                 <tr>
                   <td colSpan={6}>
@@ -391,7 +401,7 @@ export default function FeeManagement() {
                         )}
                       </td>
                       <td data-label="Thao tác" style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '6px' }}>
+                        <div className="table-row-actions">
                           <button
                             type="button"
                             className="btn btn-secondary btn-xs"

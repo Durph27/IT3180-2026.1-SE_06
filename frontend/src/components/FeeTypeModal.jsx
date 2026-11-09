@@ -306,9 +306,9 @@ export default function FeeTypeModal({
           </div>
 
           {/* Flags: Mandatory & Active */}
-          <div className="form-group" style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
+          <div className="form-group form-flags">
             {!isEdit && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <label className="form-checkbox">
                 <input
                   type="checkbox"
                   name="mandatory"
@@ -320,7 +320,7 @@ export default function FeeTypeModal({
               </label>
             )}
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <label className="form-checkbox">
               <input
                 type="checkbox"
                 name="active"
@@ -332,7 +332,7 @@ export default function FeeTypeModal({
             </label>
           </div>
 
-          <div className="dialog-footer" style={{ marginTop: '24px' }}>
+          <div className="dialog-footer dialog-form-footer">
             <button
               type="button"
               className="btn btn-secondary"

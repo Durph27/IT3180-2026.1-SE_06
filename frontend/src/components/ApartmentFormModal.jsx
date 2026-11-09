@@ -450,7 +450,7 @@ export default function ApartmentFormModal({
           {/* Field: Apartment Room Code */}
           <div className="form-group">
             <label htmlFor="apt-code" className="form-label">
-              Mã phòng / Căn hộ <span className="req-star">*</span>
+              Mã căn hộ <span className="req-star">*</span>
             </label>
             <span id={codeHintId} className="field-hint">
               Từ 1 đến 20 ký tự (Ví dụ: P1001, A-1204, B.0802).

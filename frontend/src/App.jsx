@@ -20,8 +20,8 @@ function AppContent() {
     return (
       <div className="app-loading-screen">
         <div className="loading-spinner-ring" />
-        <h3>Khởi tạo phiên làm việc…</h3>
-        <p>Đang kiểm tra chứng chỉ xác thực và cấu hình hệ thống</p>
+        <h3>Đang mở phiên làm việc…</h3>
+        <p>Vui lòng chờ trong khi kiểm tra tài khoản.</p>
       </div>
     )
   }
@@ -36,13 +36,14 @@ function AppContent() {
 
   return (
     <div className="app-layout">
+      <a className="skip-link" href="#main-content">Đến nội dung chính</a>
       <Navbar
         currentTab={currentTab}
         onSelectTab={setCurrentTab}
         onOpenChangePassword={() => setIsChangePasswordOpen(true)}
       />
 
-      <main className="main-content">
+      <main id="main-content" tabIndex={-1} className="main-content">
         {currentTab === 'overview' && (
           <HomePage
             onNavigateToUsers={() => setCurrentTab('users')}

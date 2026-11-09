@@ -191,7 +191,7 @@ export default function ApartmentManagement() {
             <ApartmentIcon size={24} />
           </div>
           <div>
-            <h1 className="page-title">Hồ sơ Căn hộ</h1>
+            <h1 className="page-title">Hồ sơ căn hộ</h1>
             <p className="page-description">
               Tạo mới và quản lý danh sách căn hộ, diện tích, tầng và tòa nhà trực thuộc
             </p>
@@ -252,9 +252,9 @@ export default function ApartmentManagement() {
       )}
 
       {/* Sleek Metric Strip */}
-      <div className="stats-strip" aria-label="Thống kê căn hộ">
+      {!loading && !error && <div className="stats-strip" aria-label="Thống kê căn hộ">
         <div className="stats-item">
-          <span className="stats-label">TỔNG KHỚP BỘ LỌC</span>
+          <span className="stats-label">Khớp bộ lọc</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-cobalt">{stats.total}</span>
             <span className="stats-subtext">Hồ sơ phù hợp</span>
@@ -262,7 +262,7 @@ export default function ApartmentManagement() {
         </div>
 
         <div className="stats-item">
-          <span className="stats-label">ĐANG Ở (TRANG NÀY)</span>
+          <span className="stats-label">Đang ở · trang này</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-teal">{stats.pageOccupied}</span>
             <span className="stats-subtext">Cư trú thực tế</span>
@@ -270,7 +270,7 @@ export default function ApartmentManagement() {
         </div>
 
         <div className="stats-item">
-          <span className="stats-label">CĂN TRỐNG (TRANG NÀY)</span>
+          <span className="stats-label">Căn trống · trang này</span>
           <div className="stats-value-row">
             <span className="stats-number">{stats.pageVacant}</span>
             <span className="stats-subtext">Sẵn sàng bàn giao</span>
@@ -278,13 +278,13 @@ export default function ApartmentManagement() {
         </div>
 
         <div className="stats-item">
-          <span className="stats-label">TẠM NGƯNG (TRANG NÀY)</span>
+          <span className="stats-label">Tạm ngưng · trang này</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-amber">{stats.pageInactive}</span>
             <span className="stats-subtext">Chưa khả dụng</span>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Integrated Filter Toolbar */}
       <div className="filter-toolbar">
@@ -302,6 +302,7 @@ export default function ApartmentManagement() {
               }}
               className="form-input-search"
               title="Tìm chính xác theo mã căn hộ"
+              aria-label="Mã căn hộ chính xác"
             />
           </div>
 
@@ -343,9 +344,9 @@ export default function ApartmentManagement() {
             aria-label="Lọc theo trạng thái"
           >
             <option value="ALL">Tất cả trạng thái</option>
-            <option value="VACANT">Căn trống (VACANT)</option>
-            <option value="OCCUPIED">Đang có người ở (OCCUPIED)</option>
-            <option value="INACTIVE">Tạm ngưng (INACTIVE)</option>
+            <option value="VACANT">Căn trống</option>
+            <option value="OCCUPIED">Đang có người ở</option>
+            <option value="INACTIVE">Tạm ngưng</option>
           </select>
         </div>
       </div>
@@ -377,6 +378,15 @@ export default function ApartmentManagement() {
                 <tr>
                   <td colSpan={canWrite ? 6 : 5} style={{ textAlign: 'center', padding: '36px' }}>
                     <span style={{ color: 'var(--slate-muted)' }}>Đang tải danh sách hồ sơ căn hộ…</span>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={canWrite ? 6 : 5}>
+                    <div className="empty-table-state">
+                      <p className="empty-table-desc">Chưa tải được hồ sơ căn hộ. Hãy kiểm tra kết nối và thử lại.</p>
+                      <button type="button" className="btn btn-secondary" onClick={refreshApartments}>Thử lại</button>
+                    </div>
                   </td>
                 </tr>
               ) : apartments.length === 0 ? (
