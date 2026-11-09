@@ -39,6 +39,19 @@ test('billing tab follows invoice access and household scope', () => {
   assert.doesNotMatch(render(auth('AUTHORITY'), Navbar, navProps), /Khoản thu/)
 })
 
+test('billing tab is emphasized only while bills are unpaid', () => {
+  const billingButton = (props) => render(auth('RESIDENT'), Navbar, props).split('<button').find((part) => part.includes('Khoản thu'))
+  const unpaid = billingButton({ ...navProps, hasUnpaidBills: true })
+  assert.match(unpaid, /font-extrabold/)
+  assert.match(unpaid, /text-red-700/)
+  assert.match(unpaid, /còn khoản chưa đóng/)
+  assert.match(billingButton({ ...navProps, currentTab: 'billing', hasUnpaidBills: true }), /text-red-700/)
+  const settled = billingButton(navProps)
+  assert.doesNotMatch(settled, /font-extrabold/)
+  assert.doesNotMatch(settled, /text-red-700/)
+  assert.doesNotMatch(settled, /còn khoản chưa đóng/)
+})
+
 test('outstanding periods show totals and mark the selected period', () => {
   const period = (id, code, startDate) => ({ id, code, startDate })
   const due = { status: 'OVERDUE', daysOverdue: 3, daysRemaining: 0 }

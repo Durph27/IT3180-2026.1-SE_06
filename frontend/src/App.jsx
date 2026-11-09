@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AuthProvider } from './context/AuthProvider'
 import { useAuth } from './hooks/useAuth'
+import { useHasUnpaidBills } from './hooks/useHasUnpaidBills'
 import Navbar from './components/Navbar'
 import Topbar from './components/Topbar'
 import LoginForm from './components/LoginForm'
@@ -56,6 +57,7 @@ function Workspace() {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [isNavOpen, setIsNavOpen] = useState(false)
   const menuButtonRef = useRef(null)
+  const hasUnpaidBills = useHasUnpaidBills()
   const goToOverview = () => setCurrentTab('overview')
   const selectTab = (tab) => {
     setCurrentTab(tab)
@@ -77,7 +79,7 @@ function Workspace() {
 
   return (
     <div className="flex min-h-screen">
-      <Navbar currentTab={currentTab} onSelectTab={selectTab} isOpen={isNavOpen} onClose={closeNav} />
+      <Navbar currentTab={currentTab} onSelectTab={selectTab} isOpen={isNavOpen} onClose={closeNav} hasUnpaidBills={hasUnpaidBills} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar

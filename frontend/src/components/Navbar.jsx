@@ -5,23 +5,25 @@ import { MoonLogoIcon, BuildingIcon, HomeIcon, ReceiptIcon, ShieldCheckIcon, Use
 
 const GROUP_LABEL = 'mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500'
 
-function NavItem({ tab, label, icon: Icon, currentTab, onSelectTab }) {
+function NavItem({ tab, label, icon: Icon, currentTab, onSelectTab, attention = '' }) {
   const active = currentTab === tab
-  const state = active ? 'bg-(--primary-light) text-(--primary)' : 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+  const background = active ? 'bg-(--primary-light)' : 'bg-transparent hover:bg-slate-100'
+  const color = attention ? 'text-red-700' : active ? 'text-(--primary)' : 'text-slate-600 hover:text-slate-900'
+  const weight = attention ? 'font-extrabold' : active ? 'font-semibold' : 'font-medium'
   return (
     <button
       type="button"
-      className={`flex min-h-11 w-full cursor-pointer [font-family:inherit] items-center gap-3 rounded-lg border-0 px-3 text-left text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-(--primary) ${state}`}
+      className={`flex min-h-11 w-full cursor-pointer [font-family:inherit] items-center gap-3 rounded-lg border-0 px-3 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:outline-(--primary) ${weight} ${background} ${color}`}
       aria-current={active ? 'page' : undefined}
       onClick={() => onSelectTab(tab)}
     >
       <Icon size={18} className="shrink-0" />
-      <span className="min-w-0">{label}</span>
+      <span className="min-w-0">{label}{attention && <span className="sr-only"> ({attention})</span>}</span>
     </button>
   )
 }
 
-export default function Navbar({ currentTab, onSelectTab, isOpen = false, onClose }) {
+export default function Navbar({ currentTab, onSelectTab, isOpen = false, onClose, hasUnpaidBills = false }) {
   const { householdIds, hasRole, hasPermission } = useAuth()
   const navRef = useRef(null)
   const canReadResidents = [undefined, ...householdIds].some((householdId) => hasPermission('resident.read', { householdId }) && hasPermission('household.read', { householdId }))
@@ -56,7 +58,7 @@ export default function Navbar({ currentTab, onSelectTab, isOpen = false, onClos
             <div className="flex flex-col gap-1">
               <NavItem tab="overview" label="Tổng quan" icon={BuildingIcon} {...itemProps} />
               {canReadResidents && <NavItem tab="residents" label="Nhân khẩu" icon={UsersIcon} {...itemProps} />}
-              {canReadBilling && <NavItem tab="billing" label="Khoản thu" icon={ReceiptIcon} {...itemProps} />}
+              {canReadBilling && <NavItem tab="billing" label="Khoản thu" icon={ReceiptIcon} attention={hasUnpaidBills ? 'còn khoản chưa đóng' : ''} {...itemProps} />}
               {showFamily && <NavItem tab="family" label="Hộ gia đình" icon={HomeIcon} {...itemProps} />}
             </div>
           </div>
