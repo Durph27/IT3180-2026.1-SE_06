@@ -14,6 +14,18 @@
 .household-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; }
 .household-pagination .btn { min-width: 0; min-height: 44px; white-space: normal; }
 .household-pagination span { text-align: center; }
+.household-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.household-selection select { width: auto; max-width: 100%; }
+.register-wrapper { max-width: 640px; min-height: 0; }
+.register-wrapper .login-form-side { padding: 40px; }
+.register-wrapper .login-card-inner { max-width: none; }
+.form-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+.login-switch { margin-top: 1rem; text-align: center; color: var(--slate-700); }
+.link-button { background: none; border: 0; padding: 0; color: var(--primary); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; }
+@media (max-width: 560px) {
+  .form-grid-2 { grid-template-columns: minmax(0, 1fr); }
+  .register-wrapper .login-form-side { padding: 24px 16px; }
+}
 .access-note { color: var(--slate-700); }
 
 :root {

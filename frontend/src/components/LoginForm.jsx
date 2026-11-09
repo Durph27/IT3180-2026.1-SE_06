@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useHealth } from '../hooks/useHealth'
 import { MoonLogoIcon, UserIcon, LockIcon, BuildingIcon, ShieldCheckIcon, CheckCircleIcon } from './Icons'
 
-export default function LoginForm() {
+export default function LoginForm({ onRegister }) {
   const { login } = useAuth()
   const state = useHealth()
   const connected = state === 'connected'
@@ -140,6 +140,8 @@ export default function LoginForm() {
                 'Đăng nhập'
               )}
             </button>
+
+            <p className="login-switch">Cư dân chưa có tài khoản? <button type="button" className="link-button" disabled={loading} onClick={onRegister}>Đăng ký</button></p>
 
             <div className="demo-credentials-box">
               <div className="demo-header">

@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthProvider'
 import { useAuth } from './hooks/useAuth'
 import Navbar from './components/Navbar'
 import LoginForm from './components/LoginForm'
+import RegisterForm from './components/RegisterForm'
 import ChangePasswordModal from './components/ChangePasswordModal'
 import UserManagement from './components/UserManagement'
 import ResidentManagement from './components/ResidentManagement'
@@ -14,6 +15,7 @@ import './App.css'
 
 function AppContent() {
   const { user, isAuthenticated, isLoading } = useAuth()
+  const [isRegistering, setIsRegistering] = useState(false)
 
   if (isLoading) {
     return (
@@ -28,7 +30,9 @@ function AppContent() {
   if (!isAuthenticated) {
     return (
       <div className="login-page-bg">
-        <LoginForm />
+        {isRegistering
+          ? <RegisterForm onBackToLogin={() => setIsRegistering(false)} />
+          : <LoginForm onRegister={() => setIsRegistering(true)} />}
       </div>
     )
   }
