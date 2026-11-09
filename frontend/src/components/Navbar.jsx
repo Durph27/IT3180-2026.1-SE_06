@@ -5,6 +5,7 @@ import { MoonLogoIcon, BuildingIcon, UsersIcon, KeyIcon, LogoutIcon } from './Ic
 export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }) {
   const { user, roles, logout, householdIds, hasRole, hasPermission } = useAuth()
   const canReadResidents = [undefined, ...householdIds].some((householdId) => hasPermission('resident.read', { householdId }) && hasPermission('household.read', { householdId }))
+  const canReadBilling = [undefined, ...householdIds].some((householdId) => hasPermission('invoice.read', { householdId }) && hasPermission('billing-period.read', { householdId }))
   const showFamily = hasRole('RESIDENT') && hasPermission('household.read', { householdId: householdIds[0] })
   const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
   const roleCode = (typeof roles[0] === 'string' ? roles[0] : roles[0]?.code) || 'USER'
@@ -36,6 +37,7 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             <span>Tổng quan</span>
           </button>
           {canReadResidents && <button type="button" className={`nav-link ${currentTab === 'residents' ? 'active' : ''}`} aria-current={currentTab === 'residents' ? 'page' : undefined} onClick={() => onSelectTab('residents')}><UsersIcon size={16} /><span>Nhân khẩu</span></button>}
+          {canReadBilling && <button type="button" className={`nav-link ${currentTab === 'billing' ? 'active' : ''}`} aria-current={currentTab === 'billing' ? 'page' : undefined} onClick={() => onSelectTab('billing')}><BuildingIcon size={16} /><span>Khoản thu</span></button>}
           <PermissionGate permission="user.read">
             <button
               type="button"
