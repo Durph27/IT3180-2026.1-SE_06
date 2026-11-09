@@ -6,6 +6,7 @@ import LoginForm from './components/LoginForm'
 import ChangePasswordModal from './components/ChangePasswordModal'
 import UserManagement from './components/UserManagement'
 import ApartmentManagement from './components/ApartmentManagement'
+import FeeManagement from './components/FeeManagement'
 import HomePage from './pages/HomePage'
 import ErrorBoundary from './components/ErrorBoundary'
 import './App.css'
@@ -46,10 +47,12 @@ function AppContent() {
           <HomePage
             onNavigateToUsers={() => setCurrentTab('users')}
             onNavigateToApartments={() => setCurrentTab('apartments')}
+            onNavigateToFees={() => setCurrentTab('fees')}
             onOpenChangePassword={() => setIsChangePasswordOpen(true)}
           />
         )}
         {currentTab === 'apartments' && <ApartmentManagement />}
+        {currentTab === 'fees' && <FeeManagement />}
         {currentTab === 'users' && <UserManagement />}
       </main>
 

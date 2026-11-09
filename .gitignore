@@ -27,6 +27,8 @@ backups/
 /local/
 /.local/
 /.agents/
+.claude/
+CLAUDE.md
 
 # Test and tooling output
 **/coverage/

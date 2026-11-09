@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { getApartmentsApi, getBuildingsApi } from '../api/apartments'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { getApartmentsApi, getAllBuildingsApi } from '../api/apartments'
 import { useAuth } from '../hooks/useAuth'
 import ApartmentFormModal from './ApartmentFormModal'
 import {
@@ -13,7 +13,14 @@ import {
 
 export default function ApartmentManagement() {
   const { hasPermission } = useAuth()
+  const canRead = hasPermission('apartment.read')
   const canWrite = hasPermission('apartment.write')
+  const canReadBuildings = hasPermission('building.read')
+  const [buildingLoading, setBuildingLoading] = useState(false)
+  const [buildingError, setBuildingError] = useState('')
+  const [buildingRevision, setBuildingRevision] = useState(0)
+  const [revision, setRevision] = useState(0)
+  const createdBuildings = useRef(new Map())
 
   // Data states
   const [apartments, setApartments] = useState([])
@@ -37,92 +44,70 @@ export default function ApartmentManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingApartment, setEditingApartment] = useState(null)
 
-  // Load Buildings once for lookup and dropdowns
-  const refreshBuildings = useCallback(() => {
-    getBuildingsApi(0, 100)
-      .then((data) => {
-        const list = data.content || data.items || data || []
-        setBuildings(Array.isArray(list) ? list : [])
-      })
-      .catch(() => {})
-  }, [])
+  const refreshApartments = useCallback(() => setRevision((value) => value + 1), [])
+  const refreshBuildings = useCallback(() => setBuildingRevision((value) => value + 1), [])
 
-  // Load Apartments based on filters and pagination
-  const refreshApartments = useCallback(() => {
+  useEffect(() => {
+    if (!canRead || !canReadBuildings) return
+    const controller = new AbortController()
+    setBuildingLoading(true)
+    setBuildingError('')
+    getAllBuildingsApi({ signal: controller.signal })
+      .then((list) => {
+        if (controller.signal.aborted) return
+        const merged = new Map(list.map((building) => [building.id, building]))
+        createdBuildings.current.forEach((building, id) => {
+          if (!merged.has(id)) merged.set(id, building)
+        })
+        setBuildings([...merged.values()])
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          setBuildingError(err.response?.data?.message || 'Không thể tải danh sách tòa nhà. Vui lòng thử lại.')
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setBuildingLoading(false)
+      })
+    return () => controller.abort()
+  }, [canRead, canReadBuildings, buildingRevision])
+
+  useEffect(() => {
+    if (!canRead) return
+    const controller = new AbortController()
     setLoading(true)
     setError('')
     getApartmentsApi({
       page,
       size: pageSize,
-      buildingId: buildingFilter !== 'ALL' ? buildingFilter : null,
+      buildingId: canReadBuildings && buildingFilter !== 'ALL' ? buildingFilter : null,
       status: statusFilter !== 'ALL' ? statusFilter : null,
       code: searchCode.trim() || null,
       sort: 'code,asc',
-    })
+    }, { signal: controller.signal })
       .then((data) => {
-        const list = data.content || data.items || []
-        setApartments(list)
-        setTotalElements(data.totalElements ?? list.length)
-        setTotalPages(data.totalPages ?? (list.length > 0 ? 1 : 0))
-        setLoading(false)
+        if (controller.signal.aborted) return
+        const lastPage = Math.max(0, data.totalPages - 1)
+        if (page > lastPage) {
+          setPage(lastPage)
+          return
+        }
+        setApartments(data.content)
+        setTotalElements(data.totalElements)
+        setTotalPages(data.totalPages)
       })
       .catch((err) => {
-        setError(
-          err.response?.data?.message ||
-            'Không thể tải danh sách căn hộ. Vui lòng kiểm tra kết nối API.'
-        )
-        setLoading(false)
+        if (controller.signal.aborted) return
+        setApartments([])
+        setTotalElements(0)
+        setTotalPages(0)
+        setError(err.response?.data?.message || 'Không thể tải danh sách căn hộ. Vui lòng thử lại.')
       })
-  }, [page, pageSize, buildingFilter, statusFilter, searchCode])
-
-  // Initial load with ignore flag
-  useEffect(() => {
-    let ignore = false
-    getBuildingsApi(0, 100)
-      .then((data) => {
-        if (!ignore) {
-          const list = data.content || data.items || data || []
-          setBuildings(Array.isArray(list) ? list : [])
-        }
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false)
       })
-      .catch(() => {})
-    return () => {
-      ignore = true
-    }
-  }, [])
-
-  useEffect(() => {
-    let ignore = false
-    getApartmentsApi({
-      page,
-      size: pageSize,
-      buildingId: buildingFilter !== 'ALL' ? buildingFilter : null,
-      status: statusFilter !== 'ALL' ? statusFilter : null,
-      code: searchCode.trim() || null,
-      sort: 'code,asc',
-    })
-      .then((data) => {
-        if (!ignore) {
-          const list = data.content || data.items || []
-          setApartments(list)
-          setTotalElements(data.totalElements ?? list.length)
-          setTotalPages(data.totalPages ?? (list.length > 0 ? 1 : 0))
-          setLoading(false)
-        }
-      })
-      .catch((err) => {
-        if (!ignore) {
-          setError(
-            err.response?.data?.message ||
-              'Không thể tải danh sách căn hộ. Vui lòng kiểm tra kết nối API.'
-          )
-          setLoading(false)
-        }
-      })
-    return () => {
-      ignore = true
-    }
-  }, [page, pageSize, buildingFilter, statusFilter, searchCode])
+    return () => controller.abort()
+  }, [canRead, canReadBuildings, page, pageSize, buildingFilter, statusFilter, searchCode, revision])
 
   // Building mapping lookup dictionary
   const buildingMap = useMemo(() => {
@@ -178,7 +163,23 @@ export default function ApartmentManagement() {
   }
 
   const handleBuildingCreated = (newBuilding) => {
-    setBuildings((prev) => [...prev, newBuilding])
+    if (!newBuilding?.id) return
+    createdBuildings.current.set(newBuilding.id, newBuilding)
+    setBuildings((prev) => {
+      if (prev.some((b) => b.id === newBuilding.id)) return prev
+      return [...prev, newBuilding]
+    })
+  }
+
+  if (!canRead) {
+    return (
+      <div className="apartment-page">
+        <div className="alert-banner alert-danger" role="alert">
+          <span className="alert-icon">⚠️</span>
+          <span>Tài khoản của bạn không có quyền truy cập hồ sơ căn hộ (yêu cầu quyền apartment.read).</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -235,18 +236,33 @@ export default function ApartmentManagement() {
         </div>
       )}
 
+      {buildingError && (
+        <div className="alert-banner alert-danger" role="alert">
+          <span className="alert-icon">⚠️</span>
+          <span>{buildingError}</span>
+          <button
+            type="button"
+            className="btn btn-secondary btn-xs"
+            onClick={refreshBuildings}
+            style={{ marginLeft: 'auto' }}
+          >
+            Thử lại tòa nhà
+          </button>
+        </div>
+      )}
+
       {/* Sleek Metric Strip */}
       <div className="stats-strip" aria-label="Thống kê căn hộ">
         <div className="stats-item">
-          <span className="stats-label">TỔNG SỐ CĂN HỘ</span>
+          <span className="stats-label">TỔNG KHỚP BỘ LỌC</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-cobalt">{stats.total}</span>
-            <span className="stats-subtext">Hồ sơ hệ thống</span>
+            <span className="stats-subtext">Hồ sơ phù hợp</span>
           </div>
         </div>
 
         <div className="stats-item">
-          <span className="stats-label">ĐANG CÓ NGƯỜI Ở</span>
+          <span className="stats-label">ĐANG Ở (TRANG NÀY)</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-teal">{stats.pageOccupied}</span>
             <span className="stats-subtext">Cư trú thực tế</span>
@@ -254,7 +270,7 @@ export default function ApartmentManagement() {
         </div>
 
         <div className="stats-item">
-          <span className="stats-label">CĂN TRỐNG SẴN SÀNG</span>
+          <span className="stats-label">CĂN TRỐNG (TRANG NÀY)</span>
           <div className="stats-value-row">
             <span className="stats-number">{stats.pageVacant}</span>
             <span className="stats-subtext">Sẵn sàng bàn giao</span>
@@ -262,7 +278,7 @@ export default function ApartmentManagement() {
         </div>
 
         <div className="stats-item">
-          <span className="stats-label">TẠM NGƯNG / BẢO TRÌ</span>
+          <span className="stats-label">TẠM NGƯNG (TRANG NÀY)</span>
           <div className="stats-value-row">
             <span className="stats-number stats-highlight-amber">{stats.pageInactive}</span>
             <span className="stats-subtext">Chưa khả dụng</span>
@@ -278,13 +294,14 @@ export default function ApartmentManagement() {
             <input
               type="search"
               id="search-apt-code"
-              placeholder="Tìm theo mã phòng (VD: P1001)…"
+              placeholder="Tìm theo mã phòng chính xác (VD: P1001)…"
               value={searchCode}
               onChange={(e) => {
                 setSearchCode(e.target.value)
                 setPage(0)
               }}
               className="form-input-search"
+              title="Tìm chính xác theo mã căn hộ"
             />
           </div>
 
@@ -297,13 +314,22 @@ export default function ApartmentManagement() {
             }}
             className="filter-select"
             aria-label="Lọc theo tòa nhà"
+            disabled={!canReadBuildings || buildingLoading}
           >
-            <option value="ALL">Tất cả tòa nhà</option>
-            {buildings.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name} ({b.code})
-              </option>
-            ))}
+            {!canReadBuildings ? (
+              <option value="ALL">Không có quyền xem tòa nhà</option>
+            ) : (
+              <>
+                <option value="ALL">
+                  {buildingLoading ? 'Đang tải danh sách tòa nhà…' : 'Tất cả tòa nhà'}
+                </option>
+                {buildings.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name} ({b.code})
+                  </option>
+                ))}
+              </>
+            )}
           </select>
 
           <select

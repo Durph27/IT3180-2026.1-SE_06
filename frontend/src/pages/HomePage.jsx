@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useHealth } from '../hooks/useHealth'
 import { useAuth } from '../hooks/useAuth'
 import { getApartmentsApi } from '../api/apartments'
-import { ApartmentIcon, UsersIcon, BuildingIcon } from '../components/Icons'
+import { ApartmentIcon, UsersIcon, BuildingIcon, ReceiptTaxIcon } from '../components/Icons'
 
-export default function HomePage({ onNavigateToUsers, onNavigateToApartments }) {
+export default function HomePage({ onNavigateToUsers, onNavigateToApartments, onNavigateToFees }) {
   const state = useHealth()
   const { user, roles, permissions, hasPermission } = useAuth()
   const connected = state === 'connected'
@@ -12,6 +12,7 @@ export default function HomePage({ onNavigateToUsers, onNavigateToApartments }) 
   const pending = state === 'loading'
   const canViewApartments = hasPermission('apartment.read')
   const canManageUsers = hasPermission('user.read') || hasPermission('user.manage')
+  const canViewFees = hasPermission('fee-type.read') || hasPermission('fee-rate.read')
 
   const roleName = roles?.[0]?.name || roles?.[0]?.code || 'Quản trị viên'
 
@@ -70,6 +71,16 @@ export default function HomePage({ onNavigateToUsers, onNavigateToApartments }) 
             >
               <ApartmentIcon size={16} />
               <span>Hồ sơ Căn hộ</span>
+            </button>
+          )}
+          {canViewFees && onNavigateToFees && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onNavigateToFees}
+            >
+              <ReceiptTaxIcon size={16} />
+              <span>Biểu phí & Định mức</span>
             </button>
           )}
           {canManageUsers && onNavigateToUsers && (
