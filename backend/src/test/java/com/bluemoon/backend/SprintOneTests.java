@@ -160,6 +160,15 @@ class SprintOneTests {
         assertThat(call("PUT","/users/"+adminId+"/roles",map("roleIds",List.of()),admin,null).status()).isEqualTo(409);
         assertThat(call("GET","/roles",null,admin,null).status()).isEqualTo(200);
     }
+    @Test void usernamesRejectDiacriticsButLoginStaysCompatible()throws Exception {
+        String name="nguyễn"+unique();
+        var body=map("username",name,"displayName","Test","password","User-test-password!");
+        assertThat(call("POST","/users",body,admin,null).status()).isEqualTo(400);
+        assertThat(db.where("AppUser","username",name)).isEmpty();
+        assertThat(call("POST","/auth/login",map("username",name,"password","wrong"),null,null).status()).isEqualTo(401);
+        body.put("username","nguyen.van-a_"+unique());
+        assertThat(call("POST","/users",body,admin,null).status()).isEqualTo(201);
+    }
     @Test void roleAssignmentsAllowResidentAndOnlyOneStaffRole() throws Exception {
         var target = user("MANAGER", null);
         String path = "/users/" + id(target) + "/roles";
