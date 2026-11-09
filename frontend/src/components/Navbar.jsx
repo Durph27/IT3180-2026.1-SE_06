@@ -1,4 +1,5 @@
 import { useAuth } from '../hooks/useAuth'
+import PermissionGate from './PermissionGate'
 import {
   MoonLogoIcon,
   BuildingIcon,
@@ -11,11 +12,10 @@ import {
 
 export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }) {
   const { user, roles, logout, hasPermission } = useAuth()
-  const canManageUsers = hasPermission('user.read') || hasPermission('user.manage')
   const canViewApartments = hasPermission('apartment.read')
   const canViewFees = hasPermission('fee-type.read') || hasPermission('fee-rate.read')
   const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
-  const roleName = roles?.[0]?.name || roles?.[0]?.code || 'Người dùng'
+  const roleName = roles.map((role) => typeof role === 'string' ? role : role?.name || role?.code).filter(Boolean).join(', ') || 'Chưa có vai trò'
 
   return (
     <header className="navbar">
@@ -69,7 +69,7 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
               <span>Biểu phí</span>
             </button>
           )}
-          {canManageUsers && (
+          <PermissionGate permission="user.read">
             <button
               type="button"
               className={`nav-link ${currentTab === 'users' ? 'active' : ''}`}
@@ -79,7 +79,7 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
               <UsersIcon size={16} />
               <span>Quản lý tài khoản</span>
             </button>
-          )}
+          </PermissionGate>
         </nav>
 
         {/* User profile & actions */}

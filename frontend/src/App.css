@@ -1,5 +1,53 @@
-/* BlueMoon — shared workspace tokens and component styles.
-   Keep these unlayered until each legacy selector is migrated deliberately. */
+/* ========================================================
+   BlueMoon Fee Management System — Architectural Precision & Trust
+   ======================================================== */
+
+.forbidden-view {
+  max-width: 640px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border: 1px solid var(--slate-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+}
+.forbidden-code {
+  color: var(--midnight-navy);
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+.forbidden-view p {
+  max-width: 65ch;
+  color: var(--slate-muted);
+  line-height: 1.6;
+}
+.household-selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background: #ffffff;
+  padding: 12px 16px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--slate-border);
+}
+.household-selection label {
+  font-weight: 600;
+  color: var(--slate-text);
+}
+.household-selection select {
+  width: auto;
+  max-width: 100%;
+}
+.access-note {
+  color: var(--slate-muted);
+  font-size: 0.82rem;
+  margin-top: 4px;
+}
 :root {
   /* Typography is defined once in index.css. */
   --midnight-navy:        #0B132B;
@@ -109,14 +157,15 @@ table td,
 .navbar-container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 24px;
   min-height: 72px;
-  padding-block: 12px;
+  height: auto;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px 16px;
+  padding-block: 12px;
 }
 
 .navbar-brand {
@@ -163,6 +212,8 @@ table td,
 /* Navigation Links */
 .navbar-nav {
   display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   align-items: center;
   gap: 6px;
   height: 100%;
@@ -211,17 +262,23 @@ table td,
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .user-profile-card {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-pill);
   background: #3B82F6;
   color: #FFFFFF;
@@ -234,6 +291,8 @@ table td,
 }
 
 .user-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
   display: flex;
   flex-direction: column;
 }
@@ -255,6 +314,10 @@ table td,
   display: flex;
   align-items: center;
   gap: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  padding-left: 12px;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .btn-nav-action {
@@ -1339,4 +1402,200 @@ input[type="checkbox"] { accent-color: var(--cobalt-action); width: 18px; height
   padding: 0;
   border: 0;
   white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .navbar-nav {
+    width: 100%;
+  }
+
+  .navbar-nav > .nav-link {
+    flex: 1 1 120px;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .navbar-user {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .navbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .navbar-actions > .btn {
+    min-width: 0;
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .navbar-actions > .btn > svg {
+    flex-shrink: 0;
+  }
+
+  .welcome-quick-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .welcome-quick-actions > .btn {
+    width: 100%;
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .welcome-quick-actions > .btn > svg {
+    flex-shrink: 0;
+  }
+}
+
+/* Account role forms */
+.account-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.account-row-actions .action-btn {
+  min-height: 44px;
+}
+.action-btn-role {
+  background: var(--primary-light);
+  color: var(--primary-hover);
+  border: 1px solid var(--primary-border);
+}
+dialog.account-edit-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+.account-edit-dialog .modal-content {
+  max-width: none;
+}
+.account-edit-dialog .modal-header h2 {
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+.account-edit-dialog .modal-close {
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+.account-edit-dialog .modal-actions {
+  flex-wrap: wrap;
+}
+.account-edit-dialog .modal-actions > .btn {
+  flex: 1;
+  min-height: 44px;
+  white-space: normal;
+}
+.role-picker {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.role-picker legend {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.role-staff-group {
+  margin-top: 20px;
+}
+.role-options {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.role-options .role-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  min-height: 44px;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.role-option:has(input:checked) {
+  background: var(--primary-light);
+  border-color: var(--primary-border);
+}
+.role-option input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  accent-color: var(--primary);
+}
+.role-option-description {
+  display: block;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--slate-600);
+  margin-top: 4px;
+  font-weight: 400;
+}
+.role-picker:disabled .role-option {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+
+/* Welcome chips & features grid */
+.welcome-meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  color: #ffffff;
+}
+.chip-label { color: #94a3b8; font-weight: 500; }
+.chip-value { font-weight: 700; }
+.chip-role { color: #38bdf8; }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.feature-card {
+  background: #ffffff;
+  border: 1px solid var(--slate-border);
+  border-radius: var(--radius-card);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.feature-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--midnight-navy);
+  margin: 0;
+}
+.feature-card p {
+  font-size: 0.85rem;
+  color: var(--slate-muted);
+  line-height: 1.5;
+  margin: 0;
 }

@@ -9,12 +9,13 @@ import ApartmentManagement from './components/ApartmentManagement'
 import FeeManagement from './components/FeeManagement'
 import HomePage from './pages/HomePage'
 import ErrorBoundary from './components/ErrorBoundary'
+import RoleGuard from './components/RoleGuard'
+import ForbiddenView from './components/ForbiddenView'
+import { ROLE_PERMISSIONS } from './auth/rbac'
 import './App.css'
 
 function AppContent() {
-  const { isAuthenticated, isLoading } = useAuth()
-  const [currentTab, setCurrentTab] = useState('overview')
-  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
+  const { user, isAuthenticated, isLoading } = useAuth()
 
   if (isLoading) {
     return (
@@ -34,6 +35,14 @@ function AppContent() {
     )
   }
 
+  return <Workspace key={user.id} />
+}
+
+function Workspace() {
+  const [currentTab, setCurrentTab] = useState('overview')
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
+  const goToOverview = () => setCurrentTab('overview')
+
   return (
     <div className="app-layout">
       <a className="skip-link" href="#main-content">Đến nội dung chính</a>
@@ -44,17 +53,19 @@ function AppContent() {
       />
 
       <main id="main-content" tabIndex={-1} className="main-content">
-        {currentTab === 'overview' && (
-          <HomePage
-            onNavigateToUsers={() => setCurrentTab('users')}
-            onNavigateToApartments={() => setCurrentTab('apartments')}
-            onNavigateToFees={() => setCurrentTab('fees')}
-            onOpenChangePassword={() => setIsChangePasswordOpen(true)}
-          />
-        )}
-        {currentTab === 'apartments' && <ApartmentManagement />}
-        {currentTab === 'fees' && <FeeManagement />}
-        {currentTab === 'users' && <UserManagement />}
+        <RoleGuard roles={Object.keys(ROLE_PERMISSIONS)} fallback={<ForbiddenView onBack={goToOverview} />}>
+          {currentTab === 'overview' && (
+            <HomePage
+              onNavigateToUsers={() => setCurrentTab('users')}
+              onNavigateToApartments={() => setCurrentTab('apartments')}
+              onNavigateToFees={() => setCurrentTab('fees')}
+              onOpenChangePassword={() => setIsChangePasswordOpen(true)}
+            />
+          )}
+          {currentTab === 'apartments' && <ApartmentManagement />}
+          {currentTab === 'fees' && <FeeManagement />}
+          {currentTab === 'users' && <UserManagement onBack={goToOverview} />}
+        </RoleGuard>
       </main>
 
       <ChangePasswordModal

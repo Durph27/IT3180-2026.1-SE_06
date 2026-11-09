@@ -1,58 +1,100 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { getStoredToken, clearStoredToken, registerUnauthorizedCallback } from '../api/client'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { getStoredToken, setStoredToken, clearStoredToken, registerUnauthorizedCallback, registerForbiddenCallback } from '../api/client'
 import { loginApi, getMeApi, changePasswordApi } from '../api/auth'
 import { AuthContext } from './AuthContext'
+import { canAccess, hasRole as matchesRole } from '../auth/rbac'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [roles, setRoles] = useState([])
   const [permissions, setPermissions] = useState([])
   const [householdIds, setHouseholdIds] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(() => !!getStoredToken())
 
-  const logout = useCallback(() => {
-    clearStoredToken()
+  const sessionVersion = useRef(0)
+  const permissionRefresh = useRef(null)
+  const invalidateSession = useCallback(() => { sessionVersion.current++ }, [])
+
+  const clearProfile = useCallback(() => {
     setUser(null)
     setRoles([])
     setPermissions([])
     setHouseholdIds([])
   }, [])
 
-  // Initialize session from token on mount
+  const applyProfile = useCallback((profile) => {
+    setUser(profile.user)
+    setRoles(Array.isArray(profile.roles) ? profile.roles : [])
+    setPermissions(Array.isArray(profile.permissions) ? profile.permissions : [])
+    setHouseholdIds(Array.isArray(profile.householdIds) ? profile.householdIds : [])
+  }, [])
+
+  const logout = useCallback(() => {
+    invalidateSession()
+    clearStoredToken()
+    clearProfile()
+    setIsLoading(false)
+  }, [clearProfile, invalidateSession])
+
+  const refreshPermissions = useCallback(() => {
+    const token = getStoredToken()
+    if (!token) return Promise.resolve()
+    if (permissionRefresh.current?.token === token) return permissionRefresh.current.promise
+    const version = sessionVersion.current
+    const refresh = { token }
+    refresh.promise = getMeApi()
+      .then((profile) => {
+        if (version === sessionVersion.current && getStoredToken() === token) applyProfile(profile)
+      })
+      .catch(() => {
+        // Fail closed if grants cannot be verified; a 401 also clears identity.
+        if (version === sessionVersion.current && getStoredToken() === token) {
+          setRoles([])
+          setPermissions([])
+          setHouseholdIds([])
+        }
+      })
+      .finally(() => {
+        if (permissionRefresh.current === refresh) permissionRefresh.current = null
+      })
+    permissionRefresh.current = refresh
+    return refresh.promise
+  }, [applyProfile])
+
   useEffect(() => {
-    registerUnauthorizedCallback(logout)
-
-    async function initAuth() {
-      const token = getStoredToken()
-      if (!token) {
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        const profile = await getMeApi()
-        setUser(profile.user)
-        setRoles(profile.roles || [])
-        setPermissions(profile.permissions || [])
-        setHouseholdIds(profile.householdIds || [])
-      } catch (err) {
-        console.warn('Session initialization failed, logging out:', err)
-        logout()
-      } finally {
-        setIsLoading(false)
-      }
+    const unregisterUnauthorized = registerUnauthorizedCallback(logout)
+    const unregisterForbidden = registerForbiddenCallback(refreshPermissions)
+    const version = sessionVersion.current
+    const token = getStoredToken()
+    if (token) {
+      getMeApi()
+        .then((profile) => {
+          if (version === sessionVersion.current && getStoredToken() === token) applyProfile(profile)
+        })
+        .catch(() => {
+          if (version === sessionVersion.current && getStoredToken() === token) logout()
+        })
+        .finally(() => {
+          if (version === sessionVersion.current) setIsLoading(false)
+        })
     }
-
-    initAuth()
-  }, [logout])
+    return () => {
+      invalidateSession()
+      unregisterUnauthorized()
+      unregisterForbidden()
+    }
+  }, [logout, applyProfile, refreshPermissions, invalidateSession])
 
   const login = useCallback(async (username, password) => {
+    const version = ++sessionVersion.current
+    clearStoredToken()
+    clearProfile()
+    setIsLoading(false)
     try {
-      const { profile } = await loginApi(username, password)
-      setUser(profile.user)
-      setRoles(profile.roles || [])
-      setPermissions(profile.permissions || [])
-      setHouseholdIds(profile.householdIds || [])
+      const { accessToken, profile } = await loginApi(username, password)
+      if (version !== sessionVersion.current) return { success: false, error: 'Phiên đăng nhập đã thay đổi.' }
+      setStoredToken(accessToken)
+      applyProfile(profile)
       return { success: true }
     } catch (err) {
       const status = err.response?.status
@@ -69,11 +111,13 @@ export function AuthProvider({ children }) {
 
       return { success: false, error: message }
     }
-  }, [])
+  }, [applyProfile, clearProfile])
 
   const changePassword = useCallback(async (currentPassword, newPassword) => {
+    const version = sessionVersion.current
     try {
       await changePasswordApi(currentPassword, newPassword)
+      if (version !== sessionVersion.current) return { success: false, error: 'Phiên đăng nhập đã thay đổi.' }
       logout()
       return { success: true }
     } catch (err) {
@@ -93,13 +137,13 @@ export function AuthProvider({ children }) {
     }
   }, [logout])
 
-  const hasPermission = useCallback((permCode) => {
-    return permissions.includes(permCode)
-  }, [permissions])
+  const hasPermission = useCallback((permCode, scope) => {
+    return canAccess({ user, roles, permissions, householdIds, isLoading }, permCode, scope)
+  }, [user, roles, permissions, householdIds, isLoading])
 
   const hasRole = useCallback((roleCode) => {
-    return roles.some((r) => r.code === roleCode)
-  }, [roles])
+    return !!user && !isLoading && matchesRole(roles, roleCode)
+  }, [user, roles, isLoading])
 
   const value = useMemo(() => ({
     user,
@@ -113,7 +157,8 @@ export function AuthProvider({ children }) {
     changePassword,
     hasPermission,
     hasRole,
-  }), [user, roles, permissions, householdIds, isLoading, login, logout, changePassword, hasPermission, hasRole])
+    refreshProfile: refreshPermissions,
+  }), [user, roles, permissions, householdIds, isLoading, login, logout, changePassword, hasPermission, hasRole, refreshPermissions])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -1,4 +1,4 @@
-import { api, setStoredToken, clearStoredToken } from './client'
+import { api } from './client'
 
 export async function loginApi(username, password) {
   const response = await api.post('/auth/login', {
@@ -6,7 +6,6 @@ export async function loginApi(username, password) {
     password,
   })
   const { accessToken, profile } = response.data
-  setStoredToken(accessToken)
   return { accessToken, profile }
 }
 
@@ -20,7 +19,5 @@ export async function changePasswordApi(currentPassword, newPassword) {
     currentPassword,
     newPassword,
   })
-  // After change password, backend revokes the token
-  clearStoredToken()
   return response.data
 }
