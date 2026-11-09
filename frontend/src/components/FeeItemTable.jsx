@@ -21,7 +21,7 @@ export default function FeeItemTable({ category, items, total }) {
   const visible = items.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE)
 
   return (
-    <section className="table-card mb-6" aria-labelledby={titleId}>
+    <section className="table-card" aria-labelledby={titleId}>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pr-6">
         <h2 id={titleId} className="section-title">
           {mandatory ? 'Phí bắt buộc' : 'Đóng góp tự nguyện'} <FeeCategoryBadge category={category} />

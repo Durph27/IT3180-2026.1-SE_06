@@ -7,6 +7,10 @@ import DueDateAlertBanner from '../components/DueDateAlertBanner'
 import FeeItemTable from '../components/FeeItemTable'
 import ForbiddenView from '../components/ForbiddenView'
 import PermissionGate from '../components/PermissionGate'
+import PageHeader from '../components/PageHeader'
+import FilterBar from '../components/FilterBar'
+import StatCard from '../components/StatCard'
+import { BuildingIcon, CheckCircleIcon, ReceiptIcon } from '../components/Icons'
 import { classifyFeeItems, collectDueAlerts, defaultPeriod, FEE_CATEGORY, formatMoney, summarizeTotals } from '../utils/billingUtils'
 
 const STAFF_ROLES = ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUTHORITY']
@@ -86,39 +90,31 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
   return (
     <div className="user-management-container">
       <DueDateAlertBanner alerts={alerts} />
-      <div className="page-header-card">
-        <div>
-          <h1 className="header-title">Khoản thu</h1>
-          <p className="header-desc">{householdId ? 'Các khoản thu của hộ gia đình theo từng kỳ.' : 'Các khoản thu toàn chung cư theo từng kỳ.'}</p>
-        </div>
-      </div>
+      <PageHeader title="Khoản thu" description={householdId ? 'Các khoản thu của hộ gia đình theo từng kỳ.' : 'Các khoản thu toàn chung cư theo từng kỳ.'} />
 
       {error && <div className="alert alert-error" role="alert"><div>{error} <button type="button" className="btn btn-outline" onClick={retry}>Thử lại</button></div></div>}
-      {householdOptions.length > 1 && (
-        <div className="household-selection">
-          <div className="household-select-field">
-            <label htmlFor="billing-household">Hộ gia đình</label>
-            <select id="billing-household" className="form-control" value={householdId} onChange={(event) => onSelectHousehold(event.target.value)}>
-              {householdOptions.map((id, index) => <option key={id} value={id}>Hộ {index + 1}</option>)}
-            </select>
-          </div>
-        </div>
+      {(householdOptions.length > 1 || selectedPeriod) && (
+        <FilterBar>
+          {householdOptions.length > 1 && (
+            <div className="household-select-field">
+              <label htmlFor="billing-household">Hộ gia đình</label>
+              <select id="billing-household" className="form-control block min-h-11 w-full" value={householdId} onChange={(event) => onSelectHousehold(event.target.value)}>
+                {householdOptions.map((id, index) => <option key={id} value={id}>Hộ {index + 1}</option>)}
+              </select>
+            </div>
+          )}
+          {selectedPeriod && <BillingPeriodSelector periods={catalog.periods} value={selectedPeriod.id} onChange={setSelectedId} />}
+        </FilterBar>
       )}
       {loading && <p role="status">Đang tải khoản thu…</p>}
       {catalog?.periods.length === 0 && <p className="alert alert-info">Chưa có kỳ thu nào.</p>}
 
       {selectedPeriod && (
         <>
-          <BillingPeriodSelector periods={catalog.periods} value={selectedPeriod.id} onChange={setSelectedId} />
-          <div className="metrics-row">
-            <div className="metric-card">
-              <span className="metric-label">Tổng phí bắt buộc</span>
-              <span className="metric-number">{formatMoney(totals.mandatory)}</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-label">Tổng đóng góp tự nguyện</span>
-              <span className="metric-number">{formatMoney(totals.voluntary)}</span>
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <StatCard label="Tổng phí bắt buộc" value={formatMoney(totals.mandatory)} icon={ReceiptIcon} />
+            <StatCard label="Tổng đóng góp tự nguyện" value={formatMoney(totals.voluntary)} icon={CheckCircleIcon} />
+            <StatCard label="Số khoản trong kỳ" value={items.length} icon={BuildingIcon} />
           </div>
           <FeeItemTable key={`mandatory-${selectedPeriod.id}`} category={FEE_CATEGORY.MANDATORY} items={mandatoryItems} total={totals.mandatory} />
           <FeeItemTable key={`voluntary-${selectedPeriod.id}`} category={FEE_CATEGORY.VOLUNTARY} items={voluntaryItems} total={totals.voluntary} />

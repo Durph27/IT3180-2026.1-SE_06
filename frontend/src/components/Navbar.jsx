@@ -1,103 +1,73 @@
+import { useEffect, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import PermissionGate from './PermissionGate'
-import { MoonLogoIcon, BuildingIcon, UsersIcon, KeyIcon, LogoutIcon } from './Icons'
+import { MoonLogoIcon, BuildingIcon, HomeIcon, ReceiptIcon, ShieldCheckIcon, UsersIcon } from './Icons'
 
-export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }) {
-  const { user, roles, logout, householdIds, hasRole, hasPermission } = useAuth()
+const GROUP_LABEL = 'mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500'
+
+function NavItem({ tab, label, icon: Icon, currentTab, onSelectTab }) {
+  const active = currentTab === tab
+  const state = active ? 'bg-(--primary-light) text-(--primary)' : 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+  return (
+    <button
+      type="button"
+      className={`flex min-h-11 w-full cursor-pointer [font-family:inherit] items-center gap-3 rounded-lg border-0 px-3 text-left text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-(--primary) ${state}`}
+      aria-current={active ? 'page' : undefined}
+      onClick={() => onSelectTab(tab)}
+    >
+      <Icon size={18} className="shrink-0" />
+      <span className="min-w-0">{label}</span>
+    </button>
+  )
+}
+
+export default function Navbar({ currentTab, onSelectTab, isOpen = false, onClose }) {
+  const { householdIds, hasRole, hasPermission } = useAuth()
+  const navRef = useRef(null)
   const canReadResidents = [undefined, ...householdIds].some((householdId) => hasPermission('resident.read', { householdId }) && hasPermission('household.read', { householdId }))
   const canReadBilling = [undefined, ...householdIds].some((householdId) => hasPermission('invoice.read', { householdId }) && hasPermission('billing-period.read', { householdId }))
   const showFamily = hasRole('RESIDENT') && hasPermission('household.read', { householdId: householdIds[0] })
-  const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
-  const roleCode = (typeof roles[0] === 'string' ? roles[0] : roles[0]?.code) || 'USER'
-  const roleName = roles.map((role) => typeof role === 'string' ? role : role?.name || role?.code).filter(Boolean).join(', ') || 'Chưa có vai trò'
+  const itemProps = { currentTab, onSelectTab }
+
+  // The drawer is only ever open below the lg breakpoint; move keyboard users into it.
+  useEffect(() => {
+    if (isOpen) navRef.current?.querySelector('button')?.focus()
+  }, [isOpen])
 
   return (
-    <header className="navbar">
-      <div className="navbar-container">
-        {/* Brand */}
-        <div className="navbar-brand" onClick={() => onSelectTab('overview')} style={{ cursor: 'pointer' }}>
-          <div className="brand-logo-wrapper">
-            <MoonLogoIcon size={20} className="brand-moon-icon" />
-          </div>
-          <div className="brand-text">
-            <span className="navbar-title">BlueMoon</span>
-            <span className="brand-subtitle">Fee Management</span>
-          </div>
-        </div>
+    <>
+      {isOpen && <button type="button" aria-label="Đóng menu điều hướng" className="fixed inset-0 z-30 cursor-pointer border-0 bg-slate-900/40 lg:hidden" onClick={onClose} />}
+      <aside
+        id="app-sidebar"
+        // Visibility only animates while closing: it must flip immediately on open so focus can land in the drawer.
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white duration-200 motion-reduce:transition-none lg:visible lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${isOpen ? 'visible translate-x-0 transition-transform' : 'invisible -translate-x-full transition-[transform,visibility]'}`}
+      >
+        <button type="button" className="flex min-h-16 w-full cursor-pointer [font-family:inherit] items-center gap-3 border-0 border-b border-solid border-slate-200 bg-transparent px-5 text-left" onClick={() => onSelectTab('overview')} aria-label="BlueMoon – về trang tổng quan">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-(--primary) text-white"><MoonLogoIcon size={20} /></span>
+          <span className="flex min-w-0 flex-col">
+            <span className="text-lg leading-tight font-extrabold tracking-tight text-slate-900">BlueMoon</span>
+            <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Fee Management</span>
+          </span>
+        </button>
 
-        {/* Navigation Tabs */}
-        <nav className="navbar-nav" aria-label="Điều hướng chính">
-          <button
-            type="button"
-            className={`nav-link ${currentTab === 'overview' ? 'active' : ''}`}
-            aria-current={currentTab === 'overview' ? 'page' : undefined}
-            onClick={() => onSelectTab('overview')}
-          >
-            <BuildingIcon size={16} />
-            <span>Tổng quan</span>
-          </button>
-          {canReadResidents && <button type="button" className={`nav-link ${currentTab === 'residents' ? 'active' : ''}`} aria-current={currentTab === 'residents' ? 'page' : undefined} onClick={() => onSelectTab('residents')}><UsersIcon size={16} /><span>Nhân khẩu</span></button>}
-          {canReadBilling && <button type="button" className={`nav-link ${currentTab === 'billing' ? 'active' : ''}`} aria-current={currentTab === 'billing' ? 'page' : undefined} onClick={() => onSelectTab('billing')}><BuildingIcon size={16} /><span>Khoản thu</span></button>}
+        <nav ref={navRef} className="flex flex-1 flex-col gap-6 overflow-y-auto p-3" aria-label="Điều hướng chính">
+          <div>
+            <p className={GROUP_LABEL}>Nghiệp vụ</p>
+            <div className="flex flex-col gap-1">
+              <NavItem tab="overview" label="Tổng quan" icon={BuildingIcon} {...itemProps} />
+              {canReadResidents && <NavItem tab="residents" label="Nhân khẩu" icon={UsersIcon} {...itemProps} />}
+              {canReadBilling && <NavItem tab="billing" label="Khoản thu" icon={ReceiptIcon} {...itemProps} />}
+              {showFamily && <NavItem tab="family" label="Hộ gia đình" icon={HomeIcon} {...itemProps} />}
+            </div>
+          </div>
           <PermissionGate permission="user.read">
-            <button
-              type="button"
-              className={`nav-link ${currentTab === 'users' ? 'active' : ''}`}
-              aria-current={currentTab === 'users' ? 'page' : undefined}
-              onClick={() => onSelectTab('users')}
-            >
-              <UsersIcon size={16} />
-              <span>Quản lý tài khoản</span>
-            </button>
+            <div>
+              <p className={GROUP_LABEL}>Quản trị</p>
+              <NavItem tab="users" label="Quản lý tài khoản" icon={ShieldCheckIcon} {...itemProps} />
+            </div>
           </PermissionGate>
-          {showFamily && (
-            <button
-              type="button"
-              className={`nav-link ${currentTab === 'family' ? 'active' : ''}`}
-              aria-current={currentTab === 'family' ? 'page' : undefined}
-              onClick={() => onSelectTab('family')}
-            >
-              <UsersIcon size={16} />
-              <span>Hộ gia đình</span>
-            </button>
-          )}
         </nav>
-
-        {/* User profile & actions */}
-        <div className="navbar-user">
-          <div className="user-profile-card">
-            <div className="user-avatar" title={user?.displayName || user?.username}>
-              {initial}
-            </div>
-            <div className="user-details">
-              <span className="user-name">{user?.displayName || user?.username}</span>
-              <span className={`user-role-badge role-${roleCode.toLowerCase()}`}>
-                {roleName}
-              </span>
-            </div>
-          </div>
-
-          <div className="navbar-actions">
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={onOpenChangePassword}
-              title="Đổi mật khẩu tài khoản"
-            >
-              <KeyIcon size={14} />
-              <span>Đổi mật khẩu</span>
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline btn-sm btn-logout"
-              onClick={logout}
-              title="Đăng xuất khỏi hệ thống"
-            >
-              <LogoutIcon size={14} />
-              <span>Đăng xuất</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+      </aside>
+    </>
   )
 }

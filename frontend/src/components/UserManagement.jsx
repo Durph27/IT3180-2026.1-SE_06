@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { getUsersApi, updateUserStatusApi } from '../api/users'
 import { useAuth } from '../hooks/useAuth'
-import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon } from './Icons'
+import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon, CheckCircleIcon } from './Icons'
+import PageHeader from './PageHeader'
+import StatCard from './StatCard'
 import PermissionGate from './PermissionGate'
 import ForbiddenView from './ForbiddenView'
 import CreateUserDialog from './CreateUserDialog'
@@ -197,21 +199,10 @@ function UserManagementContent({ onBack }) {
 
   return (
     <div className="user-management-container">
-      {/* Page Header */}
-      <div className="page-header-card">
-        <div className="header-info">
-          <div className="header-icon-circle">
-            <UsersIcon size={24} />
-          </div>
-          <div>
-            <h1 className="header-title">Quản lý Tài khoản Hệ thống</h1>
-            <p className="header-desc">
-              Kiểm soát danh mục người dùng, phân quyền truy cập và chuyển đổi trạng thái Khóa / Kích hoạt
-            </p>
-          </div>
-        </div>
-
-        {canCreate && (
+      <PageHeader
+        title="Quản lý Tài khoản Hệ thống"
+        description="Kiểm soát danh mục người dùng, phân quyền truy cập và chuyển đổi trạng thái Khóa / Kích hoạt"
+        actions={canCreate && (
           <button
             type="button"
             className="btn btn-primary btn-add-user"
@@ -225,22 +216,12 @@ function UserManagementContent({ onBack }) {
             <span>Thêm tài khoản mới</span>
           </button>
         )}
-      </div>
+      />
 
-      {/* Metric summary counters */}
-      <div className="metrics-row">
-        <div className="metric-card">
-          <span className="metric-label">Tổng số tài khoản</span>
-          <span className="metric-number">{totalCount}</span>
-        </div>
-        <div className="metric-card metric-card-active">
-          <span className="metric-label">Đang hoạt động</span>
-          <span className="metric-number color-success">{activeCount}</span>
-        </div>
-        <div className="metric-card metric-card-locked">
-          <span className="metric-label">Đang bị khóa</span>
-          <span className="metric-number color-danger">{lockedCount}</span>
-        </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Tổng số tài khoản" value={totalCount} icon={UsersIcon} />
+        <StatCard label="Đang hoạt động" value={activeCount} tone="success" icon={CheckCircleIcon} />
+        <StatCard label="Đang bị khóa" value={lockedCount} tone="danger" icon={LockIcon} />
       </div>
 
       {/* Alerts */}

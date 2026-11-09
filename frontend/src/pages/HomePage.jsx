@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import PermissionGate from '../components/PermissionGate'
 import RoleGuard from '../components/RoleGuard'
+import PageHeader from '../components/PageHeader'
 import SystemHealth from '../components/SystemHealth'
 import { UsersIcon, KeyIcon } from '../components/Icons'
 
@@ -17,37 +18,26 @@ export default function HomePage({ onNavigateToUsers, onOpenChangePassword }) {
     || hasPermission('maintenance-fund.read') || hasPermission('user.read') || hasPermission('ticket.write', scope)
 
   return (
-    <div className="dashboard-container">
-      <section className="welcome-banner">
-        <div className="welcome-content">
-          <h1 className="welcome-title">Xin chào, {user?.displayName || user?.username || 'Bạn'}!</h1>
-          <p className="welcome-subtitle">{ownHousehold ? 'Theo dõi thông tin cư trú, khoản thu và yêu cầu của hộ gia đình bạn.' : 'Các phân hệ dưới đây hiển thị theo quyền truy cập của tài khoản.'}</p>
-          <div className="welcome-meta-chips">
-            <div className="meta-chip"><span className="chip-label">Vai trò:</span><span className="chip-value chip-role">{roleName}</span></div>
-            <div className="meta-chip"><span className="chip-label">Phạm vi:</span><span className="chip-value">{ownHousehold ? 'Hộ gia đình của bạn' : 'Toàn chung cư'}</span></div>
-          </div>
-        </div>
-        <div className="welcome-quick-actions">
-          <PermissionGate permission="user.read">
-            {onNavigateToUsers && <button type="button" className="btn btn-primary" onClick={onNavigateToUsers}><UsersIcon size={16} /><span>Quản lý tài khoản</span></button>}
-          </PermissionGate>
-          {onOpenChangePassword && <button type="button" className="btn btn-secondary" onClick={onOpenChangePassword}><KeyIcon size={16} /><span>Đổi mật khẩu</span></button>}
-        </div>
-      </section>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={`Xin chào, ${user?.displayName || user?.username || 'Bạn'}!`}
+        description={ownHousehold ? 'Theo dõi thông tin cư trú, khoản thu và yêu cầu của hộ gia đình bạn.' : 'Các phân hệ dưới đây hiển thị theo quyền truy cập của tài khoản.'}
+        actions={(
+          <>
+            <PermissionGate permission="user.read">
+              {onNavigateToUsers && <button type="button" className="btn btn-primary" onClick={onNavigateToUsers}><UsersIcon size={16} /><span>Quản lý tài khoản</span></button>}
+            </PermissionGate>
+            {onOpenChangePassword && <button type="button" className="btn btn-secondary" onClick={onOpenChangePassword}><KeyIcon size={16} /><span>Đổi mật khẩu</span></button>}
+          </>
+        )}
+      />
 
-      {ownHousehold && householdIds.length > 0 && (
-        <div className="household-selection">
-          <label htmlFor="dashboard-household">Hộ gia đình đang xem</label>
-          <select id="dashboard-household" className="form-control" value={householdId} onChange={(event) => setSelectedHousehold(event.target.value)}>
-            {householdIds.map((id) => <option key={id} value={id}>Hộ {id}</option>)}
-          </select>
-        </div>
-      )}
       {ownHousehold && householdIds.length === 0 && <p className="alert alert-info" role="status">Tài khoản chưa được liên kết với hộ gia đình. Liên hệ Ban quản trị để cập nhật thông tin.</p>}
 
       <RoleGuard roles={['ADMIN', 'MANAGER']} fallback={null}><SystemHealth /></RoleGuard>
 
-      <section className="dashboard-section" aria-labelledby="modules-title">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <section className="dashboard-section order-2 xl:order-1" aria-labelledby="modules-title">
         <div className="section-title-row"><div>
           <h2 id="modules-title" className="section-heading">Phạm vi nghiệp vụ của bạn</h2>
           <p className="section-subheading">Thông tin và thao tác được cấp cho tài khoản hiện tại</p>
@@ -89,6 +79,23 @@ export default function HomePage({ onNavigateToUsers, onOpenChangePassword }) {
           </PermissionGate>
         </div>
       </section>
+
+      <aside className="order-1 flex flex-col gap-4 rounded-2xl border border-solid border-slate-200 bg-white p-5 shadow-xs xl:order-2" aria-labelledby="account-scope-title">
+        <h2 id="account-scope-title" className="text-base font-bold text-slate-900">Tài khoản của bạn</h2>
+        <dl className="m-0 flex flex-col gap-3 text-sm">
+          <div className="flex flex-col gap-0.5"><dt className="text-slate-500">Vai trò</dt><dd className="m-0 font-semibold text-slate-900">{roleName}</dd></div>
+          <div className="flex flex-col gap-0.5"><dt className="text-slate-500">Phạm vi</dt><dd className="m-0 font-semibold text-slate-900">{ownHousehold ? 'Hộ gia đình của bạn' : 'Toàn chung cư'}</dd></div>
+        </dl>
+        {ownHousehold && householdIds.length > 0 && (
+          <div>
+            <label htmlFor="dashboard-household" className="mb-1.5 block text-sm font-semibold">Hộ gia đình đang xem</label>
+            <select id="dashboard-household" className="form-control block min-h-11 w-full" value={householdId} onChange={(event) => setSelectedHousehold(event.target.value)}>
+              {householdIds.map((id) => <option key={id} value={id}>Hộ {id}</option>)}
+            </select>
+          </div>
+        )}
+      </aside>
+      </div>
     </div>
   )
 }
