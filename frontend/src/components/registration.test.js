@@ -14,7 +14,7 @@ const server = await createServer({
 after(() => server.close())
 const { AuthContext } = await server.ssrLoadModule('/src/context/AuthContext.js')
 const { default: RegisterForm } = await server.ssrLoadModule('/src/components/RegisterForm.jsx')
-const { activeMembers, registrationError } = await server.ssrLoadModule('/src/components/personOptions.js')
+const { activeMembers, familyMemberError, registrationError } = await server.ssrLoadModule('/src/components/personOptions.js')
 const { default: Navbar } = await server.ssrLoadModule('/src/components/Navbar.jsx')
 const { default: UserManagement } = await server.ssrLoadModule('/src/components/UserManagement.jsx')
 const { default: FamilyPage } = await server.ssrLoadModule('/src/pages/FamilyPage.jsx')
@@ -30,7 +30,8 @@ function auth(role, permissions, overrides = {}) {
 }
 const render = (value, component, props) => renderToStaticMarkup(h(AuthContext.Provider, { value }, h(component, props)))
 
-const valid = { username: 'chu.ho-01', password: 'long-enough-password', confirmPassword: 'long-enough-password' }
+const person = { fullName: 'Nguyễn Văn A', identityNo: '012345678901', birthDate: '1985-05-05', gender: 'MALE', phone: '0900000000' }
+const valid = { ...person, username: 'chu.ho-01', password: 'long-enough-password', confirmPassword: 'long-enough-password' }
 
 test('registration validates account fields before calling the server', () => {
   assert.equal(registrationError(valid), '')
@@ -38,6 +39,17 @@ test('registration validates account fields before calling the server', () => {
   assert.match(registrationError({ ...valid, username: 'ab' }), /Tên đăng nhập/)
   assert.match(registrationError({ ...valid, password: 'short', confirmPassword: 'short' }), /12 ký tự/)
   assert.match(registrationError({ ...valid, confirmPassword: 'different-password' }), /không khớp/)
+  assert.match(registrationError({ ...valid, identityNo: '12345' }), /12 chữ số/)
+  assert.match(registrationError({ ...valid, phone: '' }), /Chủ hộ bắt buộc/)
+  assert.match(registrationError({ ...valid, phone: '123' }), /10 chữ số/)
+})
+
+test('family members need a valid CCCD only when one is entered', () => {
+  const member = { ...person, relationship: 'CON', identityNo: '', phone: '' }
+  assert.equal(familyMemberError(member), '')
+  assert.match(familyMemberError({ ...member, identityNo: '12345' }), /12 chữ số/)
+  assert.match(familyMemberError({ ...member, phone: '123' }), /10 chữ số/)
+  assert.match(familyMemberError({ ...member, relationship: 'CHILD' }), /danh mục/)
 })
 
 test('registration page states who it is for and needs no session', () => {

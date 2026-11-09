@@ -4,9 +4,10 @@ import { apiErrorMessage } from '../api/errors'
 import { useAuth } from '../hooks/useAuth'
 import PermissionGate from '../components/PermissionGate'
 import ForbiddenView from '../components/ForbiddenView'
-import { activeMembers, GENDERS, RELATIONSHIPS, RELATIONSHIP_LABELS, todayInVietnam } from '../components/personOptions'
+import { activeMembers, FAMILY_RELATIONSHIPS, familyMemberError, GENDERS } from '../components/personOptions'
+import { todayInVietnam } from '../residents/validation'
 
-const EMPTY = { fullName: '', birthDate: '', gender: 'UNSPECIFIED', relationship: 'CHILD', identityNo: '', phone: '' }
+const EMPTY = { fullName: '', birthDate: '', gender: 'UNSPECIFIED', relationship: 'CON', identityNo: '', phone: '' }
 
 export default function FamilyPage({ onBack }) {
   const { householdIds } = useAuth()
@@ -59,7 +60,7 @@ function FamilyContent({ householdId }) {
             {members.map((member) => (
               <li key={member.id}>
                 <span>{member.fullName}</span>
-                <span className="text-muted">{RELATIONSHIP_LABELS[member.relationship] || member.relationship}</span>
+                <span className="text-muted">{member.relationship}</span>
               </li>
             ))}
           </ul>
@@ -79,12 +80,14 @@ function AddMemberForm({ householdId, onAdded }) {
 
   const submit = async (event) => {
     event.preventDefault()
+    const problem = familyMemberError(form)
+    setError(problem)
+    if (problem) return
     setSaving(true)
-    setError('')
     try {
       await addFamilyMemberApi(householdId, {
         fullName: form.fullName.trim(), birthDate: form.birthDate, gender: form.gender,
-        relationship: form.relationship, identityNo: form.identityNo.trim() || null, phone: form.phone.trim() || null,
+        relationship: form.relationship, identityNo: form.identityNo || null, phone: form.phone || null,
       })
       onAdded(form.fullName.trim())
       setForm(EMPTY)
@@ -108,7 +111,7 @@ function AddMemberForm({ householdId, onAdded }) {
           <div className="form-group">
             <label htmlFor="family-relationship">Quan hệ với chủ hộ</label>
             <select id="family-relationship" name="relationship" className="form-control" value={form.relationship} onChange={update} disabled={saving}>
-              {RELATIONSHIPS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              {FAMILY_RELATIONSHIPS.map((value) => <option key={value}>{value}</option>)}
             </select>
           </div>
           <div className="form-group">
@@ -123,11 +126,11 @@ function AddMemberForm({ householdId, onAdded }) {
           </div>
           <div className="form-group">
             <label htmlFor="family-identity">Số CCCD (nếu có)</label>
-            <input id="family-identity" name="identityNo" className="form-control" maxLength={30} value={form.identityNo} onChange={update} disabled={saving} />
+            <input id="family-identity" name="identityNo" className="form-control" inputMode="numeric" maxLength={12} value={form.identityNo} onChange={update} disabled={saving} />
           </div>
           <div className="form-group">
             <label htmlFor="family-phone">Số điện thoại (nếu có)</label>
-            <input id="family-phone" name="phone" type="tel" className="form-control" maxLength={20} value={form.phone} onChange={update} disabled={saving} />
+            <input id="family-phone" name="phone" type="tel" className="form-control" inputMode="numeric" maxLength={10} value={form.phone} onChange={update} disabled={saving} />
           </div>
         </div>
         <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Đang lưu…' : 'Thêm nhân khẩu'}</button>

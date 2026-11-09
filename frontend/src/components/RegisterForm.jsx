@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { registerApi } from '../api/auth'
 import { apiErrorMessage } from '../api/errors'
 import { MoonLogoIcon } from './Icons'
-import { GENDERS, registrationError, todayInVietnam } from './personOptions'
+import { GENDERS, registrationError } from './personOptions'
+import { todayInVietnam } from '../residents/validation'
 
 const EMPTY = {
   fullName: '', birthDate: '', gender: 'UNSPECIFIED', identityNo: '', phone: '',
@@ -70,7 +71,7 @@ export default function RegisterForm({ onBackToLogin }) {
               <form onSubmit={submit} className="modern-form" aria-busy={saving}>
                 <div className="form-grid-2">
                   {field('fullName', 'Họ và tên', { maxLength: 120, autoComplete: 'name' })}
-                  {field('identityNo', 'Số CCCD', { maxLength: 30, inputMode: 'numeric' })}
+                  {field('identityNo', 'Số CCCD', { maxLength: 12, inputMode: 'numeric', placeholder: '12 chữ số' })}
                   {field('birthDate', 'Ngày sinh', { type: 'date', max: todayInVietnam() })}
                   <div className="form-group">
                     <label htmlFor="register-gender">Giới tính</label>
@@ -78,9 +79,9 @@ export default function RegisterForm({ onBackToLogin }) {
                       {GENDERS.map((gender) => <option key={gender.value} value={gender.value}>{gender.label}</option>)}
                     </select>
                   </div>
-                  {field('phone', 'Số điện thoại', { type: 'tel', maxLength: 20, autoComplete: 'tel', required: false })}
+                  {field('phone', 'Số điện thoại', { type: 'tel', maxLength: 10, inputMode: 'numeric', autoComplete: 'tel', placeholder: '10 chữ số' })}
                   {field('apartmentCode', 'Mã căn hộ', { maxLength: 30, placeholder: 'Ví dụ: A-101' })}
-                  {field('username', 'Tên đăng nhập', { maxLength: 60, autoComplete: 'username', spellCheck: 'false', autoCapitalize: 'none' })}
+                  {field('username', 'Tên đăng nhập', { maxLength: 60, autoComplete: 'username', spellCheck: 'false', autoCapitalize: 'none', placeholder: 'Không dấu, ví dụ: nguyenvana' })}
                   <div aria-hidden="true" />
                   {field('password', 'Mật khẩu', { type: 'password', minLength: 12, maxLength: 128, autoComplete: 'new-password' })}
                   {field('confirmPassword', 'Nhập lại mật khẩu', { type: 'password', autoComplete: 'new-password' })}
