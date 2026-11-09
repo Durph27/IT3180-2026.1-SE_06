@@ -30,7 +30,7 @@ const management = [
 
 // Four business groups; ADMIN and MANAGER share the management UI policy.
 export const ROLE_PERMISSIONS = Object.freeze({
-  ADMIN: Object.freeze([...new Set(management)]),
+  ADMIN: Object.freeze([...new Set(management), 'role.read', 'rbac.manage']),
   MANAGER: Object.freeze([...new Set(management)]),
   ACCOUNTANT: Object.freeze([...residenceRead, ...finance]),
   AUTHORITY: Object.freeze([...residenceRead]),

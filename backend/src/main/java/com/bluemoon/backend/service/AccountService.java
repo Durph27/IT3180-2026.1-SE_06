@@ -103,6 +103,12 @@ public class AccountService {
     private Object roles(String method, String id, Map<String, Object> b) {
         db.get("AppUser", id);
         if (method.equals("PUT")) {
+            var roleIds = (List<?>) b.get("roleIds");
+            long staffRoles = roleIds.stream()
+                    .map(roleId -> text(db.get("Role", roleId), "code"))
+                    .filter(code -> !"RESIDENT".equals(code)).count();
+            if (staffRoles > 1)
+                throw ApiException.bad("Chỉ được chọn tối đa một vai trò trong nhóm ADMIN, MANAGER, ACCOUNTANT, AUTHORITY; RESIDENT là tùy chọn.");
             replace("user_role", "user_id", "role_id", id, (List<?>) b.get("roleIds"), "Role");
             ensureAdmin();
         }

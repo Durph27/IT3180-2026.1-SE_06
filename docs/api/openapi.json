@@ -15189,7 +15189,8 @@
             "type": "string",
             "maxLength": 60,
             "description": "ERD: username : varchar(60) UQ",
-            "minLength": 1
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._-]+$"
           },
           "displayName": {
             "type": "string",

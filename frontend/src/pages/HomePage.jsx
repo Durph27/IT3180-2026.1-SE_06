@@ -84,6 +84,7 @@ export default function HomePage({ onNavigateToUsers, onOpenChangePassword }) {
             <article className="feature-card"><h3>Quản lý tài khoản</h3><p>Xem danh sách tài khoản hệ thống.</p>
               <PermissionGate permission="user.write"><p className="access-note">Được tạo tài khoản.</p></PermissionGate>
               <PermissionGate permission="user.manage"><p className="access-note">Được khóa và mở khóa tài khoản.</p></PermissionGate>
+              <PermissionGate permission="rbac.manage"><p className="access-note">Được gán và đổi vai trò tài khoản.</p></PermissionGate>
             </article>
           </PermissionGate>
         </div>
