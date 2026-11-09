@@ -100,10 +100,10 @@ Nguồn HTTP: `docs/api/openapi.json`. Database Sprint 1 đối chiếu `docs/Bl
 | username | username | varchar(60) | Không | Không trùng AppUser hoặc yêu cầu PENDING |
 | password_hash | — | varchar(255) | Có | Không trả qua API; xóa sau khi xử lý yêu cầu |
 | full_name | fullName | varchar(120) | Không |  |
-| identity_no | identityNo | varchar(30) | Không | Khớp Resident có sẵn khi duyệt |
+| identity_no | identityNo | varchar(30) | Không | Đúng 12 chữ số; khớp Resident có sẵn khi duyệt |
 | birth_date | birthDate | date | Không |  |
 | gender | gender | varchar(20) | Không | MALE, FEMALE, OTHER, UNSPECIFIED |
-| phone | phone | varchar(20) | Có |  |
+| phone | phone | varchar(20) | Có | Đăng ký mới bắt buộc, đúng 10 chữ số |
 | apartment_code | apartmentCode | varchar(30) | Không | Cư dân tự khai, để BQT đối chiếu khi chọn hộ |
 | status | status | varchar(20) | Không | PENDING, APPROVED, REJECTED |
 | reject_reason | rejectReason | varchar(1000) | Có |  |

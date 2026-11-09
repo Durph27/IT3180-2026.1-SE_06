@@ -18447,7 +18447,8 @@
             "type": "string",
             "maxLength": 30,
             "description": "ERD: identity_no : varchar(30) UQ ?",
-            "minLength": 1
+            "minLength": 1,
+            "pattern": "^[0-9]{12}$"
           },
           "birthDate": {
             "type": "string",
@@ -18469,8 +18470,8 @@
           "phone": {
             "type": "string",
             "maxLength": 20,
-            "nullable": true,
-            "description": "ERD: phone : varchar(20) ?"
+            "description": "ERD: phone : varchar(20) ?",
+            "pattern": "^[0-9]{10}$"
           },
           "apartmentCode": {
             "type": "string",
@@ -18485,7 +18486,8 @@
           "identityNo",
           "birthDate",
           "gender",
-          "apartmentCode"
+          "apartmentCode",
+          "phone"
         ]
       },
       "RegistrationReceipt": {
@@ -18676,7 +18678,8 @@
             "type": "string",
             "maxLength": 30,
             "nullable": true,
-            "description": "ERD: identity_no : varchar(30) UQ ?"
+            "description": "ERD: identity_no : varchar(30) UQ ?",
+            "pattern": "^[0-9]{12}$"
           },
           "birthDate": {
             "type": "string",
@@ -18699,18 +18702,17 @@
             "type": "string",
             "maxLength": 20,
             "nullable": true,
-            "description": "ERD: phone : varchar(20) ?"
+            "description": "ERD: phone : varchar(20) ?",
+            "pattern": "^[0-9]{10}$"
           },
           "relationship": {
             "type": "string",
             "enum": [
-              "SPOUSE",
-              "CHILD",
-              "PARENT",
-              "SIBLING",
-              "GRANDPARENT",
-              "GRANDCHILD",
-              "OTHER"
+              "VỢ/CHỒNG",
+              "CON",
+              "BỐ/MẸ",
+              "ANH/CHỊ/EM",
+              "KHÁC"
             ]
           }
         },

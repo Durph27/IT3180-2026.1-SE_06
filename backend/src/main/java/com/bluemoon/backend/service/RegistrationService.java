@@ -92,7 +92,7 @@ public class RegistrationService {
         boolean alreadyHead = db.where("HouseholdMember", "residentId", residentId).stream()
                 .anyMatch(m -> household.equals(m.get("householdId")) && active(m, today()) && Boolean.TRUE.equals(m.get("isHead")));
         if (!alreadyHead) residence.member(household, map(
-                "residentId", residentId, "relationship", "HEAD", "isHead", true, "validFrom", today().toString()));
+                "residentId", residentId, "relationship", "CHỦ HỘ", "isHead", true, "validFrom", today().toString()));
         return residentId;
     }
 

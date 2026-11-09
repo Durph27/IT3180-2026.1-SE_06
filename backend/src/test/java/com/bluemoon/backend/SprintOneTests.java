@@ -165,6 +165,7 @@ class SprintOneTests {
         var body=map("username",name,"displayName","Test","password","User-test-password!");
         assertThat(call("POST","/users",body,admin,null).status()).isEqualTo(400);
         assertThat(db.where("AppUser","username",name)).isEmpty();
+        assertThat(register(registration(name)).status()).isEqualTo(400);
         assertThat(call("POST","/auth/login",map("username",name,"password","wrong"),null,null).status()).isEqualTo(401);
         body.put("username","nguyen.van-a_"+unique());
         assertThat(call("POST","/users",body,admin,null).status()).isEqualTo(201);
@@ -368,8 +369,9 @@ class SprintOneTests {
         assertThat(call("GET","/maintenance-rounds?fundId="+id(fund),null,admin,null).body().get("totalElements")).isEqualTo(1);
         String residentToken=token(user("RESIDENT",null));assertThat(call("GET","/maintenance-funds",null,residentToken,null).status()).isEqualTo(403);
     }
+    String cccd(){return String.format("%012d",Math.abs(UUID.randomUUID().getLeastSignificantBits()%1_000_000_000_000L));}
     static final String REGISTER_PASSWORD="Register-test-password!";
-    Map<String,Object> registration(String username){return map("username",username,"password",REGISTER_PASSWORD,"fullName","Cư Dân "+unique(),"identityNo",unique(),"birthDate","1985-05-05","gender","FEMALE","phone","0900000000","apartmentCode","A-101");}
+    Map<String,Object> registration(String username){return map("username",username,"password",REGISTER_PASSWORD,"fullName","Cư Dân "+unique(),"identityNo",cccd(),"birthDate","1985-05-05","gender","FEMALE","phone","0900000000","apartmentCode","A-101");}
     Reply register(Map<String,Object> body)throws Exception {db.jdbc().update("DELETE FROM login_attempt");return call("POST","/auth/register",body,null,null);}
     String submit(Map<String,Object> body)throws Exception {var reply=register(body);assertThat(reply.status()).as(reply.body().toString()).isEqualTo(201);return id(reply.body());}
     @Test void registrationStaysInactiveUntilApprovedThenBecomesHeadWithResidentRole()throws Exception {
@@ -388,6 +390,7 @@ class SprintOneTests {
         assertThat(objects(profile.get("roles")).stream().map(r->text(r,"code")).toList()).containsExactly("RESIDENT");
         assertThat(profile.get("householdIds")).isEqualTo(List.of(home.household()));
         assertThat(db.where("AccountRegistration","id",request).getFirst().get("passwordHash")).isNull();
+        assertThat(db.where("HouseholdMember","householdId",home.household()).getFirst().get("relationship")).isEqualTo("CHỦ HỘ");
         assertThat(call("POST","/registrations/"+request+"/approve",map("householdId",home.household()),admin,null).status()).isEqualTo(409);
     }
     @Test void registrationRejectsDuplicatesSecondHeadAndUnauthorizedReviewers()throws Exception {
@@ -395,6 +398,8 @@ class SprintOneTests {
         assertThat(register(registration(name)).status()).isEqualTo(409);
         assertThat(register(registration("admin")).status()).isEqualTo(409);
         var unknownField=registration("r"+unique());unknownField.put("status","ACTIVE");assertThat(register(unknownField).status()).isEqualTo(400);
+        var badIdentity=registration("r"+unique());badIdentity.put("identityNo","12345");assertThat(register(badIdentity).status()).isEqualTo(400);
+        var noPhone=registration("r"+unique());noPhone.remove("phone");assertThat(register(noPhone).status()).isEqualTo(400);
         var home=home();member(home,resident(),true);
         var secondHead=call("POST","/registrations/"+request+"/approve",map("householdId",home.household()),admin,null);
         assertThat(secondHead.status()).as(secondHead.body().toString()).isEqualTo(422);
@@ -416,7 +421,7 @@ class SprintOneTests {
     @Test void onlyActiveHeadAddsFamilyMembersAndTheyGetNoAccount()throws Exception {
         var home=home();var headResident=resident();member(home,headResident,true);var memberResident=resident();member(home,memberResident,false);
         String head=token(user("RESIDENT",id(headResident))),nonHead=token(user("RESIDENT",id(memberResident)));
-        var person=map("fullName","Bé "+unique(),"birthDate","2015-02-02","gender","MALE","relationship","CHILD");
+        var person=map("fullName","Bé "+unique(),"birthDate","2015-02-02","gender","MALE","relationship","CON");
         int accounts=db.all("AppUser").size();
         var added=call("POST","/households/"+home.household()+"/family-members",person,head,null);
         assertThat(added.status()).as(added.body().toString()).isEqualTo(201);assertThat(added.body().get("isHead")).isEqualTo(false);
@@ -426,7 +431,9 @@ class SprintOneTests {
         assertThat(call("POST","/households/"+home.household()+"/family-members",person,nonHead,null).status()).isEqualTo(403);
         var other=home();assertThat(call("POST","/households/"+other.household()+"/family-members",person,head,null).status()).isEqualTo(403);
         assertThat(call("POST","/households/"+home.household()+"/family-members",person,admin,null).status()).isEqualTo(403);
-        var promoted=new LinkedHashMap<>(person);promoted.put("relationship","HEAD");assertThat(call("POST","/households/"+home.household()+"/family-members",promoted,head,null).status()).isEqualTo(400);
+        var promoted=new LinkedHashMap<>(person);promoted.put("relationship","CHỦ HỘ");assertThat(call("POST","/households/"+home.household()+"/family-members",promoted,head,null).status()).isEqualTo(400);
+        var badId=new LinkedHashMap<>(person);badId.put("identityNo","12345");assertThat(call("POST","/households/"+home.household()+"/family-members",badId,head,null).status()).isEqualTo(400);
+        var badPhone=new LinkedHashMap<>(person);badPhone.put("phone","123");assertThat(call("POST","/households/"+home.household()+"/family-members",badPhone,head,null).status()).isEqualTo(400);
         assertThat(call("POST","/residents",map("fullName","X","birthDate","2000-01-01","gender","MALE"),head,null).status()).isEqualTo(403);
     }
     @Test void loginThrottlePersistsFailedAttemptsAndCorsAllowsCommandHeaders()throws Exception {
