@@ -9,7 +9,7 @@ function periodLabel(period) {
 export default function BillingPeriodSelector({ periods, value, onChange, disabled = false }) {
   const selected = periods.find((period) => period.id === value)
   return (
-    <div className="mb-6 flex flex-wrap items-end gap-4">
+    <div className="flex min-w-0 flex-[1_1_280px] flex-wrap items-end gap-4">
       <div className="min-w-0 max-w-[480px] flex-[1_1_280px]">
         <label htmlFor="billing-period" className="mb-1.5 block font-semibold">Kỳ thu</label>
         <select id="billing-period" className="form-control block min-h-11 w-full" value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled}>

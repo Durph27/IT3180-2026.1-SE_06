@@ -5,6 +5,8 @@ import { apiErrorMessage } from '../api/errors'
 import ResidentTable from './ResidentTable'
 import ResidentFormModal from './ResidentFormModal'
 import ForbiddenView from './ForbiddenView'
+import PageHeader from './PageHeader'
+import FilterBar from './FilterBar'
 
 export default function ResidentManagement() {
   const auth = useAuth()
@@ -66,12 +68,12 @@ function Management({ buildingWide }) {
   const loading = householdId && !currentResult
   const error = currentResult ? result.error : ''
   const writable = householdId && !options.find((item) => item.id === householdId)?.closedAt && hasPermission('resident.write') && hasPermission('household.write')
-  return <section className="resident-management" aria-labelledby="residents-title">
-    <div className="section-title-row"><div><h1 id="residents-title">Quản lý nhân khẩu căn hộ</h1><p>Chọn hộ gia đình để xem và cập nhật thông tin thành viên.</p></div>
-      {writable && <button type="button" className="btn btn-primary" onClick={() => { setNotice(''); setModal({ resident: null }) }}>Thêm nhân khẩu</button>}</div>
-    <div className="household-selection">
+  return <section className="flex flex-col gap-6" aria-labelledby="residents-title">
+    <PageHeader titleId="residents-title" title="Quản lý nhân khẩu căn hộ" description="Chọn hộ gia đình để xem và cập nhật thông tin thành viên."
+      actions={writable && <button type="button" className="btn btn-primary" onClick={() => { setNotice(''); setModal({ resident: null }) }}>Thêm nhân khẩu</button>} />
+    <FilterBar>
       <div className="household-select-field"><label htmlFor="resident-household">Hộ gia đình</label>
-        <select id="resident-household" className="form-control" disabled={householdLoading} value={householdId} onChange={(event) => changeHousehold(event.target.value)}>
+        <select id="resident-household" className="form-control block min-h-11 w-full" disabled={householdLoading} value={householdId} onChange={(event) => changeHousehold(event.target.value)}>
           {!options.length && <option value="">{householdLoading ? 'Đang tải…' : 'Chưa có hộ gia đình'}</option>}
           {options.map((item) => <option key={item.id} value={item.id}>{item.code}{item.closedAt ? ' (Đã đóng)' : ''}</option>)}
         </select>
@@ -80,7 +82,7 @@ function Management({ buildingWide }) {
         <button type="button" className="btn btn-outline" disabled={householdLoading || householdPage === 0} onClick={() => { changeHousehold(''); setHouseholdPage(householdPage - 1) }}>Hộ trước</button>
         <span>Trang hộ {householdPage + 1}/{householdPages}</span><button type="button" className="btn btn-outline" disabled={householdLoading || householdPage + 1 >= householdPages} onClick={() => { changeHousehold(''); setHouseholdPage(householdPage + 1) }}>Hộ tiếp</button>
       </nav>}
-    </div>
+    </FilterBar>
     {householdError && <div role="alert"><p>{householdError}</p><button type="button" className="btn btn-outline" onClick={() => setHouseholdRetry(householdRetry + 1)}>Tải lại hộ gia đình</button></div>}
     {notice && <p className="alert alert-info" role="status">{notice}</p>}
     {loading && <p role="status">Đang tải nhân khẩu…</p>}

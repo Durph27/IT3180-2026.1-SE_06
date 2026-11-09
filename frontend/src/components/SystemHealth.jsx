@@ -16,7 +16,7 @@ export default function SystemHealth() {
         </div>
       </div>
 
-      <div className="status-grid">
+      <div className="grid gap-5 sm:grid-cols-2 min-[1280px]:grid-cols-4">
         <StatusCard
           label="Giao diện Frontend"
           value="Đang hoạt động"
