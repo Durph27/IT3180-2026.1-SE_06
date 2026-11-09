@@ -7,6 +7,7 @@ import { useModalDialog } from '../hooks/useModalDialog'
 import { useRoleOptions } from '../hooks/useRoleOptions'
 import RolePicker from './RolePicker'
 import { roleSelectionError } from '../auth/roleSelection'
+import { hasValidUsernameChars, USERNAME_HINT } from '../auth/username'
 
 export default function CreateUserDialog(props) {
   const { hasPermission } = useAuth()
@@ -37,6 +38,10 @@ function CreateUserDialogContent({ onClose, onCreated, onFailure }) {
     setError('')
     if (!createdRef.current && (!username.trim() || !displayName.trim() || password.length < 12)) {
       setError('Nhập tên đăng nhập, tên hiển thị và mật khẩu ít nhất 12 ký tự.')
+      return
+    }
+    if (!createdRef.current && !hasValidUsernameChars(username)) {
+      setError(`Tên đăng nhập không hợp lệ. ${USERNAME_HINT}`)
       return
     }
     const selectionError = roleSelectionError(catalog.roles, selected)
@@ -88,7 +93,8 @@ function CreateUserDialogContent({ onClose, onCreated, onFailure }) {
           {createdUser && <p className="alert alert-info" role="status">Tài khoản đã được lưu. Thử lại chỉ gán vai trò cho tài khoản này, không tạo thêm tài khoản.</p>}
           <div className="form-group">
             <label htmlFor="new-user-name">Tên đăng nhập</label>
-            <input id="new-user-name" name="username" className="form-control" value={username} onChange={(event) => setUsername(event.target.value)} disabled={saving || !!createdUser} autoComplete="off" autoCapitalize="none" spellCheck={false} required />
+            <input id="new-user-name" name="username" aria-describedby="new-user-name-hint" className="form-control" value={username} onChange={(event) => setUsername(event.target.value)} disabled={saving || !!createdUser} autoComplete="off" autoCapitalize="none" spellCheck={false} required />
+            <span id="new-user-name-hint" className="field-hint">{USERNAME_HINT}</span>
           </div>
           <div className="form-group">
             <label htmlFor="new-display-name">Tên hiển thị</label>
