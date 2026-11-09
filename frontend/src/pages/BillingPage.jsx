@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { getBillingPeriodsApi, getContributionCampaignsApi, getFeeTypesApi, getInvoicesApi, getOpenInvoicesApi } from '../api/billing'
 import { apiErrorMessage } from '../api/errors'
 import { useAuth } from '../hooks/useAuth'
@@ -37,7 +38,8 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
   const [catalog, setCatalog] = useState(null)
   const [loaded, setLoaded] = useState({ key: null, invoices: [] })
   const [openInvoices, setOpenInvoices] = useState(null)
-  const [selectedId, setSelectedId] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const selectedCode = searchParams.get('ky')
   const [error, setError] = useState('')
   const [version, setVersion] = useState(0)
 
@@ -56,7 +58,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
     return () => controller.abort()
   }, [canReadFeeTypes, canReadCampaigns, version])
 
-  const selectedPeriod = catalog ? catalog.periods.find((period) => period.id === selectedId) ?? defaultPeriod(catalog.periods) : null
+  const selectedPeriod = catalog ? catalog.periods.find((period) => period.code === selectedCode) ?? defaultPeriod(catalog.periods) : null
   // Households load their full history so an older unpaid bill still raises the banner.
   const periodFilter = householdId ? undefined : selectedPeriod?.id
   const invoiceKey = `${householdId ?? ''}|${periodFilter ?? ''}|${version}`
@@ -94,6 +96,10 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
   const voluntaryItems = items.filter((item) => item.category === FEE_CATEGORY.VOLUNTARY)
   const loading = !error && (catalog === null || (canLoadInvoices && loaded.key !== invoiceKey))
 
+  const selectPeriod = (periodId) => {
+    setSearchParams({ ky: catalog.periods.find((period) => period.id === periodId).code })
+  }
+
   const retry = () => {
     setError('')
     setVersion((value) => value + 1)
@@ -105,7 +111,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
       <PageHeader title="Khoản thu" description={householdId ? 'Các khoản thu của hộ gia đình theo từng kỳ.' : 'Các khoản thu toàn chung cư theo từng kỳ.'} />
 
       {error && <div className="alert alert-error" role="alert"><div>{error} <button type="button" className="btn btn-outline" onClick={retry}>Thử lại</button></div></div>}
-      {outstanding && <OutstandingPeriods summary={outstanding} selectedId={selectedPeriod?.id} onSelect={setSelectedId} showInvoiceCount={!householdId} />}
+      {outstanding && <OutstandingPeriods summary={outstanding} selectedId={selectedPeriod?.id} onSelect={selectPeriod} showInvoiceCount={!householdId} />}
       {(householdOptions.length > 1 || selectedPeriod) && (
         <FilterBar>
           {householdOptions.length > 1 && (
@@ -116,7 +122,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
               </select>
             </div>
           )}
-          {selectedPeriod && <BillingPeriodSelector periods={catalog.periods} value={selectedPeriod.id} onChange={setSelectedId} />}
+          {selectedPeriod && <BillingPeriodSelector periods={catalog.periods} value={selectedPeriod.id} onChange={selectPeriod} />}
         </FilterBar>
       )}
       {loading && <p role="status">Đang tải khoản thu…</p>}
