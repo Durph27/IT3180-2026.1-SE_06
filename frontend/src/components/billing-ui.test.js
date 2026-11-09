@@ -18,6 +18,7 @@ const { default: BillingPeriodSelector } = await server.ssrLoadModule('/src/comp
 const { default: DueDateAlertBanner } = await server.ssrLoadModule('/src/components/DueDateAlertBanner.jsx')
 const { default: FeeItemTable } = await server.ssrLoadModule('/src/components/FeeItemTable.jsx')
 const { default: Navbar } = await server.ssrLoadModule('/src/components/Navbar.jsx')
+const { default: OutstandingPeriods } = await server.ssrLoadModule('/src/components/OutstandingPeriods.jsx')
 
 function auth(role, overrides = {}) {
   const value = {
@@ -36,6 +37,21 @@ test('billing tab follows invoice access and household scope', () => {
   assert.match(render(auth('RESIDENT'), Navbar, navProps), /Khoản thu/)
   assert.doesNotMatch(render(auth('RESIDENT', { householdIds: [] }), Navbar, navProps), /Khoản thu/)
   assert.doesNotMatch(render(auth('AUTHORITY'), Navbar, navProps), /Khoản thu/)
+})
+
+test('outstanding periods show totals and mark the selected period', () => {
+  const period = (id, code, startDate) => ({ id, code, startDate })
+  const due = { status: 'OVERDUE', daysOverdue: 3, daysRemaining: 0 }
+  const summary = [{ period: period('p1', 'KY-07', '2026-07-01'), amount: 100000n, invoiceCount: 4, due }, { period: period('p2', 'KY-08', '2026-08-01'), amount: 50000n, invoiceCount: 1, due }]
+  const html = renderToStaticMarkup(h(OutstandingPeriods, { summary, selectedId: 'p2', onSelect() {}, showInvoiceCount: true }))
+  assert.match(html, /Kỳ còn nợ \(2\)/)
+  assert.match(html, /1\.500 ₫/)
+  assert.match(html, /Tháng 07\/2026/)
+  assert.match(html, /Quá hạn 3 ngày/)
+  assert.match(html, /4 bảng kê/)
+  assert.equal(html.match(/aria-pressed="true"/g).length, 1)
+  assert.doesNotMatch(renderToStaticMarkup(h(OutstandingPeriods, { summary, onSelect() {} })), /bảng kê/)
+  assert.match(renderToStaticMarkup(h(OutstandingPeriods, { summary: [], onSelect() {} })), /Không có kỳ nào còn nợ/)
 })
 
 test('billing page renders only with both invoice and period access', () => {

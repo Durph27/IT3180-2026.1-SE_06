@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyFeeItems, collectDueAlerts, daysUntil, defaultPeriod, DUE_STATUS, dueLabel, FEE_CATEGORY, formatMoney, getDueInfo, summarizeTotals, toCents } from '../utils/billingUtils.js'
+import { classifyFeeItems, collectDueAlerts, daysUntil, defaultPeriod, DUE_STATUS, dueLabel, FEE_CATEGORY, formatMoney, getDueInfo, hasUnpaidMandatoryInvoice, summarizeOutstandingPeriods, summarizeTotals, toCents } from '../utils/billingUtils.js'
 import { todayInVietnam } from '../residents/validation.js'
 
 const today = '2026-11-10'
@@ -109,6 +109,32 @@ test('mandatory and voluntary totals are kept apart', () => {
 
 const alertsFor = (invoices, periods = [period]) => collectDueAlerts({ invoices, feeTypes, periods, today })
 const mandatoryLines = [line('a', 'service', '100.00')]
+
+const owed = (periodId, status, outstandingAmount, lines = [{ id: 'l', feeTypeId: 'service', amount: '1.00' }]) => ({ periodId, status, outstandingAmount, lines })
+const debtTypes = [{ id: 'service', mandatory: true }, { id: 'optional', mandatory: false }]
+const debtPeriods = [{ id: 'late', code: 'K1', dueDate: '2026-10-01' }, { id: 'soon', code: 'K2', dueDate: '2026-11-12' }, { id: 'clear', code: 'K3', dueDate: '2026-09-01' }]
+const debtSummary = (invoices) => summarizeOutstandingPeriods({ invoices, feeTypes: debtTypes, periods: debtPeriods, today })
+
+test('outstanding periods total each period and list the earliest due date first', () => {
+  const summary = debtSummary([owed('soon', 'ISSUED', '10.50'), owed('late', 'PARTIALLY_PAID', '20.00'), owed('late', 'ISSUED', '5.25')])
+  assert.deepEqual(summary.map((entry) => [entry.period.id, entry.amount, entry.invoiceCount, entry.due.status]), [
+    ['late', 2525n, 2, DUE_STATUS.OVERDUE],
+    ['soon', 1050n, 1, DUE_STATUS.DUE_SOON],
+  ])
+})
+
+test('outstanding periods ignore settled, unknown-period and voluntary-only invoices', () => {
+  const voluntaryOnly = [{ id: 'v', feeTypeId: 'optional', amount: '1.00' }]
+  assert.deepEqual(debtSummary([owed('clear', 'PAID', '0.00'), owed('clear', 'ISSUED', '0.00'), owed('gone', 'ISSUED', '9.00'), owed('clear', 'ISSUED', '9.00', voluntaryOnly)]), [])
+})
+
+test('unpaid check follows the same rule as the outstanding summary', () => {
+  const unpaid = (invoices) => hasUnpaidMandatoryInvoice({ invoices, feeTypes: debtTypes })
+  assert.equal(unpaid([owed('soon', 'PARTIALLY_PAID', '1.00')]), true)
+  assert.equal(unpaid([owed('soon', 'PAID', '0.00')]), false)
+  assert.equal(unpaid([owed('soon', 'ISSUED', '1.00', [{ id: 'v', feeTypeId: 'optional', amount: '1.00' }])]), false)
+  assert.equal(unpaid([]), false)
+})
 
 test('alerts cover only open invoices with a mandatory line and money still owed', () => {
   assert.equal(alertsFor([invoice('i1', 'ISSUED', mandatoryLines)]).length, 1)

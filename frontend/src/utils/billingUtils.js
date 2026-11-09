@@ -1,6 +1,7 @@
 import { todayInVietnam } from '../residents/validation.js'
 
 export const DUE_SOON_DAYS = 5
+export const STAFF_ROLES = Object.freeze(['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUTHORITY'])
 
 export const DUE_STATUS = Object.freeze({
   UPCOMING: 'UPCOMING',
@@ -122,15 +123,45 @@ export function summarizeTotals(items) {
   return totals
 }
 
+function owesMandatoryFee(invoice, mandatoryById) {
+  return ['ISSUED', 'PARTIALLY_PAID'].includes(invoice.status)
+    && toCents(invoice.outstandingAmount) > 0n
+    && (invoice.lines ?? []).some((line) => categoryOf(line, mandatoryById) === FEE_CATEGORY.MANDATORY)
+}
+
+export function hasUnpaidMandatoryInvoice({ invoices, feeTypes }) {
+  const mandatoryById = mandatoryFeeIds(feeTypes)
+  return invoices.some((invoice) => owesMandatoryFee(invoice, mandatoryById))
+}
+
+export function periodMonthLabel(period) {
+  const [year, month] = period.startDate.split('-')
+  return `Tháng ${month}/${year}`
+}
+
+// One entry per period that still has money owed, the earliest due date first.
+export function summarizeOutstandingPeriods({ invoices, feeTypes, periods, today = todayInVietnam() }) {
+  const mandatoryById = mandatoryFeeIds(feeTypes)
+  const periodById = new Map(periods.map((period) => [period.id, period]))
+  const byPeriod = new Map()
+  for (const invoice of invoices) {
+    const period = periodById.get(invoice.periodId)
+    if (!period || !owesMandatoryFee(invoice, mandatoryById)) continue
+    const entry = byPeriod.get(period.id) ?? { period, amount: 0n, invoiceCount: 0, due: getDueInfo(period.dueDate, { today }) }
+    entry.amount += toCents(invoice.outstandingAmount)
+    entry.invoiceCount += 1
+    byPeriod.set(period.id, entry)
+  }
+  return [...byPeriod.values()].sort((a, b) => a.period.dueDate.localeCompare(b.period.dueDate))
+}
+
 export function collectDueAlerts({ invoices, feeTypes, periods, today = todayInVietnam() }) {
   const mandatoryById = mandatoryFeeIds(feeTypes)
   const periodById = new Map(periods.map((period) => [period.id, period]))
   const alerts = []
   for (const invoice of invoices) {
     const period = periodById.get(invoice.periodId)
-    const open = ['ISSUED', 'PARTIALLY_PAID'].includes(invoice.status) && toCents(invoice.outstandingAmount) > 0n
-    const hasMandatoryLine = (invoice.lines ?? []).some((line) => categoryOf(line, mandatoryById) === FEE_CATEGORY.MANDATORY)
-    if (!period || !open || !hasMandatoryLine) continue
+    if (!period || !owesMandatoryFee(invoice, mandatoryById)) continue
     const due = getDueInfo(period.dueDate, { today })
     if (ALERT_ORDER.includes(due.status)) alerts.push({ invoiceNo: invoice.invoiceNo, periodCode: period.code, dueDate: period.dueDate, due })
   }

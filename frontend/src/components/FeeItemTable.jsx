@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import FeeCategoryBadge from './FeeCategoryBadge'
-import { dueLabel, FEE_CATEGORY, formatMoney } from '../utils/billingUtils'
+import DueStatusText from './DueStatusText'
+import { FEE_CATEGORY, formatMoney } from '../utils/billingUtils'
 
 const PAGE_SIZE = 50
-const DUE_STYLES = { UPCOMING: 'text-slate-700', DUE_SOON: 'text-amber-800', DUE_TODAY: 'text-amber-800', OVERDUE: 'text-red-800', PAID: 'text-emerald-800' }
 const NOTE = 'm-0 px-6 pb-4 text-slate-700'
 // The important modifier is needed because the shared table styles are unlayered.
 const MONEY = 'text-right! whitespace-nowrap'
@@ -49,7 +49,7 @@ export default function FeeItemTable({ category, items, total }) {
                   <td data-label="Số tiền" className={MONEY}>{formatMoney(item.amount)}</td>
                   {mandatory && <td data-label="Hạn nộp">{formatDate(item.dueDate)}</td>}
                   <td data-label="Trạng thái">
-                    {item.due ? <span className={`whitespace-nowrap font-semibold ${DUE_STYLES[item.due.status] ?? ''}`}>{dueLabel(item.due)}</span> : <span className="text-muted">Không áp hạn</span>}
+                    {item.due ? <DueStatusText due={item.due} /> : <span className="text-muted">Không áp hạn</span>}
                   </td>
                 </tr>
               ))}

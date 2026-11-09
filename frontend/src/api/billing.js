@@ -17,6 +17,12 @@ export function getBillingPeriodsApi(signal) {
   return fetchAll('/billing-periods', {}, signal)
 }
 
+// Only unpaid statuses, so finding debts across periods does not load the whole invoice history.
+export async function getOpenInvoicesApi(filters, signal) {
+  const results = await Promise.all(['ISSUED', 'PARTIALLY_PAID'].map((status) => fetchAll('/invoices', { ...filters, status }, signal)))
+  return results.flat()
+}
+
 export function getInvoicesApi(filters, signal) {
   return fetchAll('/invoices', filters, signal)
 }

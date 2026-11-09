@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getBillingPeriodsApi, getContributionCampaignsApi, getFeeTypesApi, getInvoicesApi } from '../api/billing'
+import { getBillingPeriodsApi, getContributionCampaignsApi, getFeeTypesApi, getInvoicesApi, getOpenInvoicesApi } from '../api/billing'
 import { apiErrorMessage } from '../api/errors'
 import { useAuth } from '../hooks/useAuth'
 import BillingPeriodSelector from '../components/BillingPeriodSelector'
@@ -11,9 +11,8 @@ import PageHeader from '../components/PageHeader'
 import FilterBar from '../components/FilterBar'
 import StatCard from '../components/StatCard'
 import { BuildingIcon, CheckCircleIcon, ReceiptIcon } from '../components/Icons'
-import { classifyFeeItems, collectDueAlerts, defaultPeriod, FEE_CATEGORY, formatMoney, summarizeTotals } from '../utils/billingUtils'
-
-const STAFF_ROLES = ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUTHORITY']
+import OutstandingPeriods from '../components/OutstandingPeriods'
+import { classifyFeeItems, collectDueAlerts, defaultPeriod, FEE_CATEGORY, formatMoney, STAFF_ROLES, summarizeOutstandingPeriods, summarizeTotals } from '../utils/billingUtils'
 
 export default function BillingPage({ onBack }) {
   const { householdIds, hasRole } = useAuth()
@@ -37,6 +36,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
   const canReadCampaigns = hasPermission('campaign.read', scope)
   const [catalog, setCatalog] = useState(null)
   const [loaded, setLoaded] = useState({ key: null, invoices: [] })
+  const [openInvoices, setOpenInvoices] = useState(null)
   const [selectedId, setSelectedId] = useState('')
   const [error, setError] = useState('')
   const [version, setVersion] = useState(0)
@@ -74,6 +74,18 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
     return () => controller.abort()
   }, [canLoadInvoices, householdId, periodFilter, invoiceKey])
 
+  useEffect(() => {
+    const controller = new AbortController()
+    const { signal } = controller
+    getOpenInvoicesApi(householdId ? { householdId } : {}, signal).then((rows) => {
+      if (!signal.aborted) setOpenInvoices(rows)
+    }).catch((err) => {
+      if (!signal.aborted) setError(apiErrorMessage(err, 'Không thể tải danh sách kỳ còn nợ.'))
+    })
+    return () => controller.abort()
+  }, [householdId, version])
+
+  const outstanding = useMemo(() => (catalog && openInvoices ? summarizeOutstandingPeriods({ invoices: openInvoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : null), [catalog, openInvoices])
   const invoices = useMemo(() => (loaded.key === invoiceKey ? loaded.invoices : []), [loaded, invoiceKey])
   const items = useMemo(() => (catalog && selectedPeriod ? classifyFeeItems({ invoices, feeTypes: catalog.feeTypes, campaigns: catalog.campaigns, period: selectedPeriod }) : []), [catalog, invoices, selectedPeriod])
   const alerts = useMemo(() => (catalog ? collectDueAlerts({ invoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : []), [catalog, invoices])
@@ -93,6 +105,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
       <PageHeader title="Khoản thu" description={householdId ? 'Các khoản thu của hộ gia đình theo từng kỳ.' : 'Các khoản thu toàn chung cư theo từng kỳ.'} />
 
       {error && <div className="alert alert-error" role="alert"><div>{error} <button type="button" className="btn btn-outline" onClick={retry}>Thử lại</button></div></div>}
+      {outstanding && <OutstandingPeriods summary={outstanding} selectedId={selectedPeriod?.id} onSelect={setSelectedId} showInvoiceCount={!householdId} />}
       {(householdOptions.length > 1 || selectedPeriod) && (
         <FilterBar>
           {householdOptions.length > 1 && (
