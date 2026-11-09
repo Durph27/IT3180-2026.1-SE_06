@@ -234,6 +234,12 @@ test('StrictMode restore remains valid and unmounted providers remove API callba
   assert.equal(current.isAuthenticated, true)
 })
 
+const buttonWithText = (text) => [...document.querySelectorAll('button')].find((b) => b.textContent.includes(text))
+const accountAction = async (text) => {
+  await act(async () => document.querySelector('button[aria-label^="Menu tài khoản"]').click())
+  await act(async () => buttonWithText(text).click())
+}
+
 test('workspace tab and password dialog reset after logout and a new resident login', async () => {
   setStoredToken('restore-token')
   const container = document.createElement('div')
@@ -243,13 +249,11 @@ test('workspace tab and password dialog reset after logout and a new resident lo
   const users = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Quản lý tài khoản'))
   await act(async () => users.click())
   assert.match(document.body.textContent, /Quản lý Tài khoản Hệ thống/)
-  const changePassword = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Đổi mật khẩu'))
-  await act(async () => changePassword.click())
+  await accountAction('Đổi mật khẩu')
   assert.ok(document.querySelector('dialog[open]'))
   // Close the native modal before logging out, as a user would.
   await act(async () => document.querySelector('dialog[open]').dispatchEvent(new Event('cancel', { cancelable: true })))
-  const logout = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Đăng xuất'))
-  await act(async () => logout.click())
+  await accountAction('Đăng xuất')
   assert.match(document.body.textContent, /Đăng nhập tài khoản/)
   assert.equal(getStoredToken(), null)
   assert.equal(document.querySelector('table'), null)
@@ -336,8 +340,7 @@ test('session expiry unmounts an open password dialog and the protected workspac
   document.body.append(container)
   root = createRoot(container)
   await act(async () => root.render(h(App)))
-  const button = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Đổi mật khẩu'))
-  await act(async () => button.click())
+  await accountAction('Đổi mật khẩu')
   assert.ok(document.querySelector('dialog[open]'))
   adapter((config) => config.url === '/expired'
     ? response(config, { code: 'TOKEN_EXPIRED' }, 401)

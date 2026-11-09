@@ -93,10 +93,7 @@ function Workspace() {
         <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-6 pb-16 sm:px-6 lg:px-8">
           <RoleGuard roles={Object.keys(ROLE_PERMISSIONS)} fallback={<ForbiddenView />}>
             {currentTab === 'overview' && (
-              <HomePage
-                onNavigateToUsers={() => setCurrentTab('users')}
-                onOpenChangePassword={() => setIsChangePasswordOpen(true)}
-              />
+              <HomePage onNavigateToUsers={() => setCurrentTab('users')} />
             )}
             {currentTab === 'users' && <UserManagement onBack={goToOverview} />}
             {currentTab === 'residents' && <ResidentManagement />}

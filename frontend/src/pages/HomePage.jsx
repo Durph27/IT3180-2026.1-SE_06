@@ -4,9 +4,9 @@ import PermissionGate from '../components/PermissionGate'
 import RoleGuard from '../components/RoleGuard'
 import PageHeader from '../components/PageHeader'
 import SystemHealth from '../components/SystemHealth'
-import { UsersIcon, KeyIcon } from '../components/Icons'
+import { UsersIcon } from '../components/Icons'
 
-export default function HomePage({ onNavigateToUsers, onOpenChangePassword }) {
+export default function HomePage({ onNavigateToUsers }) {
   const { user, roles, householdIds, hasPermission, hasRole } = useAuth()
   const [selectedHousehold, setSelectedHousehold] = useState('')
   const householdId = householdIds.includes(selectedHousehold) ? selectedHousehold : householdIds[0]
@@ -23,12 +23,9 @@ export default function HomePage({ onNavigateToUsers, onOpenChangePassword }) {
         title={`Xin chào, ${user?.displayName || user?.username || 'Bạn'}!`}
         description={ownHousehold ? 'Theo dõi thông tin cư trú, khoản thu và yêu cầu của hộ gia đình bạn.' : 'Các phân hệ dưới đây hiển thị theo quyền truy cập của tài khoản.'}
         actions={(
-          <>
-            <PermissionGate permission="user.read">
-              {onNavigateToUsers && <button type="button" className="btn btn-primary" onClick={onNavigateToUsers}><UsersIcon size={16} /><span>Quản lý tài khoản</span></button>}
-            </PermissionGate>
-            {onOpenChangePassword && <button type="button" className="btn btn-secondary" onClick={onOpenChangePassword}><KeyIcon size={16} /><span>Đổi mật khẩu</span></button>}
-          </>
+          <PermissionGate permission="user.read">
+            {onNavigateToUsers && <button type="button" className="btn btn-primary" onClick={onNavigateToUsers}><UsersIcon size={16} /><span>Quản lý tài khoản</span></button>}
+          </PermissionGate>
         )}
       />
 
