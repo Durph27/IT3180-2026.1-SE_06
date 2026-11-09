@@ -8,6 +8,7 @@ import ChangePasswordModal from './components/ChangePasswordModal'
 import UserManagement from './components/UserManagement'
 import ResidentManagement from './components/ResidentManagement'
 import HomePage from './pages/HomePage'
+import FamilyPage from './pages/FamilyPage'
 import RoleGuard from './components/RoleGuard'
 import ForbiddenView from './components/ForbiddenView'
 import { ROLE_PERMISSIONS } from './auth/rbac'
@@ -63,6 +64,7 @@ function Workspace() {
           )}
           {currentTab === 'users' && <UserManagement onBack={goToOverview} />}
           {currentTab === 'residents' && <ResidentManagement />}
+          {currentTab === 'family' && <FamilyPage onBack={goToOverview} />}
         </RoleGuard>
       </main>
 

@@ -15,7 +15,9 @@ after(() => server.close())
 const { AuthContext } = await server.ssrLoadModule('/src/context/AuthContext.js')
 const { default: RegisterForm } = await server.ssrLoadModule('/src/components/RegisterForm.jsx')
 const { activeMembers, registrationError } = await server.ssrLoadModule('/src/components/personOptions.js')
+const { default: Navbar } = await server.ssrLoadModule('/src/components/Navbar.jsx')
 const { default: UserManagement } = await server.ssrLoadModule('/src/components/UserManagement.jsx')
+const { default: FamilyPage } = await server.ssrLoadModule('/src/pages/FamilyPage.jsx')
 
 function auth(role, permissions, overrides = {}) {
   const value = {
@@ -43,6 +45,24 @@ test('registration page states who it is for and needs no session', () => {
   assert.match(html, /Đăng ký tài khoản cư dân/)
   assert.match(html, /Dành cho chủ hộ/)
   assert.match(html, /name="apartmentCode"/)
+})
+
+test('family tab shows only for residents linked to a household', () => {
+  const props = { currentTab: 'overview', onSelectTab() {}, onOpenChangePassword() {} }
+  const resident = ROLE_PERMISSIONS.RESIDENT
+  assert.match(render(auth('RESIDENT', resident), Navbar, props), /Hộ gia đình/)
+  assert.doesNotMatch(render(auth('RESIDENT', resident, { householdIds: [] }), Navbar, props), /Hộ gia đình/)
+  assert.doesNotMatch(render(auth('MANAGER', ROLE_PERMISSIONS.MANAGER), Navbar, props), /Hộ gia đình của tôi/)
+})
+
+test('household scope gates the family page and the add-member grant', () => {
+  const resident = ROLE_PERMISSIONS.RESIDENT
+  assert.ok(resident.includes('household.family.write'))
+  const value = auth('RESIDENT', resident)
+  assert.equal(canAccess(value, 'household.family.write', { householdId: 'household-1' }), true)
+  assert.equal(canAccess(value, 'household.family.write', { householdId: 'household-2' }), false)
+  assert.match(render(value, FamilyPage, { onBack() {} }), /Hộ gia đình của tôi/)
+  assert.doesNotMatch(render(auth('RESIDENT', []), FamilyPage, { onBack() {} }), /Hộ gia đình của tôi/)
 })
 
 test('only current memberships are listed', () => {

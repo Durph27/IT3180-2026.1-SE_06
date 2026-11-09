@@ -3,8 +3,9 @@ import PermissionGate from './PermissionGate'
 import { MoonLogoIcon, BuildingIcon, UsersIcon, KeyIcon, LogoutIcon } from './Icons'
 
 export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }) {
-  const { user, roles, logout, householdIds, hasPermission } = useAuth()
+  const { user, roles, logout, householdIds, hasRole, hasPermission } = useAuth()
   const canReadResidents = [undefined, ...householdIds].some((householdId) => hasPermission('resident.read', { householdId }) && hasPermission('household.read', { householdId }))
+  const showFamily = hasRole('RESIDENT') && hasPermission('household.read', { householdId: householdIds[0] })
   const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
   const roleCode = (typeof roles[0] === 'string' ? roles[0] : roles[0]?.code) || 'USER'
   const roleName = roles.map((role) => typeof role === 'string' ? role : role?.name || role?.code).filter(Boolean).join(', ') || 'Chưa có vai trò'
@@ -46,6 +47,17 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
               <span>Quản lý tài khoản</span>
             </button>
           </PermissionGate>
+          {showFamily && (
+            <button
+              type="button"
+              className={`nav-link ${currentTab === 'family' ? 'active' : ''}`}
+              aria-current={currentTab === 'family' ? 'page' : undefined}
+              onClick={() => onSelectTab('family')}
+            >
+              <UsersIcon size={16} />
+              <span>Hộ gia đình</span>
+            </button>
+          )}
         </nav>
 
         {/* User profile & actions */}
