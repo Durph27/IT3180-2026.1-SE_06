@@ -157,7 +157,8 @@ export function AuthProvider({ children }) {
     changePassword,
     hasPermission,
     hasRole,
-  }), [user, roles, permissions, householdIds, isLoading, login, logout, changePassword, hasPermission, hasRole])
+    refreshProfile: refreshPermissions,
+  }), [user, roles, permissions, householdIds, isLoading, login, logout, changePassword, hasPermission, hasRole, refreshPermissions])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

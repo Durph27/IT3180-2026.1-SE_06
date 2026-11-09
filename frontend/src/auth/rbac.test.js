@@ -39,6 +39,8 @@ const matrix = [
   ['user.read',                 1,    1,       0,         0,       0],
   ['user.write',                1,    1,       0,         0,       0],
   ['user.manage',               1,    1,       0,         0,       0],
+  ['role.read',                 1,    0,       0,         0,       0],
+  ['rbac.manage',               1,    0,       0,         0,       0],
 ]
 const roles = ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'RESIDENT', 'AUTHORITY']
 test('every UI permission exists in the checked-in backend API contract', () => {
