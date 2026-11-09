@@ -6,6 +6,7 @@ import PermissionGate from './PermissionGate'
 import ForbiddenView from './ForbiddenView'
 import CreateUserDialog from './CreateUserDialog'
 import UserRoleDialog from './UserRoleDialog'
+import RegistrationRequests from './RegistrationRequests'
 import { apiErrorMessage } from '../api/errors'
 
 export default function UserManagement({ onBack }) {
@@ -255,6 +256,8 @@ function UserManagementContent({ onBack }) {
           <div>{error}</div>
         </div>
       )}
+
+      {canManage && <RegistrationRequests onReviewed={refreshUsers} />}
 
       {/* Main Table Container Card */}
       <div className="table-card">
