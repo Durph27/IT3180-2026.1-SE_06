@@ -24,9 +24,20 @@ export const api = axios.create({
 })
 
 let onUnauthorizedCallback = null
+let onForbiddenCallback = null
 
 export function registerUnauthorizedCallback(cb) {
   onUnauthorizedCallback = cb
+  return () => {
+    if (onUnauthorizedCallback === cb) onUnauthorizedCallback = null
+  }
+}
+
+export function registerForbiddenCallback(cb) {
+  onForbiddenCallback = cb
+  return () => {
+    if (onForbiddenCallback === cb) onForbiddenCallback = null
+  }
 }
 
 api.interceptors.request.use((config) => {
@@ -39,15 +50,20 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      const url = error.config?.url || ''
-      // Don't trigger auto-logout if the 401 is from login attempt itself
-      if (!url.includes('/auth/login')) {
+  async (error) => {
+    const status = error.response?.status
+    const url = error.config?.url?.split('?')[0] || ''
+    const authorization = error.config?.headers?.Authorization
+    const currentSession = authorization && authorization === `Bearer ${getStoredToken()}`
+    const credentialCheck = url === '/auth/login'
+      || (url === '/auth/change-password' && error.response?.data?.code !== 'TOKEN_EXPIRED')
+    if (currentSession && !credentialCheck) {
+      if (status === 401) {
         clearStoredToken()
-        if (onUnauthorizedCallback) {
-          onUnauthorizedCallback()
-        }
+        onUnauthorizedCallback?.()
+      } else if (status === 403 && url !== '/auth/me') {
+        // Refresh grants once; never replay a rejected read or mutation.
+        await onForbiddenCallback?.()
       }
     }
     return Promise.reject(error)

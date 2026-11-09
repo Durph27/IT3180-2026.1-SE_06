@@ -23,3 +23,18 @@ export async function createUserApi({ username, displayName, password, residentI
   })
   return response.data
 }
+
+export async function getRolesApi() {
+  const response = await api.get('/roles', { params: { page: 0, size: 100 } })
+  return response.data.content
+}
+
+export async function getUserRolesApi(userId) {
+  const response = await api.get(`/users/${userId}/roles`)
+  return response.data
+}
+
+export async function updateUserRolesApi(userId, roleIds) {
+  const response = await api.put(`/users/${userId}/roles`, { roleIds })
+  return response.data
+}
