@@ -160,6 +160,25 @@ class SprintOneTests {
         assertThat(call("PUT","/users/"+adminId+"/roles",map("roleIds",List.of()),admin,null).status()).isEqualTo(409);
         assertThat(call("GET","/roles",null,admin,null).status()).isEqualTo(200);
     }
+    @Test void roleAssignmentsAllowResidentAndOnlyOneStaffRole() throws Exception {
+        var target = user("MANAGER", null);
+        String path = "/users/" + id(target) + "/roles";
+        var staff = List.of("ADMIN", "MANAGER", "ACCOUNTANT", "AUTHORITY");
+        assertThat(call("PUT", path, map("roleIds", List.of(roleIds.get("RESIDENT"))), admin, null).status()).isEqualTo(200);
+        for (String role : staff) {
+            assertThat(call("PUT", path, map("roleIds", List.of(roleIds.get("RESIDENT"), roleIds.get(role))), admin, null).status()).isEqualTo(200);
+            assertThat(call("PUT", path, map("roleIds", List.of(roleIds.get(role))), admin, null).status()).isEqualTo(200);
+        }
+        for (int i = 0; i < staff.size(); i++) {
+            for (int j = i + 1; j < staff.size(); j++) {
+                var pair = List.of(roleIds.get(staff.get(i)), roleIds.get(staff.get(j)));
+                assertThat(call("PUT", path, map("roleIds", pair), admin, null).status()).isEqualTo(400);
+                assertThat(call("PUT", path, map("roleIds", List.of(roleIds.get("RESIDENT"), pair.get(0), pair.get(1))), admin, null).status()).isEqualTo(400);
+            }
+        }
+        var retained = objects(call("GET", path, null, admin, null).body().get("items"));
+        assertThat(retained).extracting(role -> text(role, "code")).containsExactly("AUTHORITY");
+    }
     @Test void passwordChangeRevokesOldTokenAndDoesNotExposeSecrets()throws Exception {
         var user=user("MANAGER",null);String old=token(user);
         var reply=call("POST","/auth/change-password",map("currentPassword","User-test-password!","newPassword","Changed-password-123!"),old,null);
