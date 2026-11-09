@@ -71,6 +71,7 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
       assert.equal(markup.includes('Quản lý tài khoản'), ['ADMIN', 'MANAGER'].includes(role))
     }
     assert.equal(dashboard.includes('Trạng thái hạ tầng hệ thống'), ['ADMIN', 'MANAGER'].includes(role))
+    assert.equal(dashboard.includes('Được gán và đổi vai trò'), role === 'ADMIN')
     if (role === 'AUTHORITY') {
       assert.match(dashboard, /Chỉ đọc thông tin cư trú/)
       for (const hidden of ['Thu phí', 'Quỹ bảo trì', 'Phản ánh', 'Được duyệt', 'Được nộp đơn', 'Được cập nhật']) {
@@ -120,7 +121,7 @@ test('read-only account access never includes creation or status dialogs', () =>
 test('creating accounts and changing account status require separate backend permissions', () => {
   const createOnly = render(auth('MANAGER', { permissions: ['user.read', 'user.write'] }), UserManagement, {})
   assert.match(createOnly, /Thêm tài khoản mới/)
-  assert.match(createOnly, /id="create-user-title"/)
+  assert.ok(!createOnly.includes('id="create-user-title"'))
   assert.ok(!createOnly.includes('id="confirm-dialog-title"'))
   const statusOnly = render(auth('MANAGER', { permissions: ['user.read', 'user.manage'] }), UserManagement, {})
   assert.ok(!statusOnly.includes('Thêm tài khoản mới'))
