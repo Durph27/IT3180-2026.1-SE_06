@@ -92,6 +92,26 @@ Nguồn HTTP: `docs/api/openapi.json`. Database Sprint 1 đối chiếu `docs/Bl
 | status | status | varchar(20) | Không | ACTIVE, LOCKED, DISABLED |
 | created_at | createdAt | timestamptz | Không |  |
 
+## account_registration → AccountRegistration
+
+| Cột ERD | JSON | Kiểu ERD | Nullable | Ghi chú |
+| --- | --- | --- | --- | --- |
+| id | id | uuid PK | Không |  |
+| username | username | varchar(60) | Không | Không trùng AppUser hoặc yêu cầu PENDING |
+| password_hash | — | varchar(255) | Có | Không trả qua API; xóa sau khi xử lý yêu cầu |
+| full_name | fullName | varchar(120) | Không |  |
+| identity_no | identityNo | varchar(30) | Không | Khớp Resident có sẵn khi duyệt |
+| birth_date | birthDate | date | Không |  |
+| gender | gender | varchar(20) | Không | MALE, FEMALE, OTHER, UNSPECIFIED |
+| phone | phone | varchar(20) | Có |  |
+| apartment_code | apartmentCode | varchar(30) | Không | Cư dân tự khai, để BQT đối chiếu khi chọn hộ |
+| status | status | varchar(20) | Không | PENDING, APPROVED, REJECTED |
+| reject_reason | rejectReason | varchar(1000) | Có |  |
+| created_at | createdAt | timestamptz | Không |  |
+| reviewed_by | reviewedBy | uuid FK | Có | Tham chiếu AppUser |
+| reviewed_at | reviewedAt | timestamptz | Có |  |
+| user_id | userId | uuid FK | Có | Tài khoản được tạo khi duyệt |
+
 ## vehicle → Vehicle
 
 | Cột ERD | JSON | Kiểu ERD | Nullable | Ghi chú |

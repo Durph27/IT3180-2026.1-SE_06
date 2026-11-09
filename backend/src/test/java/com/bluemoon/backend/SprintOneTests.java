@@ -368,6 +368,14 @@ class SprintOneTests {
         assertThat(call("GET","/maintenance-rounds?fundId="+id(fund),null,admin,null).body().get("totalElements")).isEqualTo(1);
         String residentToken=token(user("RESIDENT",null));assertThat(call("GET","/maintenance-funds",null,residentToken,null).status()).isEqualTo(403);
     }
+    static final String REGISTER_PASSWORD="Register-test-password!";
+    Map<String,Object> registration(String username){return map("username",username,"password",REGISTER_PASSWORD,"fullName","Cư Dân "+unique(),"identityNo",unique(),"birthDate","1985-05-05","gender","FEMALE","phone","0900000000","apartmentCode","A-101");}
+    @Test void registrationThrottlesEachClient()throws Exception {
+        db.jdbc().update("DELETE FROM login_attempt");
+        for(int i=0;i<5;i++)assertThat(call("POST","/auth/register",registration("r"+unique()),null,null).status()).isEqualTo(201);
+        assertThat(call("POST","/auth/register",registration("r"+unique()),null,null).status()).isEqualTo(429);
+        db.jdbc().update("DELETE FROM login_attempt");
+    }
     @Test void loginThrottlePersistsFailedAttemptsAndCorsAllowsCommandHeaders()throws Exception {
         String name="unknown-"+unique();
         for(int i=0;i<5;i++)assertThat(call("POST","/auth/login",map("username",name,"password","wrong"),null,null).status()).isEqualTo(401);

@@ -22,12 +22,13 @@ public class SprintApi {
     private final Contract contract;
     private final DomainStore db;
     private final IdentityService identities;
+    private final RegistrationService registrations;
     private final ResourceViews views;
     private final List<FeatureHandler> handlers;
     private final TransactionTemplate tx;
-    public SprintApi(Contract contract, DomainStore db, IdentityService identities, ResourceViews views,
+    public SprintApi(Contract contract, DomainStore db, IdentityService identities, RegistrationService registrations, ResourceViews views,
                      List<FeatureHandler> handlers, PlatformTransactionManager manager) {
-        this.contract=contract; this.db=db; this.identities=identities; this.views=views;
+        this.contract=contract; this.db=db; this.identities=identities; this.registrations=registrations; this.views=views;
         this.handlers=handlers; this.tx=new TransactionTemplate(manager);
     }
     public ResponseEntity<?> execute(String key,Map<String,String> rawIds,Map<String,String> rawQuery,Map<String,Object> raw,HttpServletRequest req) {
@@ -42,6 +43,7 @@ public class SprintApi {
         } else if(!body.isEmpty())throw ApiException.bad("Endpoint không nhận body.");
         validateParameters(route,ids,query,req);
         if(key.equals("POST /auth/login"))return ResponseEntity.ok(identities.login(body,req.getRemoteAddr()));
+        if(key.equals("POST /auth/register"))return ResponseEntity.status(201).body(registrations.register(body,req.getRemoteAddr()));
         return tx.execute(status->{
             boolean mutation=!method.equals("GET");if(mutation)db.lockWrites();
             // Reload after the mutation lock: concurrent role/status changes take effect now.

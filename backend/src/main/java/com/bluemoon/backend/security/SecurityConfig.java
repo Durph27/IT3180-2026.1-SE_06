@@ -22,7 +22,7 @@ public class SecurityConfig {
         var bearer=new OncePerRequestFilter() {
             @Override protected void doFilterInternal(HttpServletRequest req,HttpServletResponse res,FilterChain chain) throws ServletException,IOException {
                 errors.requestId(req,res);
-                if(req.getMethod().equals("OPTIONS") || List.of("/api/auth/login","/api/health","/api/hello").contains(req.getServletPath())) {chain.doFilter(req,res);return;}
+                if(req.getMethod().equals("OPTIONS") || List.of("/api/auth/login","/api/auth/register","/api/health","/api/hello").contains(req.getServletPath())) {chain.doFilter(req,res);return;}
                 try {
                     var actor=identities.authenticate(req.getHeader("Authorization")); req.setAttribute("actor",actor);
                     SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(actor,null,List.of()));
@@ -33,7 +33,7 @@ public class SecurityConfig {
         };
         return http.cors(c->{}).csrf(c->c.disable())
             .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(a->a.requestMatchers("/api/hello","/api/health","/api/auth/login","/error").permitAll().anyRequest().authenticated())
+            .authorizeHttpRequests(a->a.requestMatchers("/api/hello","/api/health","/api/auth/login","/api/auth/register","/error").permitAll().anyRequest().authenticated())
             .addFilterBefore(bearer,UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(e->e.authenticationEntryPoint((req,res,ex)->errors.write(req,res,new ApiException(401,"AUTHENTICATION_FAILED","Cần xác thực."))))
             .build();

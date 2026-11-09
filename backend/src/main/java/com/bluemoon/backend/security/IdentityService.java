@@ -50,16 +50,7 @@ public class IdentityService {
         db.lockWrites();
         String username=text(body,"username").toLowerCase(Locale.ROOT), key=sha256(ip+"|"+username);
         var now=OffsetDateTime.now(ZoneOffset.UTC);
-        db.jdbc().update("DELETE FROM login_attempt WHERE window_start<=?",now.minusMinutes(1));
-        var attempts=db.jdbc().query("SELECT * FROM login_attempt WHERE attempt_key=?",(rs,n)->map("window_start",rs.getObject("window_start",OffsetDateTime.class),"attempts",rs.getInt("attempts")),key);
-        int count=0;
-        if(!attempts.isEmpty() && ((OffsetDateTime)attempts.getFirst().get("window_start")).plusMinutes(1).isAfter(now)) count=((Number)attempts.getFirst().get("attempts")).intValue();
-        else {
-            db.jdbc().update("DELETE FROM login_attempt WHERE attempt_key=?",key);
-            db.jdbc().update("INSERT INTO login_attempt VALUES (?,?,0)",key,now);
-        }
-        if(count>=5) throw new ApiException(429,"RATE_LIMITED","Thử lại sau tối đa 60 giây.");
-        db.jdbc().update("UPDATE login_attempt SET attempts=attempts+1 WHERE attempt_key=?",key);
+        throttle(key,5);
         var users=db.where("AppUser","username",username);
         boolean valid=matches(text(body,"password"),users.isEmpty()?dummyHash:text(users.getFirst(),"passwordHash"));
         if(!valid || users.isEmpty() || !"ACTIVE".equals(users.getFirst().get("status"))) throw new ApiException(401,"AUTHENTICATION_FAILED","Xác thực thất bại.");
@@ -68,6 +59,20 @@ public class IdentityService {
         db.jdbc().update("DELETE FROM access_session WHERE expires_at<=?",now);
         db.jdbc().update("INSERT INTO access_session VALUES (?,?,?)",sha256(token),UUID.fromString(id),now.plusSeconds(1800));
         return map("accessToken",token,"tokenType","Bearer","expiresIn",1800,"profile",profile(actor(id)));
+    }
+    /** One-minute fixed window for public endpoints; callers must hold the write lock and a transaction. */
+    public void throttle(String key,int limit) {
+        var now=OffsetDateTime.now(ZoneOffset.UTC);
+        db.jdbc().update("DELETE FROM login_attempt WHERE window_start<=?",now.minusMinutes(1));
+        var attempts=db.jdbc().query("SELECT * FROM login_attempt WHERE attempt_key=?",(rs,n)->map("window_start",rs.getObject("window_start",OffsetDateTime.class),"attempts",rs.getInt("attempts")),key);
+        int count=0;
+        if(!attempts.isEmpty() && ((OffsetDateTime)attempts.getFirst().get("window_start")).plusMinutes(1).isAfter(now)) count=((Number)attempts.getFirst().get("attempts")).intValue();
+        else {
+            db.jdbc().update("DELETE FROM login_attempt WHERE attempt_key=?",key);
+            db.jdbc().update("INSERT INTO login_attempt VALUES (?,?,0)",key,now);
+        }
+        if(count>=limit) throw new ApiException(429,"RATE_LIMITED","Thử lại sau tối đa 60 giây.");
+        db.jdbc().update("UPDATE login_attempt SET attempts=attempts+1 WHERE attempt_key=?",key);
     }
     public void revoke(String userId) { db.jdbc().update("DELETE FROM access_session WHERE user_id=?",UUID.fromString(userId)); }
 }

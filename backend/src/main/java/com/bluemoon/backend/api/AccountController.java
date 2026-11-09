@@ -19,6 +19,13 @@ public class AccountController {
         return api.execute("POST /auth/login", path, query, body, request);
     }
 
+    @RequestMapping(value = "/auth/register", method = RequestMethod.POST)
+    public ResponseEntity<?> post_auth_register(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /auth/register", path, query, body, request);
+    }
+
     @RequestMapping(value = "/auth/me", method = RequestMethod.GET)
     public ResponseEntity<?> get_auth_me(@PathVariable Map<String, String> path,
             @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
