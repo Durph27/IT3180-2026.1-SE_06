@@ -1,6 +1,7 @@
 import test, { after } from 'node:test'
 import assert from 'node:assert/strict'
 import { createElement as h } from 'react'
+import { MemoryRouter } from 'react-router'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -33,7 +34,7 @@ function auth(role, overrides = {}) {
   return value
 }
 function render(value, component, props) {
-  return renderToStaticMarkup(h(AuthContext.Provider, { value }, h(component, props)))
+  return renderToStaticMarkup(h(MemoryRouter, null, h(AuthContext.Provider, { value }, h(component, props))))
 }
 
 test('role and permission guards never render protected children on denial or while loading', () => {
@@ -65,7 +66,7 @@ test('resident gate requires an owned household', () => {
 for (const role of Object.keys(ROLE_PERMISSIONS)) {
   test(`${role}: account navigation and Dashboard links follow the same policy`, () => {
     const value = auth(role)
-    const navbar = render(value, Navbar, { currentTab: 'overview' })
+    const navbar = render(value, Navbar, {})
     const dashboard = render(value, HomePage, { onNavigateToUsers() {} })
     for (const markup of [navbar, dashboard]) {
       assert.equal(markup.includes('Quản lý tài khoản'), ['ADMIN', 'MANAGER'].includes(role))

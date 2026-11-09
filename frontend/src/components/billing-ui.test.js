@@ -1,6 +1,7 @@
 import test, { after } from 'node:test'
 import assert from 'node:assert/strict'
 import { createElement as h } from 'react'
+import { MemoryRouter } from 'react-router'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -29,8 +30,8 @@ function auth(role, overrides = {}) {
   value.hasRole = (code) => hasRole(value.roles, code)
   return value
 }
-const render = (value, component, props) => renderToStaticMarkup(h(AuthContext.Provider, { value }, h(component, props)))
-const navProps = { currentTab: 'overview', onSelectTab() {}, onOpenChangePassword() {} }
+const render = (value, component, props, path = '/') => renderToStaticMarkup(h(MemoryRouter, { initialEntries: [path] }, h(AuthContext.Provider, { value }, h(component, props))))
+const navProps = {}
 
 test('billing tab follows invoice access and household scope', () => {
   assert.match(render(auth('ACCOUNTANT'), Navbar, navProps), /Khoản thu/)
@@ -40,12 +41,12 @@ test('billing tab follows invoice access and household scope', () => {
 })
 
 test('billing tab is emphasized only while bills are unpaid', () => {
-  const billingButton = (props) => render(auth('RESIDENT'), Navbar, props).split('<button').find((part) => part.includes('Khoản thu'))
+  const billingButton = (props, path) => render(auth('RESIDENT'), Navbar, props, path).split('<a ').find((part) => part.includes('Khoản thu'))
   const unpaid = billingButton({ ...navProps, hasUnpaidBills: true })
   assert.match(unpaid, /font-extrabold/)
   assert.match(unpaid, /text-red-700/)
   assert.match(unpaid, /còn khoản chưa đóng/)
-  assert.match(billingButton({ ...navProps, currentTab: 'billing', hasUnpaidBills: true }), /text-red-700/)
+  assert.match(billingButton({ hasUnpaidBills: true }, '/khoan-thu'), /text-red-700/)
   const settled = billingButton(navProps)
   assert.doesNotMatch(settled, /font-extrabold/)
   assert.doesNotMatch(settled, /text-red-700/)
