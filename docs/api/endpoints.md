@@ -11,6 +11,9 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | PATCH | `/auth/me` | Đổi tên hiển thị | MeUpdate | 200 UserProfile | `AUTHENTICATED` |
 | POST | `/auth/change-password` | Đổi mật khẩu | PasswordChangeRequest | 204 — | `AUTHENTICATED` |
 | POST | `/auth/register` | Cư dân đăng ký tài khoản (chờ duyệt) | RegistrationCreate | 201 RegistrationReceipt | `PUBLIC` |
+| GET | `/registrations` | Danh sách yêu cầu đăng ký | — | 200 AccountRegistrationPage | `user.manage` |
+| POST | `/registrations/{id}/approve` | Duyệt, gắn chủ hộ và kích hoạt tài khoản | RegistrationApproveRequest | 200 AccountRegistration | `user.manage` |
+| POST | `/registrations/{id}/reject` | Từ chối yêu cầu đăng ký | RejectRequest | 200 AccountRegistration | `user.manage` |
 
 ## Cư trú
 

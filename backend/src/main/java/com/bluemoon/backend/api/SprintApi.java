@@ -18,7 +18,7 @@ import static com.bluemoon.backend.api.Values.*;
 public class SprintApi {
     private static final Map<String,String> MODELS=Map.ofEntries(
         Map.entry("buildings","Building"),Map.entry("apartments","Apartment"),Map.entry("households","Household"),Map.entry("occupancies","HouseholdApartment"),Map.entry("residents","Resident"),Map.entry("residence-changes","ResidenceChange"),
-        Map.entry("users","AppUser"),Map.entry("roles","Role"),Map.entry("permissions","Permission"),Map.entry("fee-types","FeeType"),Map.entry("fee-rates","FeeRate"),Map.entry("billing-periods","BillingPeriod"),Map.entry("invoices","Invoice"),Map.entry("contribution-campaigns","ContributionCampaign"),Map.entry("contributions","Contribution"),Map.entry("payments","Payment"),Map.entry("receipts","Receipt"),Map.entry("maintenance-funds","MaintenanceFund"),Map.entry("maintenance-rounds","MaintenanceRound"));
+        Map.entry("users","AppUser"),Map.entry("registrations","AccountRegistration"),Map.entry("roles","Role"),Map.entry("permissions","Permission"),Map.entry("fee-types","FeeType"),Map.entry("fee-rates","FeeRate"),Map.entry("billing-periods","BillingPeriod"),Map.entry("invoices","Invoice"),Map.entry("contribution-campaigns","ContributionCampaign"),Map.entry("contributions","Contribution"),Map.entry("payments","Payment"),Map.entry("receipts","Receipt"),Map.entry("maintenance-funds","MaintenanceFund"),Map.entry("maintenance-rounds","MaintenanceRound"));
     private final Contract contract;
     private final DomainStore db;
     private final IdentityService identities;

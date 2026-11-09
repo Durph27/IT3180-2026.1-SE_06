@@ -370,6 +370,43 @@ class SprintOneTests {
     }
     static final String REGISTER_PASSWORD="Register-test-password!";
     Map<String,Object> registration(String username){return map("username",username,"password",REGISTER_PASSWORD,"fullName","Cư Dân "+unique(),"identityNo",unique(),"birthDate","1985-05-05","gender","FEMALE","phone","0900000000","apartmentCode","A-101");}
+    Reply register(Map<String,Object> body)throws Exception {db.jdbc().update("DELETE FROM login_attempt");return call("POST","/auth/register",body,null,null);}
+    String submit(Map<String,Object> body)throws Exception {var reply=register(body);assertThat(reply.status()).as(reply.body().toString()).isEqualTo(201);return id(reply.body());}
+    @Test void registrationStaysInactiveUntilApprovedThenBecomesHeadWithResidentRole()throws Exception {
+        String name="r"+unique();var body=registration(name);String request=submit(body);
+        assertThat(call("POST","/auth/login",map("username",name,"password",REGISTER_PASSWORD),null,null).status()).isEqualTo(401);
+        assertThat(db.where("AppUser","username",name)).isEmpty();
+        assertThat(db.where("Resident","identityNo",body.get("identityNo"))).isEmpty();
+        var pending=call("GET","/registrations?status=PENDING&size=100",null,admin,null);assertThat(pending.status()).isEqualTo(200);
+        assertThat(pending.body().toString()).contains(name).doesNotContain("passwordHash");
+        var home=home();String manager=token(user("MANAGER",null));
+        var approved=call("POST","/registrations/"+request+"/approve",map("householdId",home.household()),manager,null);
+        assertThat(approved.status()).as(approved.body().toString()).isEqualTo(200);assertThat(approved.body().get("status")).isEqualTo("APPROVED");
+        contract.validate(approved.body(),object(contract.section("schemas").get("AccountRegistration")),"registration");
+        var login=call("POST","/auth/login",map("username",name,"password",REGISTER_PASSWORD),null,null);assertThat(login.status()).isEqualTo(200);
+        var profile=object(login.body().get("profile"));
+        assertThat(objects(profile.get("roles")).stream().map(r->text(r,"code")).toList()).containsExactly("RESIDENT");
+        assertThat(profile.get("householdIds")).isEqualTo(List.of(home.household()));
+        assertThat(db.where("AccountRegistration","id",request).getFirst().get("passwordHash")).isNull();
+        assertThat(call("POST","/registrations/"+request+"/approve",map("householdId",home.household()),admin,null).status()).isEqualTo(409);
+    }
+    @Test void registrationRejectsDuplicatesSecondHeadAndUnauthorizedReviewers()throws Exception {
+        String name="r"+unique();String request=submit(registration(name));
+        assertThat(register(registration(name)).status()).isEqualTo(409);
+        assertThat(register(registration("admin")).status()).isEqualTo(409);
+        var unknownField=registration("r"+unique());unknownField.put("status","ACTIVE");assertThat(register(unknownField).status()).isEqualTo(400);
+        var home=home();member(home,resident(),true);
+        var secondHead=call("POST","/registrations/"+request+"/approve",map("householdId",home.household()),admin,null);
+        assertThat(secondHead.status()).as(secondHead.body().toString()).isEqualTo(422);
+        assertThat(db.where("AppUser","username",name)).as("failed approval rolls back").isEmpty();
+        var approval=map("householdId",home.household());
+        for(String role:List.of("ACCOUNTANT","AUTHORITY","RESIDENT"))assertThat(call("POST","/registrations/"+request+"/approve",approval,token(user(role,null)),null).status()).isEqualTo(403);
+        assertThat(call("GET","/registrations",null,token(user("RESIDENT",null)),null).status()).isEqualTo(403);
+        var rejected=call("POST","/registrations/"+request+"/reject",map("reason","Sai thông tin căn hộ"),admin,null);
+        assertThat(rejected.status()).isEqualTo(200);assertThat(rejected.body().get("rejectReason")).isEqualTo("Sai thông tin căn hộ");
+        assertThat(call("POST","/auth/login",map("username",name,"password",REGISTER_PASSWORD),null,null).status()).isEqualTo(401);
+        submit(registration(name));
+    }
     @Test void registrationThrottlesEachClient()throws Exception {
         db.jdbc().update("DELETE FROM login_attempt");
         for(int i=0;i<5;i++)assertThat(call("POST","/auth/register",registration("r"+unique()),null,null).status()).isEqualTo(201);
