@@ -14,7 +14,7 @@ const server = await createServer({
 after(() => server.close())
 const { AuthContext } = await server.ssrLoadModule('/src/context/AuthContext.js')
 const { default: RegisterForm } = await server.ssrLoadModule('/src/components/RegisterForm.jsx')
-const { registrationError } = await server.ssrLoadModule('/src/components/personOptions.js')
+const { activeMembers, registrationError } = await server.ssrLoadModule('/src/components/personOptions.js')
 const { default: UserManagement } = await server.ssrLoadModule('/src/components/UserManagement.jsx')
 
 function auth(role, permissions, overrides = {}) {
@@ -43,6 +43,16 @@ test('registration page states who it is for and needs no session', () => {
   assert.match(html, /Đăng ký tài khoản cư dân/)
   assert.match(html, /Dành cho chủ hộ/)
   assert.match(html, /name="apartmentCode"/)
+})
+
+test('only current memberships are listed', () => {
+  const rows = [
+    { id: 'past', validFrom: '2020-01-01', validTo: '2026-01-01' },
+    { id: 'current', validFrom: '2026-01-01', validTo: null },
+    { id: 'future', validFrom: '2027-01-01', validTo: null },
+    { id: 'ends-today', validFrom: '2020-01-01', validTo: '2026-06-01' },
+  ]
+  assert.deepEqual(activeMembers(rows, '2026-06-01').map((row) => row.id), ['current'])
 })
 
 test('account page still renders for reviewers with the registration panel mounted', () => {

@@ -19,7 +19,7 @@ const finance = [
 ]
 const resident = [
   'building.read', 'apartment.read', 'household.read', 'occupancy.read',
-  'resident.read', 'residence-change.read', 'residence-change.write',
+  'resident.read', 'residence-change.read', 'residence-change.write', 'household.family.write',
   'invoice.read', 'payment.read', 'receipt.read', 'payment-intent.read',
   'payment-intent.create', 'ticket.read', 'ticket.write', 'ticket.update',
 ]
