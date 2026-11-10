@@ -12,6 +12,7 @@ import {
   EditIcon,
   CheckCircleIcon,
   CalendarIcon,
+  AlertTriangleIcon,
 } from './Icons'
 
 export default function FeeManagement() {
@@ -129,7 +130,7 @@ export default function FeeManagement() {
     return (
       <div className="apartment-page">
         <div className="alert-banner alert-danger" role="alert">
-          <span className="alert-icon">⚠️</span>
+          <AlertTriangleIcon size={18} aria-hidden="true" />
           <span>Tài khoản của bạn không có quyền xem biểu phí và danh mục khoản thu (yêu cầu quyền fee-type.read).</span>
         </div>
       </div>
@@ -185,7 +186,7 @@ export default function FeeManagement() {
 
       {error && (
         <div className="alert-banner alert-danger" role="alert">
-          <span className="alert-icon">⚠️</span>
+          <AlertTriangleIcon size={18} aria-hidden="true" />
           <span>{error}</span>
         </div>
       )}

@@ -8,7 +8,7 @@ import {
   VEHICLE_TYPE_OPTIONS,
   BASIS_OPTIONS,
 } from '../utils/feeValidation'
-import { ReceiptTaxIcon, XIcon, CheckCircleIcon } from './Icons'
+import { ReceiptTaxIcon, XIcon, CheckCircleIcon, AlertTriangleIcon } from './Icons'
 
 export default function FeeRateCreateModal({
   isOpen,
@@ -211,7 +211,7 @@ export default function FeeRateCreateModal({
       <div className="dialog-body">
         {serverError && (
           <div className="alert-banner alert-danger" role="alert">
-            <span className="alert-icon">⚠️</span>
+            <AlertTriangleIcon size={18} aria-hidden="true" />
             <div className="alert-text">{serverError}</div>
           </div>
         )}

@@ -9,6 +9,7 @@ import {
   RefreshIcon,
   EditIcon,
   CheckCircleIcon,
+  AlertTriangleIcon,
 } from './Icons'
 
 export default function ApartmentManagement() {
@@ -175,7 +176,7 @@ export default function ApartmentManagement() {
     return (
       <div className="apartment-page">
         <div className="alert-banner alert-danger" role="alert">
-          <span className="alert-icon">⚠️</span>
+          <AlertTriangleIcon size={18} aria-hidden="true" />
           <span>Tài khoản của bạn không có quyền truy cập hồ sơ căn hộ (yêu cầu quyền apartment.read).</span>
         </div>
       </div>
@@ -231,14 +232,14 @@ export default function ApartmentManagement() {
 
       {error && (
         <div className="alert-banner alert-danger" role="alert">
-          <span className="alert-icon">⚠️</span>
+          <AlertTriangleIcon size={18} aria-hidden="true" />
           <span>{error}</span>
         </div>
       )}
 
       {buildingError && (
         <div className="alert-banner alert-danger" role="alert">
-          <span className="alert-icon">⚠️</span>
+          <AlertTriangleIcon size={18} aria-hidden="true" />
           <span>{buildingError}</span>
           <button
             type="button"

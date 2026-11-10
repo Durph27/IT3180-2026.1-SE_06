@@ -7,7 +7,7 @@ import {
   validateBuilding,
 } from '../utils/apartmentValidation'
 import { useAuth } from '../hooks/useAuth'
-import { ApartmentIcon, XIcon, BuildingIcon, CheckCircleIcon } from './Icons'
+import { ApartmentIcon, XIcon, BuildingIcon, CheckCircleIcon, AlertTriangleIcon } from './Icons'
 
 export default function ApartmentFormModal({
   isOpen,
@@ -306,7 +306,7 @@ export default function ApartmentFormModal({
       <div className="dialog-body">
         {serverError && (
           <div className="alert-banner alert-danger" role="alert">
-            <span className="alert-icon">⚠️</span>
+            <AlertTriangleIcon size={18} aria-hidden="true" />
             <div className="alert-text">{serverError}</div>
           </div>
         )}

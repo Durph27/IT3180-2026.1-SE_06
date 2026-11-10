@@ -9,6 +9,7 @@ import {
   RefreshIcon,
   CheckCircleIcon,
   CalendarIcon,
+  AlertTriangleIcon,
 } from './Icons'
 
 function formatVnd(amountStr) {
@@ -20,12 +21,12 @@ function formatVnd(amountStr) {
 
 function getRateStatus(effectiveFrom, effectiveTo, today) {
   if (effectiveFrom > today) {
-    return { label: 'Sắp áp dụng', className: 'badge-inactive' }
+    return { label: 'Sắp áp dụng', className: 'badge-upcoming' }
   }
   if (effectiveTo && effectiveTo <= today) {
-    return { label: 'Đã hết hạn', className: 'badge-inactive' }
+    return { label: 'Đã hết hạn', className: 'badge-expired' }
   }
-  return { label: 'Đang áp dụng', className: 'badge-occupied' }
+  return { label: 'Đang áp dụng', className: 'badge-current' }
 }
 
 function EndRateModal({
@@ -395,7 +396,7 @@ export default function FeeRateScheduleModal({
 
           {error && (
             <div className="alert-banner alert-danger" role="alert">
-              <span className="alert-icon">⚠️</span>
+              <AlertTriangleIcon size={18} aria-hidden="true" />
               <span>{error}</span>
             </div>
           )}
@@ -519,15 +520,15 @@ export default function FeeRateScheduleModal({
                             <strong style={{ color: 'var(--cobalt-action)', fontSize: '0.95rem' }}>
                               {formatVnd(rate.unitPrice)}
                             </strong>
-                            <span className="rate-unit" style={{ fontSize: '0.75rem', color: 'var(--slate-muted)', marginLeft: '4px' }}>
+                            <span className="rate-unit rate-unit-inline">
                               / {basisMeta?.unit}
                             </span>
                           </td>
                           <td data-label="Hiệu lực từ">
-                            <span style={{ fontFamily: 'var(--font-mono)' }}>{rate.effectiveFrom}</span>
+                            <span className="tabular-nums">{rate.effectiveFrom}</span>
                           </td>
                           <td data-label="Hiệu lực đến">
-                            <span style={{ fontFamily: 'var(--font-mono)' }}>
+                            <span className="tabular-nums">
                               {rate.effectiveTo || <span style={{ color: 'var(--slate-muted)' }}>Vô thời hạn</span>}
                             </span>
                           </td>

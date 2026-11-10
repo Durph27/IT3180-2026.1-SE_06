@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { MoonLogoIcon } from './Icons'
+import { MoonLogoIcon, AlertTriangleIcon } from './Icons'
 
 export default function LoginForm() {
   const { login } = useAuth()
@@ -73,7 +73,7 @@ export default function LoginForm() {
 
         {errorMessage && (
           <div className="alert-banner alert-danger" role="alert">
-            <span>⚠️</span>
+            <AlertTriangleIcon size={18} aria-hidden="true" />
             <div>{errorMessage}</div>
           </div>
         )}

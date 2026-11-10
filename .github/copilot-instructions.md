@@ -83,6 +83,10 @@ Form validation lives in pure helpers under `src/utils/` (`apartmentValidation.j
 
 Permission checks in the UI only hide navigation/actions; the backend remains authoritative.
 
+### UI completion review
+
+Before considering any frontend UI task complete, inspect the rendered interface in a browser at desktop and mobile widths where practical. Do not rely on code/build checks alone. Review alignment and spacing across rows, columns, tables, and controls; clipping, overflow, wrapping, and density; whether every area is intentionally designed and its layout is appropriate; redundant content or actions (for example, avoid adding another password-change entry when one already exists unless there is a clear user-flow reason); consistency and suitability of icons; Vietnamese typography; visible focus and legibility; and loading, empty, error, and permission states relevant to the change. Verify interactive states/dialogs without performing destructive live actions. Compare the actual rendered UI with the intended design, correct defects within the requested scope, then re-check the changed screens. Preserve existing navigation, authentication, permissions, business behavior, and API contracts unless the request explicitly calls for changes. Report any states or viewports that could not be checked rather than claiming a complete visual review.
+
 ## Environment notes
 
 - Linux/macOS: `backend/mvnw` must be executable. If git checkout produced mode `100644`, run `chmod +x backend/mvnw`.

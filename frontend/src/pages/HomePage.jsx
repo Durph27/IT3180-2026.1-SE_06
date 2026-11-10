@@ -3,13 +3,12 @@ import { useAuth } from '../hooks/useAuth'
 import PermissionGate from '../components/PermissionGate'
 import RoleGuard from '../components/RoleGuard'
 import SystemHealth from '../components/SystemHealth'
-import { ApartmentIcon, UsersIcon, ReceiptTaxIcon, KeyIcon } from '../components/Icons'
+import { ApartmentIcon, UsersIcon, ReceiptTaxIcon } from '../components/Icons'
 
 export default function HomePage({
   onNavigateToUsers,
   onNavigateToApartments,
   onNavigateToFees,
-  onOpenChangePassword,
 }) {
   const { user, roles, householdIds, hasPermission, hasRole } = useAuth()
   const [selectedHousehold, setSelectedHousehold] = useState('')
@@ -33,7 +32,8 @@ export default function HomePage({
     hasPermission('invoice.read', scope) ||
     hasPermission('maintenance-fund.read') ||
     hasPermission('user.read') ||
-    hasPermission('ticket.write', scope)
+    hasPermission('ticket.write', scope) ||
+    canViewFees
 
   return (
     <div className="dashboard-container">
@@ -58,14 +58,6 @@ export default function HomePage({
           </div>
         </div>
 
-        <div className="welcome-quick-actions">
-          {onOpenChangePassword && (
-            <button type="button" className="btn btn-secondary" onClick={onOpenChangePassword}>
-              <KeyIcon size={16} />
-              <span>Đổi mật khẩu</span>
-            </button>
-          )}
-        </div>
       </section>
 
       {/* 2. Resident Household Selection */}

@@ -59,7 +59,6 @@ function Workspace() {
               onNavigateToUsers={() => setCurrentTab('users')}
               onNavigateToApartments={() => setCurrentTab('apartments')}
               onNavigateToFees={() => setCurrentTab('fees')}
-              onOpenChangePassword={() => setIsChangePasswordOpen(true)}
             />
           )}
           {currentTab === 'apartments' && <ApartmentManagement />}

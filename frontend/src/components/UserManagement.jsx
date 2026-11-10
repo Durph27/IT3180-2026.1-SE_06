@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { getUsersApi, updateUserStatusApi } from '../api/users'
 import { useAuth } from '../hooks/useAuth'
-import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon, RefreshIcon } from './Icons'
+import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon, RefreshIcon, AlertTriangleIcon, XIcon } from './Icons'
 import PermissionGate from './PermissionGate'
 import ForbiddenView from './ForbiddenView'
 import CreateUserDialog from './CreateUserDialog'
@@ -271,9 +271,10 @@ function UserManagementContent({ onBack }) {
       {/* Alert Messages */}
       {error && (
         <div className="alert alert-danger" role="alert">
+          <AlertTriangleIcon size={18} aria-hidden="true" />
           <span>{error}</span>
           <button type="button" className="alert-close" onClick={() => setError('')} aria-label="Đóng thông báo lỗi">
-            &times;
+            <XIcon size={14} />
           </button>
         </div>
       )}
@@ -282,7 +283,7 @@ function UserManagementContent({ onBack }) {
         <div className="alert alert-success" role="alert">
           <span>{successMsg}</span>
           <button type="button" className="alert-close" onClick={() => setSuccessMsg('')} aria-label="Đóng thông báo thành công">
-            &times;
+            <XIcon size={14} />
           </button>
         </div>
       )}
@@ -292,8 +293,9 @@ function UserManagementContent({ onBack }) {
         <div className="search-box">
           <SearchIcon size={16} />
           <input
-            type="text"
+            type="search"
             className="search-input"
+            aria-label="Tìm theo tên đăng nhập hoặc tên hiển thị"
             placeholder="Tìm theo tên đăng nhập hoặc tên hiển thị…"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -474,7 +476,7 @@ function UserManagementContent({ onBack }) {
 
               {actionTarget.action === 'LOCK' && (
                 <div className="dialog-warning-banner">
-                  <span>⚠️</span>
+                  <AlertTriangleIcon size={18} aria-hidden="true" />
                   <span>Tài khoản sau khi khóa sẽ bị ngắt phiên và từ chối mọi yêu cầu đăng nhập tiếp theo.</span>
                 </div>
               )}

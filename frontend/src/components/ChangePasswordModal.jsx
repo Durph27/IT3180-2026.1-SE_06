@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { KeyIcon, CheckCircleIcon, XIcon } from './Icons'
+import { KeyIcon, CheckCircleIcon, XIcon, AlertTriangleIcon } from './Icons'
 
 export default function ChangePasswordModal({ isOpen, onClose }) {
   const { changePassword } = useAuth()
@@ -174,7 +174,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
             <div className="dialog-body">
               {error && (
                 <div className="alert-banner alert-danger" role="alert">
-                  <span>⚠️</span>
+                  <AlertTriangleIcon size={18} aria-hidden="true" />
                   <div>{error}</div>
                 </div>
               )}

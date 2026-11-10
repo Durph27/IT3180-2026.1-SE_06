@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useModalDialog } from '../hooks/useModalDialog'
 import { useRoleOptions } from '../hooks/useRoleOptions'
 import RolePicker from './RolePicker'
+import { XIcon } from './Icons'
 import { roleSelectionError } from '../auth/roleSelection'
 import { hasValidUsernameChars, USERNAME_HINT } from '../auth/username'
 
@@ -86,7 +87,7 @@ function CreateUserDialogContent({ onClose, onCreated, onFailure }) {
       <div className="modal-content">
         <div className="modal-header">
           <h2 id="create-user-title">Tạo tài khoản người dùng</h2>
-          <button type="button" className="modal-close" disabled={saving} onClick={onClose} aria-label="Đóng hộp thoại">&times;</button>
+          <button type="button" className="modal-close" disabled={saving} onClick={onClose} aria-label="Đóng hộp thoại"><XIcon size={18} /></button>
         </div>
         <form onSubmit={submit} className="modal-body modern-form" aria-busy={saving}>
           {error && <p className="alert alert-error" role="alert">{error}</p>}
