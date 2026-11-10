@@ -27,6 +27,10 @@ backups/
 /local/
 /.local/
 /.agents/
+.claude/
+CLAUDE.md
+.continue/
+skills-lock.json
 
 # Test and tooling output
 **/coverage/
