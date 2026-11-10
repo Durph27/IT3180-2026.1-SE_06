@@ -1,29 +1,43 @@
 import { useAuth } from '../hooks/useAuth'
 import PermissionGate from './PermissionGate'
-import { MoonLogoIcon, BuildingIcon, UsersIcon, KeyIcon, LogoutIcon } from './Icons'
+import {
+  MoonLogoIcon,
+  BuildingIcon,
+  UsersIcon,
+  ApartmentIcon,
+  ReceiptTaxIcon,
+  KeyIcon,
+  LogoutIcon,
+} from './Icons'
 
 export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }) {
-  const { user, roles, logout } = useAuth()
+  const { user, roles, logout, hasPermission } = useAuth()
+  const canViewApartments = hasPermission('apartment.read')
+  const canViewFees = hasPermission('fee-type.read') || hasPermission('fee-rate.read')
   const initial = (user?.displayName || user?.username || 'U').charAt(0).toUpperCase()
-  const roleCode = (typeof roles[0] === 'string' ? roles[0] : roles[0]?.code) || 'USER'
   const roleName = roles.map((role) => typeof role === 'string' ? role : role?.name || role?.code).filter(Boolean).join(', ') || 'Chưa có vai trò'
 
   return (
     <header className="navbar">
       <div className="navbar-container">
         {/* Brand */}
-        <div className="navbar-brand" onClick={() => onSelectTab('overview')} style={{ cursor: 'pointer' }}>
+        <button
+          type="button"
+          className="navbar-brand"
+          onClick={() => onSelectTab('overview')}
+          title="Về tổng quan BlueMoon"
+        >
           <div className="brand-logo-wrapper">
-            <MoonLogoIcon size={20} className="brand-moon-icon" />
+            <MoonLogoIcon size={20} />
           </div>
           <div className="brand-text">
             <span className="navbar-title">BlueMoon</span>
-            <span className="brand-subtitle">Fee Management</span>
+            <span className="brand-subtitle">Quản lý thu phí chung cư</span>
           </div>
-        </div>
+        </button>
 
         {/* Navigation Tabs */}
-        <nav className="navbar-nav" aria-label="Điều hướng chính">
+        <nav className="navbar-nav" aria-label="Thanh điều hướng chính">
           <button
             type="button"
             className={`nav-link ${currentTab === 'overview' ? 'active' : ''}`}
@@ -33,6 +47,28 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             <BuildingIcon size={16} />
             <span>Tổng quan</span>
           </button>
+          {canViewApartments && (
+            <button
+              type="button"
+              className={`nav-link ${currentTab === 'apartments' ? 'active' : ''}`}
+              aria-current={currentTab === 'apartments' ? 'page' : undefined}
+              onClick={() => onSelectTab('apartments')}
+            >
+              <ApartmentIcon size={16} />
+              <span>Căn hộ</span>
+            </button>
+          )}
+          {canViewFees && (
+            <button
+              type="button"
+              className={`nav-link ${currentTab === 'fees' ? 'active' : ''}`}
+              aria-current={currentTab === 'fees' ? 'page' : undefined}
+              onClick={() => onSelectTab('fees')}
+            >
+              <ReceiptTaxIcon size={16} />
+              <span>Biểu phí</span>
+            </button>
+          )}
           <PermissionGate permission="user.read">
             <button
               type="button"
@@ -54,7 +90,7 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
             </div>
             <div className="user-details">
               <span className="user-name">{user?.displayName || user?.username}</span>
-              <span className={`user-role-badge role-${roleCode.toLowerCase()}`}>
+              <span className="user-role-badge">
                 {roleName}
               </span>
             </div>
@@ -63,16 +99,16 @@ export default function Navbar({ currentTab, onSelectTab, onOpenChangePassword }
           <div className="navbar-actions">
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
+              className="btn-nav-action"
               onClick={onOpenChangePassword}
-              title="Đổi mật khẩu tài khoản"
+              title="Đổi mật khẩu tài khoản hiện tại"
             >
               <KeyIcon size={14} />
               <span>Đổi mật khẩu</span>
             </button>
             <button
               type="button"
-              className="btn btn-outline btn-sm btn-logout"
+              className="btn-nav-action btn-nav-logout"
               onClick={logout}
               title="Đăng xuất khỏi hệ thống"
             >

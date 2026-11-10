@@ -7,6 +7,7 @@ import { useModalDialog } from '../hooks/useModalDialog'
 import { useRoleOptions } from '../hooks/useRoleOptions'
 import RolePicker from './RolePicker'
 import { roleSelectionError } from '../auth/roleSelection'
+import { XIcon } from './Icons'
 
 export default function UserRoleDialog(props) {
   const { hasPermission } = useAuth()
@@ -64,7 +65,7 @@ function UserRoleDialogContent({ targetUser, onClose, onSaved, onFailure }) {
       <div className="modal-content">
         <div className="modal-header">
           <h2 id="user-role-title">Đổi vai trò tài khoản</h2>
-          <button type="button" className="modal-close" disabled={saving} onClick={onClose} aria-label="Đóng hộp thoại">&times;</button>
+          <button type="button" className="modal-close" disabled={saving} onClick={onClose} aria-label="Đóng hộp thoại"><XIcon size={18} /></button>
         </div>
         <form onSubmit={submit} className="modal-body modern-form" aria-busy={saving}>
           <p>Đang chỉnh sửa <strong>{targetUser.displayName || targetUser.username}</strong> ({targetUser.username}).</p>
