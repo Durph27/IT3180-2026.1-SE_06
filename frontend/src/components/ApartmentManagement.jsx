@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { getApartmentsApi, getAllBuildingsApi } from '../api/apartments'
 import { useAuth } from '../hooks/useAuth'
 import ApartmentFormModal from './ApartmentFormModal'
+import HouseholdLinkDialog from './HouseholdLinkDialog'
+import { getActiveOccupanciesApi, getAllHouseholdsApi } from '../api/households'
+import { todayInVietnam } from '../residents/validation'
+import { occupancyByApartment } from '../utils/householdLinks'
 import PageHeader from './PageHeader'
 import StatCard from './StatCard'
 import FilterBar, { FilterField } from './FilterBar'
@@ -33,6 +37,10 @@ export default function ApartmentManagement() {
   const canRead = hasPermission('apartment.read')
   const canWrite = hasPermission('apartment.write')
   const canReadBuildings = hasPermission('building.read')
+  const canReadHouseholds = hasPermission('occupancy.read') && hasPermission('household.read')
+  const canLinkHouseholds = canReadHouseholds && hasPermission('household.write') && hasPermission('occupancy.write')
+  const [residence, setResidence] = useState({ revision: -1, occupancies: [], households: [], error: '' })
+  const [linkTarget, setLinkTarget] = useState(null)
   const [buildingLoading, setBuildingLoading] = useState(false)
   const [buildingError, setBuildingError] = useState('')
   const [buildingRevision, setBuildingRevision] = useState(0)
@@ -62,6 +70,25 @@ export default function ApartmentManagement() {
   const [editingApartment, setEditingApartment] = useState(null)
 
   const refreshApartments = useCallback(() => setRevision((value) => value + 1), [])
+  const today = todayInVietnam()
+
+  useEffect(() => {
+    if (!canReadHouseholds) return undefined
+    const controller = new AbortController()
+    const { signal } = controller
+    Promise.all([getActiveOccupanciesApi(today, signal), getAllHouseholdsApi(signal)])
+      .then(([occupancies, households]) => {
+        if (!signal.aborted) setResidence({ revision, occupancies, households, error: '' })
+      })
+      .catch((err) => {
+        if (!signal.aborted) setResidence({ revision, occupancies: [], households: [], error: err.response?.data?.message || 'Không thể tải hộ cư trú của các căn hộ.' })
+      })
+    return () => controller.abort()
+  }, [canReadHouseholds, today, revision])
+
+  const residenceReady = residence.revision === revision && !residence.error
+  const occupancyMap = useMemo(() => occupancyByApartment(residence.occupancies, today), [residence, today])
+  const householdMap = useMemo(() => new Map(residence.households.map((household) => [household.id, household])), [residence])
   const refreshBuildings = useCallback(() => setBuildingRevision((value) => value + 1), [])
 
   useEffect(() => {
@@ -192,7 +219,8 @@ export default function ApartmentManagement() {
     return <ForbiddenView />
   }
 
-  const columns = canWrite ? 6 : 5
+  const hasActions = canWrite || canLinkHouseholds
+  const columns = 5 + (canReadHouseholds ? 1 : 0) + (hasActions ? 1 : 0)
   const filtered = Boolean(searchCode || buildingFilter !== 'ALL' || statusFilter !== 'ALL')
 
   return (
@@ -233,6 +261,14 @@ export default function ApartmentManagement() {
           <AlertTriangleIcon size={18} className="shrink-0" />
           <div className="flex-1">{buildingError}</div>
           <button type="button" className="btn btn-secondary btn-sm" onClick={refreshBuildings}>Thử lại tòa nhà</button>
+        </div>
+      )}
+
+      {residence.error && (
+        <div className="alert alert-error items-center!" role="alert">
+          <AlertTriangleIcon size={18} className="shrink-0" />
+          <div className="flex-1">{residence.error}</div>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={refreshApartments}>Thử lại</button>
         </div>
       )}
 
@@ -311,7 +347,8 @@ export default function ApartmentManagement() {
                 <th scope="col">Tầng</th>
                 <th scope="col" className={NUMBER_CELL}>Diện tích (m²)</th>
                 <th scope="col">Trạng thái</th>
-                {canWrite && <th scope="col" className="text-right!">Thao tác</th>}
+                {canReadHouseholds && <th scope="col">Hộ cư trú</th>}
+                {hasActions && <th scope="col" className="text-right!">Thao tác</th>}
               </tr>
             </thead>
             <tbody>
@@ -352,6 +389,7 @@ export default function ApartmentManagement() {
               ) : (
                 apartments.map((apt) => {
                   const b = buildingMap[apt.buildingId]
+                  const occupancy = occupancyMap.get(apt.id)
                   return (
                     <tr key={apt.id}>
                       <th scope="row" className="row-header-th">
@@ -367,17 +405,37 @@ export default function ApartmentManagement() {
                           ? <StatusBadge tone={APARTMENT_STATUS[apt.status].tone}>{APARTMENT_STATUS[apt.status].label}</StatusBadge>
                           : <StatusBadge>{apt.status}</StatusBadge>}
                       </td>
-                      {canWrite && (
+                      {canReadHouseholds && (
+                        <td data-label="Hộ cư trú">
+                          {!residenceReady ? '…' : occupancy ? householdMap.get(occupancy.householdId)?.code ?? '—' : <span className="text-slate-500">Chưa có hộ</span>}
+                        </td>
+                      )}
+                      {hasActions && (
                         <td data-label="Thao tác" className="text-right!">
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => handleOpenEdit(apt)}
-                            aria-label={`Chỉnh sửa căn hộ ${apt.code}`}
-                          >
-                            <EditIcon size={14} />
-                            <span>Sửa</span>
-                          </button>
+                          <div className="inline-flex flex-wrap justify-end gap-2">
+                            {canLinkHouseholds && residenceReady && !occupancy && apt.status !== 'INACTIVE' && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => { setSuccessMsg(''); setLinkTarget(apt) }}
+                                aria-label={`Gắn hộ gia đình vào căn hộ ${apt.code}`}
+                              >
+                                <PlusIcon size={14} />
+                                <span>Gắn hộ</span>
+                              </button>
+                            )}
+                            {canWrite && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => handleOpenEdit(apt)}
+                                aria-label={`Chỉnh sửa căn hộ ${apt.code}`}
+                              >
+                                <EditIcon size={14} />
+                                <span>Sửa</span>
+                              </button>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -389,6 +447,20 @@ export default function ApartmentManagement() {
         </div>
         <Pagination page={page} totalPages={totalPages} totalElements={totalElements} unit="căn hộ" disabled={loading} onPageChange={setPage} />
       </div>
+
+      {linkTarget && (
+        <HouseholdLinkDialog
+          key={linkTarget.id}
+          apartment={linkTarget}
+          households={residence.households}
+          onClose={() => setLinkTarget(null)}
+          onDone={(message) => {
+            setLinkTarget(null)
+            setSuccessMsg(message)
+            refreshApartments()
+          }}
+        />
+      )}
 
       {isModalOpen && (
         <ApartmentFormModal

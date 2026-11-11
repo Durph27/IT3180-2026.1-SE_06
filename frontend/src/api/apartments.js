@@ -17,6 +17,19 @@ export async function getApartmentsApi({
   return response.data
 }
 
+export async function getAllApartmentsApi({ signal } = {}) {
+  const apartments = []
+  let page = 0
+  let totalPages
+  do {
+    const data = await getApartmentsApi({ page, size: 100, sort: 'code,asc' }, { signal })
+    apartments.push(...data.content)
+    totalPages = data.totalPages
+    page += 1
+  } while (page < totalPages)
+  return apartments
+}
+
 export async function getApartmentByIdApi(id, { signal } = {}) {
   const response = await api.get(`/apartments/${id}`, { signal })
   return response.data

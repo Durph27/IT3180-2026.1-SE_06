@@ -1,6 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { approveRegistrationApi, getPendingRegistrationsApi, rejectRegistrationApi } from '../api/registrations'
-import { getOpenHouseholdsApi } from '../api/households'
+import { getActiveOccupanciesApi, getAllHouseholdsApi, getHouseholdMembersApi, placeHouseholdApi } from '../api/households'
+import { getAllApartmentsApi, getAllBuildingsApi } from '../api/apartments'
+import { activeMembers } from './personOptions'
+import { todayInVietnam } from '../residents/validation'
+import { approvalPlacement, findApartmentByCode, householdCodeError, occupancyByApartment, suggestHouseholdCode } from '../utils/householdLinks'
 import { apiErrorMessage } from '../api/errors'
 import { useModalDialog } from '../hooks/useModalDialog'
 
@@ -75,31 +79,83 @@ export default function RegistrationRequests({ onReviewed }) {
 }
 
 function ApproveDialog({ request, onClose, onDone }) {
-  const [households, setHouseholds] = useState(null)
-  const [householdId, setHouseholdId] = useState('')
+  const [directory, setDirectory] = useState(null)
+  const [version, setVersion] = useState(0)
+  const [pickedApartmentId, setPickedApartmentId] = useState(null)
+  const [codeDrafts, setCodeDrafts] = useState({})
+  const [headCheck, setHeadCheck] = useState({ householdId: null, hasHead: undefined })
+  const [pendingHousehold, setPendingHousehold] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const ref = useModalDialog(onClose, saving)
+  const today = todayInVietnam()
 
   useEffect(() => {
-    let ignore = false
-    getOpenHouseholdsApi()
-      .then((rows) => { if (!ignore) setHouseholds(rows) })
-      .catch((err) => { if (!ignore) { setHouseholds([]); setError(apiErrorMessage(err, 'Không thể tải danh sách hộ.')) } })
-    return () => { ignore = true }
-  }, [])
+    const controller = new AbortController()
+    const { signal } = controller
+    Promise.all([getAllApartmentsApi({ signal }), getAllBuildingsApi({ signal }), getActiveOccupanciesApi(today, signal), getAllHouseholdsApi(signal)])
+      .then(([apartments, buildings, occupancies, households]) => {
+        if (!signal.aborted) setDirectory({ apartments, buildings, occupancies, households })
+      })
+      .catch((err) => {
+        if (!signal.aborted) { setDirectory({ apartments: [], buildings: [], occupancies: [], households: [] }); setError(apiErrorMessage(err, 'Không thể tải danh sách căn hộ và hộ gia đình.')) }
+      })
+    return () => controller.abort()
+  }, [today, version])
+
+  const occupancies = useMemo(() => occupancyByApartment(directory?.occupancies ?? [], today), [directory, today])
+  const households = useMemo(() => new Map((directory?.households ?? []).map((household) => [household.id, household])), [directory])
+  const buildings = useMemo(() => new Map((directory?.buildings ?? []).map((building) => [building.id, building])), [directory])
+  const declared = directory ? findApartmentByCode(directory.apartments, request.apartmentCode) : null
+  const apartmentId = pickedApartmentId ?? declared?.id ?? ''
+  const apartment = directory?.apartments.find((item) => item.id === apartmentId) ?? null
+  const occupancy = apartment ? occupancies.get(apartment.id) : undefined
+  const occupyingHousehold = occupancy ? households.get(occupancy.householdId) : null
+  const takenCodes = (directory?.households ?? []).map((household) => household.code)
+  const code = apartment ? codeDrafts[apartment.id] ?? suggestHouseholdCode(apartment.code, takenCodes) : ''
+  const pendingId = pendingHousehold && apartment && pendingHousehold.apartmentId === apartment.id ? pendingHousehold.householdId : null
+  const codeError = pendingId ? '' : householdCodeError(code, takenCodes)
+  const placement = approvalPlacement({ apartment, occupancy, hasHead: headCheck.householdId === occupancy?.householdId ? headCheck.hasHead : undefined })
+
+  useEffect(() => {
+    if (!occupancy) return undefined
+    const controller = new AbortController()
+    getHouseholdMembersApi(occupancy.householdId, controller.signal)
+      .then((rows) => { if (!controller.signal.aborted) setHeadCheck({ householdId: occupancy.householdId, hasHead: activeMembers(rows, today).some((member) => member.isHead) }) })
+      .catch((err) => { if (!controller.signal.aborted) setError(apiErrorMessage(err, 'Không thể kiểm tra chủ hộ của hộ đang ở căn này.')) })
+    return () => controller.abort()
+  }, [occupancy, today])
+
+  const apartmentLabel = (item) => {
+    const building = buildings.get(item.buildingId)
+    const current = occupancies.get(item.id)
+    const state = item.status === 'INACTIVE' ? 'Tạm ngưng' : current ? `Hộ ${households.get(current.householdId)?.code ?? 'đang ở'}` : 'Còn trống'
+    return `${item.code}${building ? ` · ${building.name}` : ''} — ${state}`
+  }
+  const canSubmit = !saving && (placement === 'open' || (placement === 'vacant' && !codeError))
 
   const submit = async (event) => {
     event.preventDefault()
-    if (!householdId) return
+    if (!canSubmit) return
     setSaving(true)
     setError('')
     try {
+      const householdId = placement === 'open'
+        ? occupancy.householdId
+        : await placeHouseholdApi({
+          householdId: pendingId,
+          code,
+          apartmentId: apartment.id,
+          validFrom: today,
+          onHouseholdCreated: (id) => setPendingHousehold({ apartmentId: apartment.id, householdId: id }),
+        })
       await approveRegistrationApi(request.id, householdId)
-      await onDone(`Đã duyệt và kích hoạt tài khoản "${request.username}".`)
+      await onDone(`Đã duyệt và kích hoạt tài khoản "${request.username}" tại căn ${apartment.code}.`)
     } catch (err) {
       setError(apiErrorMessage(err, 'Không thể duyệt yêu cầu.'))
       setSaving(false)
+      // A step may have succeeded before the failure; reload so a retry continues from the real state.
+      setVersion((value) => value + 1)
     }
   }
 
@@ -112,21 +168,35 @@ function ApproveDialog({ request, onClose, onDone }) {
         </div>
         <form onSubmit={submit} className="modal-body modern-form" aria-busy={saving}>
           {error && <p className="alert alert-error" role="alert">{error}</p>}
-          <p><strong>{request.fullName}</strong> khai báo căn hộ <strong>{request.apartmentCode}</strong> và sẽ trở thành chủ hộ của hộ được chọn.</p>
-          {households === null ? <p role="status">Đang tải danh sách hộ…</p> : households.length === 0 && !error
-            ? <p className="alert alert-info">Chưa có hộ nào đang mở. Cần tạo hộ gia đình trước khi duyệt.</p>
-            : (
+          <p><strong>{request.fullName}</strong> khai báo căn hộ <strong>{request.apartmentCode}</strong> và sẽ trở thành chủ hộ của hộ ở căn được chọn.</p>
+          {directory === null ? <p role="status">Đang tải danh sách căn hộ…</p> : (
+            <>
+              {!declared && <p className="alert alert-info"><span>Căn hộ khai báo "{request.apartmentCode}" chưa có trong hệ thống. Tạo căn hộ ở trang Căn hộ, hoặc chọn căn khác nếu cư dân khai sai mã.</span></p>}
               <div className="form-group">
-                <label htmlFor="approve-household">Hộ gia đình</label>
-                <select id="approve-household" className="form-control" value={householdId} onChange={(event) => setHouseholdId(event.target.value)} disabled={saving} required>
-                  <option value="">Chọn hộ…</option>
-                  {households.map((household) => <option key={household.id} value={household.id}>{household.code}</option>)}
+                <label htmlFor="approve-apartment">Căn hộ</label>
+                <select id="approve-apartment" className="form-control" value={apartmentId} onChange={(event) => { setPickedApartmentId(event.target.value); setError('') }} disabled={saving} required>
+                  <option value="">Chọn căn hộ…</option>
+                  {directory.apartments.map((item) => <option key={item.id} value={item.id} disabled={item.status === 'INACTIVE'}>{apartmentLabel(item)}</option>)}
                 </select>
+                {declared && apartment && apartment.id !== declared.id && <span className="field-hint">Căn được chọn khác căn {declared.code} mà cư dân khai báo.</span>}
               </div>
-            )}
+              {placement === 'vacant' && (
+                <div className="form-group">
+                  <label htmlFor="approve-household-code">Mã hộ mới</label>
+                  <input id="approve-household-code" className="form-control" maxLength={30} value={code} onChange={(event) => setCodeDrafts((drafts) => ({ ...drafts, [apartment.id]: event.target.value }))} disabled={saving || Boolean(pendingId)} aria-invalid={Boolean(codeError)} aria-describedby="approve-household-hint" />
+                  <span id="approve-household-hint" className={codeError ? 'field-hint text-danger' : 'field-hint'}>
+                    {codeError || 'Căn còn trống: hệ thống sẽ tạo hộ mới, gắn vào căn từ hôm nay rồi đặt người đăng ký làm chủ hộ.'}
+                  </span>
+                </div>
+              )}
+              {placement === 'checking' && <p role="status">Đang kiểm tra hộ đang ở căn này…</p>}
+              {placement === 'open' && <p className="alert alert-info"><span>Hộ <strong>{occupyingHousehold?.code}</strong> đang ở căn này và chưa có chủ hộ. {request.fullName} sẽ trở thành chủ hộ.</span></p>}
+              {placement === 'headed' && <p className="alert alert-error"><span>Hộ <strong>{occupyingHousehold?.code}</strong> đang ở căn này đã có chủ hộ. Người đăng ký luôn trở thành chủ hộ nên không thể duyệt vào hộ này. Nếu đây là thành viên của hộ, hãy từ chối yêu cầu để chủ hộ tự thêm ở trang Hộ gia đình.</span></p>}
+            </>
+          )}
           <div className="modal-actions">
             <button type="button" className="btn btn-outline" disabled={saving} onClick={onClose}>Hủy</button>
-            <button type="submit" className="btn btn-primary" disabled={saving || !householdId}>{saving ? 'Đang duyệt…' : 'Duyệt và kích hoạt'}</button>
+            <button type="submit" className="btn btn-primary" disabled={!canSubmit}>{saving ? 'Đang duyệt…' : 'Duyệt và kích hoạt'}</button>
           </div>
         </form>
       </div>
