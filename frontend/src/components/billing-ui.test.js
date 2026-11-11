@@ -20,6 +20,8 @@ const { default: DueDateAlertBanner } = await server.ssrLoadModule('/src/compone
 const { default: FeeItemTable } = await server.ssrLoadModule('/src/components/FeeItemTable.jsx')
 const { default: Navbar } = await server.ssrLoadModule('/src/components/Navbar.jsx')
 const { default: OutstandingPeriods } = await server.ssrLoadModule('/src/components/OutstandingPeriods.jsx')
+const { default: BillingPeriodCreateModal } = await server.ssrLoadModule('/src/components/BillingPeriodCreateModal.jsx')
+const { generateIdempotencyKey } = await server.ssrLoadModule('/src/api/billing.js')
 
 function auth(role, overrides = {}) {
   const value = {
@@ -113,4 +115,34 @@ test('long tables paginate', () => {
   const html = renderToStaticMarkup(h(FeeItemTable, { category: 'MANDATORY', items, total: 0n }))
   assert.match(html, /Trang 1\/2/)
   assert.doesNotMatch(html, /Phí 50</)
+})
+
+test('BillingPeriodCreateModal renders form fields and buttons', () => {
+  const html = renderToStaticMarkup(h(BillingPeriodCreateModal, { isOpen: true, onClose() {}, onSuccess() {} }))
+  assert.match(html, /Tạo kỳ thu mới/)
+  assert.match(html, /Mã kỳ thu/)
+  assert.match(html, /Ngày bắt đầu kỳ/)
+  assert.match(html, /Ngày kết thúc kỳ/)
+  assert.match(html, /Ngày chốt dữ liệu/)
+  assert.match(html, /Hạn nộp tiền/)
+  assert.match(html, /Tạo kỳ thu/)
+})
+
+test('staff sees create period button on billing page header', () => {
+  const managerHtml = render(auth('MANAGER'), BillingPage, { onBack() {} })
+  assert.match(managerHtml, /Tạo kỳ thu mới/)
+  const residentHtml = render(auth('RESIDENT'), BillingPage, { onBack() {} })
+  assert.doesNotMatch(residentHtml, /Tạo kỳ thu mới/)
+})
+
+test('generateIdempotencyKey generates keys matching OpenAPI constraints', () => {
+  const key1 = generateIdempotencyKey('gen-inv')
+  const key2 = generateIdempotencyKey('issue-period')
+  assert.ok(key1.length >= 1 && key1.length <= 80)
+  assert.ok(key2.length >= 1 && key2.length <= 80)
+  assert.match(key1, /^[A-Za-z0-9._:-]+$/)
+  assert.match(key2, /^[A-Za-z0-9._:-]+$/)
+  assert.match(key1, /^gen-inv-/)
+  assert.match(key2, /^issue-period-/)
+  assert.notEqual(key1, key2)
 })
