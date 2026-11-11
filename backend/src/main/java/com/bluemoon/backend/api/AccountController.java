@@ -19,6 +19,34 @@ public class AccountController {
         return api.execute("POST /auth/login", path, query, body, request);
     }
 
+    @RequestMapping(value = "/auth/register", method = RequestMethod.POST)
+    public ResponseEntity<?> post_auth_register(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /auth/register", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/registrations", method = RequestMethod.GET)
+    public ResponseEntity<?> get_registrations(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("GET /registrations", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/registrations/{id}/approve", method = RequestMethod.POST)
+    public ResponseEntity<?> post_registrations_by_id_approve(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /registrations/{id}/approve", path, query, body, request);
+    }
+
+    @RequestMapping(value = "/registrations/{id}/reject", method = RequestMethod.POST)
+    public ResponseEntity<?> post_registrations_by_id_reject(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /registrations/{id}/reject", path, query, body, request);
+    }
+
     @RequestMapping(value = "/auth/me", method = RequestMethod.GET)
     public ResponseEntity<?> get_auth_me(@PathVariable Map<String, String> path,
             @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,

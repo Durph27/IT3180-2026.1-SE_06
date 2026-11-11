@@ -22,7 +22,7 @@ TEST_POSTGRES_USER=postgres TEST_POSTGRES_PASSWORD=secret \
 ./mvnw test -Dtest=PostgresSprintOneTests
 ```
 
-Frontend (inside `frontend/`): `npm ci`, `npm run dev`, `npm run build`, `npm run lint` (oxlint, config in `.oxlintrc.json`), `npm test` (`node --test src/utils/*.test.js` — validation helpers only, no component tests).
+Frontend (inside `frontend/`): `npm ci`, `npm run dev`, `npm run build`, `npm run lint` (oxlint, config in `.oxlintrc.json`), `npm test` (`node --test` over `src/auth`, `src/components`, `src/context`, `src/__tests__` and `src/utils`).
 
 Database utility (repository root, Python 3, needs `pg_dump`/`pg_restore`/`psql` on PATH or `--pg-bin`):
 
@@ -73,11 +73,11 @@ So a new endpoint or field means: edit `docs/api/openapi.json` → add the contr
 
 ## Frontend architecture
 
-`App.jsx` uses `useState` for tab navigation — there is no router. `ErrorBoundary` wraps `AuthProvider`, which wraps the authenticated shell; `useAuth()` (`src/hooks/useAuth.js`, from `src/context/AuthContext.js`) exposes the current user, roles, permissions, household IDs and loading state. Startup validates a stored token against `GET /auth/me`.
+`App.jsx` routes pages with `react-router` (`BrowserRouter`); paths are Vietnamese and defined once in `src/routes.js` (`/tong-quan`, `/can-ho`, `/bieu-phi`, `/khoan-thu?ky=<mã kỳ>`, …). Signed-out deep links return to the requested page after login, while a deliberate logout always sends the next login to `/tong-quan`. Each page enforces its own permission check because any URL can be typed directly. `ErrorBoundary` wraps `AuthProvider`, which wraps the router and the authenticated shell (`Navbar` sidebar + `Topbar` account menu); `useAuth()` (`src/hooks/useAuth.js`, from `src/context/AuthContext.js`) exposes the current user, roles, permissions, household IDs and loading state. Startup validates a stored token against `GET /auth/me`.
 
 All feature API modules (`src/api/apartments.js`, `fees.js`, `users.js`, `auth.js`) must go through the shared `api` Axios instance in `src/api/client.js`: it injects `Authorization: Bearer <token>` from `localStorage['bluemoon_access_token']` and clears the session on any 401 that is not `/auth/login` via `registerUnauthorizedCallback`. Bypassing it loses token handling and auto-logout.
 
-Styling mixes legacy component CSS (`App.css`) with **Tailwind v4** through `@tailwindcss/vite`. `src/index.css` imports only `tailwindcss/theme.css` and `tailwindcss/utilities.css` **without Preflight** to keep the existing reset. Legacy unlayered CSS beats layered Tailwind utilities for the same property — remove the conflicting legacy rule when converting a component instead of expecting utilities to win.
+Styling mixes legacy component CSS (`App.css`) with **Tailwind v4** through `@tailwindcss/vite`. `src/index.css` imports only `tailwindcss/theme.css` and `tailwindcss/utilities.css` **without Preflight** to keep the existing reset. Legacy unlayered CSS beats layered Tailwind utilities for the same property — remove the conflicting legacy rule when converting a component instead of expecting utilities to win. Build page layouts from the shared `PageHeader`, `StatCard`, `FilterBar`/`FilterField`, `StatusBadge` and `Pagination` components with `table-card`/`modern-table` tables; dialog and form classes such as `modern-dialog` and `form-input` live at the end of `App.css`, mapped onto the same color tokens.
 
 Form validation lives in pure helpers under `src/utils/` (`apartmentValidation.js`, `feeValidation.js`) with `node:test` unit tests beside them; keep user-facing validation messages in Vietnamese and mirror the backend contract limits (e.g. `code` ≤ 20 chars, `areaM2` scaled to 2 decimals).
 
@@ -97,6 +97,6 @@ Before considering any frontend UI task complete, inspect the rendered interface
 
 Backend tests are HTTP-level integration tests: `SprintOneTests` boots the app on a random port against H2 in `MODE=PostgreSQL` with a fixed bootstrap admin, then drives flows (`home()`, `draft()`, `payment()`, `user()`) through the real API. `BackendApplicationTests` covers hello/health/CORS, `HealthServiceTests` asserts a DB outage yields 503 and `database=DOWN`, `FiveRoleMigrationTests` pins the role migration behavior. Prefer extending these fixtures over mocking services, because validation, permissions and idempotency only exist at the HTTP boundary.
 
-Frontend has no component test runner. Only the pure validators are covered: `npm test` runs `node --test src/utils/*.test.js` (`apartmentValidation.test.js`, `feeValidation.test.js`). Put new validation logic in `src/utils/` so it stays unit-testable.
+Frontend tests use `node:test`. Pure helpers (`src/utils/*.test.js`, `src/__tests__`) are tested directly; component tests compile the real JSX through Vite `ssrLoadModule` and render it with `react-dom/server` inside a `MemoryRouter`, and `src/context/AuthProvider.test.js` drives the whole `App` in happy-dom. Put new validation logic in `src/utils/` so it stays unit-testable.
 
 Git history follows Conventional Commits with a scope (`feat(backup):`, `test(sprint):`, `docs(api):`, `fix(erd):`).

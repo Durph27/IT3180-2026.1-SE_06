@@ -10,6 +10,10 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | GET | `/auth/me` | Hồ sơ và quyền hiện tại | — | 200 UserProfile | `AUTHENTICATED` |
 | PATCH | `/auth/me` | Đổi tên hiển thị | MeUpdate | 200 UserProfile | `AUTHENTICATED` |
 | POST | `/auth/change-password` | Đổi mật khẩu | PasswordChangeRequest | 204 — | `AUTHENTICATED` |
+| POST | `/auth/register` | Cư dân đăng ký tài khoản (chờ duyệt) | RegistrationCreate | 201 RegistrationReceipt | `PUBLIC` |
+| GET | `/registrations` | Danh sách yêu cầu đăng ký | — | 200 AccountRegistrationPage | `user.manage` |
+| POST | `/registrations/{id}/approve` | Duyệt, gắn chủ hộ và kích hoạt tài khoản | RegistrationApproveRequest | 200 AccountRegistration | `user.manage` |
+| POST | `/registrations/{id}/reject` | Từ chối yêu cầu đăng ký | RejectRequest | 200 AccountRegistration | `user.manage` |
 
 ## Cư trú
 
@@ -39,6 +43,7 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | POST | `/households/{id}/members` | Thêm thành viên hộ | MemberCreate | 201 HouseholdMember | `household.write` |
 | POST | `/households/{id}/members/{memberId}/end` | Kết thúc tư cách thành viên | EndDateRequest | 200 HouseholdMember | `household.write` |
 | PUT | `/households/{id}/head` | Chọn chủ hộ | HeadRequest | 200 HouseholdMember | `household.write` |
+| POST | `/households/{id}/family-members` | Chủ hộ thêm nhân khẩu (không tạo tài khoản) | FamilyMemberCreate | 201 HouseholdMember | `household.family.write` |
 | GET | `/residence-changes` | Danh sách ResidenceChange | — | 200 ResidenceChangePage | `residence-change.read` |
 | POST | `/residence-changes` | Tạo ResidenceChange | ResidenceChangeCreate | 201 ResidenceChange | `residence-change.write` |
 | GET | `/residence-changes/{id}` | Chi tiết ResidenceChange | — | 200 ResidenceChange | `residence-change.read` |

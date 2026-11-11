@@ -1,12 +1,17 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { getUsersApi, updateUserStatusApi } from '../api/users'
 import { useAuth } from '../hooks/useAuth'
-import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon, RefreshIcon, AlertTriangleIcon, XIcon } from './Icons'
+import { UsersIcon, PlusIcon, LockIcon, UnlockIcon, SearchIcon, RefreshIcon, AlertTriangleIcon, XIcon, CheckCircleIcon } from './Icons'
+import PageHeader from './PageHeader'
+import StatCard from './StatCard'
 import PermissionGate from './PermissionGate'
 import ForbiddenView from './ForbiddenView'
 import CreateUserDialog from './CreateUserDialog'
 import UserRoleDialog from './UserRoleDialog'
+import RegistrationRequests from './RegistrationRequests'
 import { apiErrorMessage } from '../api/errors'
+
+const ALERT_CLOSE = 'ml-auto grid size-8 shrink-0 cursor-pointer place-items-center rounded-md border-0 bg-transparent text-current opacity-70 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-current'
 
 export default function UserManagement({ onBack }) {
   return (
@@ -210,193 +215,165 @@ function UserManagementContent({ onBack }) {
     return <ForbiddenView onBack={onBack} />
   }
 
+  const filterButton = (value, label) => (
+    <button
+      type="button"
+      className={`filter-btn ${statusFilter === value ? 'active' : ''}`}
+      aria-pressed={statusFilter === value}
+      onClick={() => setStatusFilter(value)}
+    >
+      {label}
+    </button>
+  )
+
   return (
-    <div className="management-view">
-      {/* View Header */}
-      <div className="management-header">
-        <div>
-          <div className="section-title">
-            <UsersIcon size={24} />
-            <h2>Quản lý Tài khoản Hệ thống</h2>
-          </div>
-          <p className="section-subtitle">
-            Quản trị danh sách tài khoản nội bộ, phân quyền vai trò hệ thống và trạng thái hoạt động.
-          </p>
-        </div>
-
-        <div className="header-actions">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={refreshUsers}
-            disabled={loading}
-            title="Tải lại danh sách"
-          >
-            <RefreshIcon size={16} />
-            <span>Làm mới</span>
-          </button>
-          {canCreate && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => {
-                setError('')
-                setSuccessMsg('')
-                setIsCreateOpen(true)
-              }}
-            >
-              <PlusIcon size={16} />
-              <span>Thêm tài khoản mới</span>
+    <div className="user-management-container">
+      <PageHeader
+        title="Quản lý Tài khoản Hệ thống"
+        description="Quản trị danh sách tài khoản nội bộ, phân quyền vai trò hệ thống và trạng thái hoạt động."
+        actions={(
+          <>
+            <button type="button" className="btn btn-secondary" onClick={refreshUsers} disabled={loading} title="Tải lại danh sách">
+              <RefreshIcon size={16} />
+              <span>Làm mới</span>
             </button>
-          )}
-        </div>
+            {canCreate && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  setError('')
+                  setSuccessMsg('')
+                  setIsCreateOpen(true)
+                }}
+              >
+                <PlusIcon size={16} />
+                <span>Thêm tài khoản mới</span>
+              </button>
+            )}
+          </>
+        )}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Tổng số tài khoản" value={counts.total} icon={UsersIcon} />
+        <StatCard label="Đang hoạt động" value={counts.active} tone="success" icon={CheckCircleIcon} />
+        <StatCard label="Đã bị khóa" value={counts.locked} tone="danger" icon={LockIcon} />
       </div>
 
-      {/* Metrics Strip */}
-      <div className="status-strip">
-        <div className="status-badge">
-          <span className="badge-label">Tổng số tài khoản</span>
-          <span className="badge-count count-total">{counts.total}</span>
-        </div>
-        <div className="status-badge">
-          <span className="badge-label">Đang hoạt động</span>
-          <span className="badge-count count-active">{counts.active}</span>
-        </div>
-        <div className="status-badge">
-          <span className="badge-label">Đã bị khóa</span>
-          <span className="badge-count count-locked">{counts.locked}</span>
-        </div>
-      </div>
-
-      {/* Alert Messages */}
       {error && (
-        <div className="alert alert-danger" role="alert">
-          <AlertTriangleIcon size={18} aria-hidden="true" />
-          <span>{error}</span>
-          <button type="button" className="alert-close" onClick={() => setError('')} aria-label="Đóng thông báo lỗi">
+        <div className="alert alert-error" role="alert">
+          <AlertTriangleIcon size={18} className="shrink-0" />
+          <div className="flex-1">{error}</div>
+          <button type="button" className={ALERT_CLOSE} onClick={() => setError('')} aria-label="Đóng thông báo lỗi">
             <XIcon size={14} />
           </button>
         </div>
       )}
-
       {successMsg && (
-        <div className="alert alert-success" role="alert">
-          <span>{successMsg}</span>
-          <button type="button" className="alert-close" onClick={() => setSuccessMsg('')} aria-label="Đóng thông báo thành công">
+        <div className="alert alert-success" role="status">
+          <CheckCircleIcon size={18} className="shrink-0" />
+          <div className="flex-1">{successMsg}</div>
+          <button type="button" className={ALERT_CLOSE} onClick={() => setSuccessMsg('')} aria-label="Đóng thông báo thành công">
             <XIcon size={14} />
           </button>
         </div>
       )}
 
-      {/* Filters Toolbar */}
-      <div className="filters-toolbar">
-        <div className="search-box">
-          <SearchIcon size={16} />
-          <input
-            type="search"
-            className="search-input"
-            aria-label="Tìm theo tên đăng nhập hoặc tên hiển thị"
-            placeholder="Tìm theo tên đăng nhập hoặc tên hiển thị…"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {canManage && <RegistrationRequests onReviewed={refreshUsers} />}
+
+      <div className="table-card">
+        <div className="table-toolbar">
+          <div className="search-box">
+            <SearchIcon size={16} className="search-icon" />
+            <input
+              type="search"
+              className="search-input"
+              placeholder="Tìm theo tên đăng nhập hoặc tên hiển thị…"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Tìm theo tên đăng nhập hoặc tên hiển thị"
+            />
+            {searchTerm && (
+              <button type="button" className="search-clear-btn" onClick={() => setSearchTerm('')} aria-label="Xóa nội dung tìm kiếm">
+                <XIcon size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="filter-buttons-group" role="group" aria-label="Lọc theo trạng thái">
+            {filterButton('ALL', `Tất cả (${counts.total})`)}
+            {filterButton('ACTIVE', `Hoạt động (${counts.active})`)}
+            {filterButton('LOCKED', `Đã khóa (${counts.locked})`)}
+          </div>
         </div>
 
-        <div className="filter-group">
-          <label htmlFor="status-filter-select">Trạng thái:</label>
-          <select
-            id="status-filter-select"
-            className="filter-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="ALL">Tất cả ({counts.total})</option>
-            <option value="ACTIVE">Đang hoạt động ({counts.active})</option>
-            <option value="LOCKED">Đã khóa ({counts.locked})</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Users Table / Content */}
-      <div className="table-responsive-container">
         {loading && users.length === 0 ? (
-          <div className="loading-state">
-            <span className="loading-spinner" />
+          <div className="table-loading-box">
+            <div className="loading-spinner-ring" />
             <p>Đang tải danh sách tài khoản…</p>
           </div>
         ) : (
-          <div className="table-container">
-            <table className="app-table" aria-label="Danh sách tài khoản">
+          <div tabIndex={0} role="region" aria-labelledby="user-table-caption" className="table-wrapper">
+            <table className="modern-table">
+              <caption id="user-table-caption" className="table-caption">
+                Danh sách người dùng và phân quyền hệ thống
+              </caption>
               <thead>
                 <tr>
-                  <th scope="col" style={{ width: '80px' }}>STT</th>
-                  <th scope="col">Tên đăng nhập</th>
+                  <th scope="col">Tài khoản</th>
                   <th scope="col">Tên hiển thị</th>
-                  <th scope="col" style={{ width: '160px' }}>Trạng thái</th>
-                  <th scope="col" style={{ width: '180px' }}>Ngày tạo</th>
-                  {canAct && (
-                    <th scope="col" style={{ width: '220px', textAlign: 'right' }}>
-                      Thao tác
-                    </th>
-                  )}
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col">Ngày tạo</th>
+                  {canAct && <th scope="col" style={{ textAlign: 'right' }}>Thao tác</th>}
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={canAct ? 6 : 5}>
-                      <div className="empty-table-state">
-                        <div className="empty-table-title">
-                          {users.length === 0 ? 'Chưa có tài khoản nào' : 'Không tìm thấy tài khoản phù hợp'}
-                        </div>
-                        <p className="empty-table-desc">
-                          {users.length === 0
-                            ? 'Bấm "Thêm tài khoản" ở trên để khởi tạo người dùng mới.'
-                            : 'Thử thay đổi từ khóa tìm kiếm hoặc bỏ lọc trạng thái.'}
-                        </p>
+                    <td colSpan={canAct ? 5 : 4} className="empty-table-cell">
+                      <div className="empty-state-box">
+                        <p className="font-semibold text-slate-900">{users.length === 0 ? 'Chưa có tài khoản nào' : 'Không tìm thấy tài khoản phù hợp'}</p>
+                        <p>{users.length === 0 ? 'Bấm "Thêm tài khoản mới" ở trên để khởi tạo người dùng.' : 'Thử thay đổi từ khóa tìm kiếm hoặc bỏ lọc trạng thái.'}</p>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map((u, index) => {
+                  filteredUsers.map((u) => {
                     const isSelf = u.id === currentUser?.id
                     const isActive = u.status === 'ACTIVE'
                     const isLocked = u.status === 'LOCKED'
+                    const initialLetter = (u.displayName || u.username || 'U').charAt(0).toUpperCase()
 
                     return (
-                      <tr key={u.id}>
-                        <td data-label="STT">
-                          <span style={{ color: 'var(--slate-muted)' }}>{index + 1}</span>
+                      <tr key={u.id} className={isSelf ? 'row-is-current' : ''}>
+                        <th scope="row" className="row-header-th">
+                          <div className="user-cell">
+                            <div className={`user-table-avatar ${isLocked ? 'avatar-locked' : ''}`}>{initialLetter}</div>
+                            <div className="user-cell-meta">
+                              <span className="user-username">{u.username}</span>
+                              {isSelf && <span className="tag-self">Chính bạn</span>}
+                            </div>
+                          </div>
+                        </th>
+                        <td data-label="Tên hiển thị">
+                          <span className="user-display-name">{u.displayName || '—'}</span>
                         </td>
-                        <td data-label="Tên đăng nhập">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontWeight: 600 }}>{u.username}</span>
-                            {isSelf && <span className="badge-self">Bạn</span>}
+                        <td data-label="Trạng thái">
+                          <div className={`status-pill pill-${(u.status || 'unknown').toLowerCase()}`}>
+                            <span className="pill-dot" />
+                            <span>{isActive ? 'Hoạt động' : isLocked ? 'Đã khóa' : u.status || 'Chưa rõ'}</span>
                           </div>
                         </td>
-                        <td data-label="Tên hiển thị">{u.displayName || '—'}</td>
-                        <td data-label="Trạng thái">
-                          {isActive && <span className="badge-active">Hoạt động</span>}
-                          {isLocked && <span className="badge-locked">Bị khóa</span>}
-                          {!isActive && !isLocked && (
-                            <span className="badge-inactive">{u.status || 'Chưa rõ'}</span>
-                          )}
-                        </td>
                         <td data-label="Ngày tạo">
-                          <span style={{ fontSize: '0.85rem', color: 'var(--slate-muted)' }}>
+                          <span className="date-cell">
                             {u.createdAt
-                              ? new Date(u.createdAt).toLocaleDateString('vi-VN', {
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })
+                              ? new Date(u.createdAt).toLocaleString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
                               : '—'}
                           </span>
                         </td>
                         {canAct && (
-                          <td data-label="Thao tác" style={{ textAlign: 'right' }}>
+                          <td data-label="Thao tác">
                             <div className="account-row-actions">
                               {canAssignRoles && (
                                 <button
@@ -411,34 +388,19 @@ function UserManagementContent({ onBack }) {
                                   Đổi vai trò
                                 </button>
                               )}
-
-                              {canManage && (
-                                isActive ? (
-                                  <button
-                                    type="button"
-                                    className="action-btn action-btn-lock"
-                                    onClick={() => setActionTarget({ user: u, action: 'LOCK' })}
-                                    disabled={actionLoading}
-                                    title="Khóa tài khoản này"
-                                  >
-                                    <LockIcon size={13} />
-                                    <span>Khóa</span>
-                                  </button>
-                                ) : isLocked ? (
-                                  <button
-                                    type="button"
-                                    className="action-btn action-btn-unlock"
-                                    onClick={() => setActionTarget({ user: u, action: 'UNLOCK' })}
-                                    disabled={actionLoading}
-                                    title="Mở khóa tài khoản này"
-                                  >
-                                    <UnlockIcon size={13} />
-                                    <span>Mở khóa</span>
-                                  </button>
-                                ) : (
-                                  <span style={{ color: 'var(--slate-muted)' }}>—</span>
-                                )
-                              )}
+                              {canManage && (isActive ? (
+                                <button type="button" className="action-btn action-btn-lock" onClick={() => setActionTarget({ user: u, action: 'LOCK' })} disabled={actionLoading} title="Khóa tài khoản này">
+                                  <LockIcon size={14} />
+                                  <span>Khóa</span>
+                                </button>
+                              ) : isLocked ? (
+                                <button type="button" className="action-btn action-btn-unlock" onClick={() => setActionTarget({ user: u, action: 'UNLOCK' })} disabled={actionLoading} title="Mở khóa tài khoản này">
+                                  <UnlockIcon size={14} />
+                                  <span>Mở khóa</span>
+                                </button>
+                              ) : (
+                                <span className="text-muted">—</span>
+                              ))}
                             </div>
                           </td>
                         )}
@@ -514,7 +476,6 @@ function UserManagementContent({ onBack }) {
         </dialog>
       )}
 
-      {/* Create User Dialog from main */}
       {canCreate && isCreateOpen && (
         <CreateUserDialog
           onClose={() => setIsCreateOpen(false)}
@@ -523,7 +484,6 @@ function UserManagementContent({ onBack }) {
         />
       )}
 
-      {/* User Role Assignment Dialog from main */}
       {canAssignRoles && roleTarget && (
         <UserRoleDialog
           key={roleTarget.id}

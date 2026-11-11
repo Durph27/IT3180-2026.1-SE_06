@@ -15,13 +15,14 @@ const finance = [
   'receipt.read', 'report.revenue', 'report.debts', 'report.contributions',
   'report.collections', 'report.export', 'maintenance-fund.read', 'maintenance-fund.write',
   'maintenance-round.read', 'maintenance-round.write',
-  'maintenance-expense.read', 'maintenance-expense.record',
+  'maintenance-expense.read', 'maintenance-expense.record', 'campaign.read',
 ]
 const resident = [
   'building.read', 'apartment.read', 'household.read', 'occupancy.read',
-  'resident.read', 'residence-change.read', 'residence-change.write',
+  'resident.read', 'residence-change.read', 'residence-change.write', 'household.family.write',
   'invoice.read', 'payment.read', 'receipt.read', 'payment-intent.read',
   'payment-intent.create', 'ticket.read', 'ticket.write', 'ticket.update',
+  'billing-period.read', 'fee-type.read', 'campaign.read',
 ]
 const management = [
   ...residenceRead, ...residenceWrite, ...finance, ...resident,

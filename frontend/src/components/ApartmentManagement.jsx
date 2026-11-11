@@ -2,21 +2,45 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { getApartmentsApi, getAllBuildingsApi } from '../api/apartments'
 import { useAuth } from '../hooks/useAuth'
 import ApartmentFormModal from './ApartmentFormModal'
+import HouseholdLinkDialog from './HouseholdLinkDialog'
+import { getActiveOccupanciesApi, getAllHouseholdsApi } from '../api/households'
+import { todayInVietnam } from '../residents/validation'
+import { occupancyByApartment } from '../utils/householdLinks'
+import PageHeader from './PageHeader'
+import StatCard from './StatCard'
+import FilterBar, { FilterField } from './FilterBar'
+import StatusBadge from './StatusBadge'
+import Pagination from './Pagination'
+import ForbiddenView from './ForbiddenView'
 import {
   ApartmentIcon,
   PlusIcon,
-  SearchIcon,
   RefreshIcon,
   EditIcon,
   CheckCircleIcon,
   AlertTriangleIcon,
 } from './Icons'
 
+const CONTROL = 'form-control block min-h-11 w-full'
+const CODE_TAG = 'rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[13px] font-semibold text-slate-800'
+// The important modifier is needed because the shared table styles are unlayered.
+const NUMBER_CELL = 'text-right! whitespace-nowrap'
+
+const APARTMENT_STATUS = {
+  OCCUPIED: { tone: 'info', label: 'Đang ở' },
+  VACANT: { tone: 'success', label: 'Trống' },
+  INACTIVE: { tone: 'warning', label: 'Tạm ngưng' },
+}
+
 export default function ApartmentManagement() {
   const { hasPermission } = useAuth()
   const canRead = hasPermission('apartment.read')
   const canWrite = hasPermission('apartment.write')
   const canReadBuildings = hasPermission('building.read')
+  const canReadHouseholds = hasPermission('occupancy.read') && hasPermission('household.read')
+  const canLinkHouseholds = canReadHouseholds && hasPermission('household.write') && hasPermission('occupancy.write')
+  const [residence, setResidence] = useState({ revision: -1, occupancies: [], households: [], error: '' })
+  const [linkTarget, setLinkTarget] = useState(null)
   const [buildingLoading, setBuildingLoading] = useState(false)
   const [buildingError, setBuildingError] = useState('')
   const [buildingRevision, setBuildingRevision] = useState(0)
@@ -46,6 +70,25 @@ export default function ApartmentManagement() {
   const [editingApartment, setEditingApartment] = useState(null)
 
   const refreshApartments = useCallback(() => setRevision((value) => value + 1), [])
+  const today = todayInVietnam()
+
+  useEffect(() => {
+    if (!canReadHouseholds) return undefined
+    const controller = new AbortController()
+    const { signal } = controller
+    Promise.all([getActiveOccupanciesApi(today, signal), getAllHouseholdsApi(signal)])
+      .then(([occupancies, households]) => {
+        if (!signal.aborted) setResidence({ revision, occupancies, households, error: '' })
+      })
+      .catch((err) => {
+        if (!signal.aborted) setResidence({ revision, occupancies: [], households: [], error: err.response?.data?.message || 'Không thể tải hộ cư trú của các căn hộ.' })
+      })
+    return () => controller.abort()
+  }, [canReadHouseholds, today, revision])
+
+  const residenceReady = residence.revision === revision && !residence.error
+  const occupancyMap = useMemo(() => occupancyByApartment(residence.occupancies, today), [residence, today])
+  const householdMap = useMemo(() => new Map(residence.households.map((household) => [household.id, household])), [residence])
   const refreshBuildings = useCallback(() => setBuildingRevision((value) => value + 1), [])
 
   useEffect(() => {
@@ -173,242 +216,169 @@ export default function ApartmentManagement() {
   }
 
   if (!canRead) {
-    return (
-      <div className="apartment-page">
-        <div className="alert-banner alert-danger" role="alert">
-          <AlertTriangleIcon size={18} aria-hidden="true" />
-          <span>Tài khoản của bạn không có quyền truy cập hồ sơ căn hộ (yêu cầu quyền apartment.read).</span>
-        </div>
-      </div>
-    )
+    return <ForbiddenView />
   }
 
+  const hasActions = canWrite || canLinkHouseholds
+  const columns = 5 + (canReadHouseholds ? 1 : 0) + (hasActions ? 1 : 0)
+  const filtered = Boolean(searchCode || buildingFilter !== 'ALL' || statusFilter !== 'ALL')
+
   return (
-    <div className="apartment-page">
-      {/* Page Header */}
-      <div className="page-header">
-        <div className="page-title-group">
-          <div className="page-icon-wrapper">
-            <ApartmentIcon size={24} />
-          </div>
-          <div>
-            <h1 className="page-title">Hồ sơ căn hộ</h1>
-            <p className="page-description">
-              Tạo mới và quản lý danh sách căn hộ, diện tích, tầng và tòa nhà trực thuộc
-            </p>
-          </div>
-        </div>
-
-        <div className="page-header-actions">
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={refreshApartments}
-            title="Làm mới danh sách"
-          >
-            <RefreshIcon size={16} />
-            <span>Làm mới</span>
-          </button>
-          {canWrite && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleOpenCreate}
-            >
-              <PlusIcon size={18} />
-              <span>Thêm căn hộ mới</span>
+    <div className="user-management-container">
+      <PageHeader
+        title="Hồ sơ căn hộ"
+        description="Tạo mới và quản lý danh sách căn hộ, diện tích, tầng và tòa nhà trực thuộc"
+        actions={(
+          <>
+            <button type="button" className="btn btn-secondary" onClick={refreshApartments} title="Làm mới danh sách">
+              <RefreshIcon size={16} />
+              <span>Làm mới</span>
             </button>
-          )}
-        </div>
-      </div>
+            {canWrite && (
+              <button type="button" className="btn btn-primary" onClick={handleOpenCreate}>
+                <PlusIcon size={16} />
+                <span>Thêm căn hộ mới</span>
+              </button>
+            )}
+          </>
+        )}
+      />
 
-      {/* Notifications */}
       {successMsg && (
-        <div className="alert-banner alert-success" role="status">
-          <CheckCircleIcon size={18} />
-          <span>{successMsg}</span>
+        <div className="alert alert-success" role="status">
+          <CheckCircleIcon size={18} className="shrink-0" />
+          <div>{successMsg}</div>
         </div>
       )}
-
       {error && (
-        <div className="alert-banner alert-danger" role="alert">
-          <AlertTriangleIcon size={18} aria-hidden="true" />
-          <span>{error}</span>
+        <div className="alert alert-error" role="alert">
+          <AlertTriangleIcon size={18} className="shrink-0" />
+          <div>{error}</div>
         </div>
       )}
-
       {buildingError && (
-        <div className="alert-banner alert-danger" role="alert">
-          <AlertTriangleIcon size={18} aria-hidden="true" />
-          <span>{buildingError}</span>
-          <button
-            type="button"
-            className="btn btn-secondary btn-xs"
-            onClick={refreshBuildings}
-            style={{ marginLeft: 'auto' }}
-          >
-            Thử lại tòa nhà
-          </button>
+        <div className="alert alert-error items-center!" role="alert">
+          <AlertTriangleIcon size={18} className="shrink-0" />
+          <div className="flex-1">{buildingError}</div>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={refreshBuildings}>Thử lại tòa nhà</button>
         </div>
       )}
 
-      {/* Sleek Metric Strip */}
-      {!loading && !error && <div className="stats-strip" aria-label="Thống kê căn hộ">
-        <div className="stats-item">
-          <span className="stats-label">Khớp bộ lọc</span>
-          <div className="stats-value-row">
-            <span className="stats-number stats-highlight-cobalt">{stats.total}</span>
-            <span className="stats-subtext">Hồ sơ phù hợp</span>
-          </div>
+      {residence.error && (
+        <div className="alert alert-error items-center!" role="alert">
+          <AlertTriangleIcon size={18} className="shrink-0" />
+          <div className="flex-1">{residence.error}</div>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={refreshApartments}>Thử lại</button>
         </div>
+      )}
 
-        <div className="stats-item">
-          <span className="stats-label">Đang ở · trang này</span>
-          <div className="stats-value-row">
-            <span className="stats-number stats-highlight-teal">{stats.pageOccupied}</span>
-            <span className="stats-subtext">Cư trú thực tế</span>
-          </div>
+      {!loading && !error && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard label="Khớp bộ lọc" value={stats.total} icon={ApartmentIcon} />
+          <StatCard label="Đang ở · trang này" value={stats.pageOccupied} tone="success" />
+          <StatCard label="Căn trống · trang này" value={stats.pageVacant} />
+          <StatCard label="Tạm ngưng · trang này" value={stats.pageInactive} tone="warning" />
         </div>
+      )}
 
-        <div className="stats-item">
-          <span className="stats-label">Căn trống · trang này</span>
-          <div className="stats-value-row">
-            <span className="stats-number">{stats.pageVacant}</span>
-            <span className="stats-subtext">Sẵn sàng bàn giao</span>
-          </div>
-        </div>
-
-        <div className="stats-item">
-          <span className="stats-label">Tạm ngưng · trang này</span>
-          <div className="stats-value-row">
-            <span className="stats-number stats-highlight-amber">{stats.pageInactive}</span>
-            <span className="stats-subtext">Chưa khả dụng</span>
-          </div>
-        </div>
-      </div>}
-
-      {/* Integrated Filter Toolbar */}
-      <div className="filter-toolbar">
-        <div className="filter-group-left">
-          <div className="search-input-box">
-            <SearchIcon size={15} className="search-icon-inside" />
-            <input
-              type="search"
-              id="search-apt-code"
-              placeholder="Tìm theo mã phòng chính xác (VD: P1001)…"
-              value={searchCode}
-              onChange={(e) => {
-                setSearchCode(e.target.value)
-                setPage(0)
-              }}
-              className="form-input-search"
-              title="Tìm chính xác theo mã căn hộ"
-              aria-label="Mã căn hộ chính xác"
-            />
-          </div>
-
+      <FilterBar>
+        <FilterField id="search-apt-code" label="Mã căn hộ">
+          <input
+            type="search"
+            id="search-apt-code"
+            className={CONTROL}
+            placeholder="Mã chính xác, VD: P1001"
+            value={searchCode}
+            onChange={(e) => {
+              setSearchCode(e.target.value)
+              setPage(0)
+            }}
+          />
+        </FilterField>
+        <FilterField id="filter-building" label="Tòa nhà">
           <select
             id="filter-building"
+            className={CONTROL}
             value={buildingFilter}
             onChange={(e) => {
               setBuildingFilter(e.target.value)
               setPage(0)
             }}
-            className="filter-select"
-            aria-label="Lọc theo tòa nhà"
             disabled={!canReadBuildings || buildingLoading}
           >
             {!canReadBuildings ? (
               <option value="ALL">Không có quyền xem tòa nhà</option>
             ) : (
               <>
-                <option value="ALL">
-                  {buildingLoading ? 'Đang tải danh sách tòa nhà…' : 'Tất cả tòa nhà'}
-                </option>
+                <option value="ALL">{buildingLoading ? 'Đang tải danh sách tòa nhà…' : 'Tất cả tòa nhà'}</option>
                 {buildings.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name} ({b.code})
-                  </option>
+                  <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
                 ))}
               </>
             )}
           </select>
-
+        </FilterField>
+        <FilterField id="filter-status" label="Trạng thái">
           <select
             id="filter-status"
+            className={CONTROL}
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value)
               setPage(0)
             }}
-            className="filter-select"
-            aria-label="Lọc theo trạng thái"
           >
             <option value="ALL">Tất cả trạng thái</option>
             <option value="VACANT">Căn trống</option>
             <option value="OCCUPIED">Đang có người ở</option>
             <option value="INACTIVE">Tạm ngưng</option>
           </select>
-        </div>
-      </div>
+        </FilterField>
+      </FilterBar>
 
-      {/* Responsive Table Card per Modern Web Guidance */}
-      <div className="table-surface-card">
-        <div
-          tabIndex={0}
-          role="region"
-          aria-labelledby="apt-table-caption"
-          className="table-scroll-region"
-        >
-          <table className="data-table">
-            <caption id="apt-table-caption" className="visually-hidden">
-              Danh sách căn hộ khu đô thị BlueMoon
-            </caption>
+      <div className="table-card">
+        <div tabIndex={0} role="region" aria-labelledby="apt-table-caption" className="table-wrapper">
+          <table className="modern-table">
+            <caption id="apt-table-caption" className="sr-only">Danh sách căn hộ khu đô thị BlueMoon</caption>
             <thead>
               <tr>
                 <th scope="col">Mã căn hộ</th>
                 <th scope="col">Tòa nhà</th>
                 <th scope="col">Tầng</th>
-                <th scope="col" className="col-num">Diện tích (m²)</th>
+                <th scope="col" className={NUMBER_CELL}>Diện tích (m²)</th>
                 <th scope="col">Trạng thái</th>
-                {canWrite && <th scope="col" style={{ textAlign: 'right' }}>Thao tác</th>}
+                {canReadHouseholds && <th scope="col">Hộ cư trú</th>}
+                {hasActions && <th scope="col" className="text-right!">Thao tác</th>}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={canWrite ? 6 : 5} style={{ textAlign: 'center', padding: '36px' }}>
-                    <span style={{ color: 'var(--slate-muted)' }}>Đang tải danh sách hồ sơ căn hộ…</span>
+                  <td colSpan={columns} className="empty-table-cell">
+                    <div className="table-loading-box">
+                      <div className="loading-spinner-ring" />
+                      <p>Đang tải danh sách hồ sơ căn hộ…</p>
+                    </div>
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={canWrite ? 6 : 5}>
-                    <div className="empty-table-state">
-                      <p className="empty-table-desc">Chưa tải được hồ sơ căn hộ. Hãy kiểm tra kết nối và thử lại.</p>
-                      <button type="button" className="btn btn-secondary" onClick={refreshApartments}>Thử lại</button>
+                  <td colSpan={columns} className="empty-table-cell">
+                    <div className="empty-state-box">
+                      <p>Chưa tải được hồ sơ căn hộ. Hãy kiểm tra kết nối và thử lại.</p>
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={refreshApartments}>Thử lại</button>
                     </div>
                   </td>
                 </tr>
               ) : apartments.length === 0 ? (
                 <tr>
-                  <td colSpan={canWrite ? 6 : 5}>
-                    <div className="empty-table-state">
-                      <div className="empty-table-icon">
-                        <ApartmentIcon size={36} />
-                      </div>
-                      <div className="empty-table-title">Chưa có hồ sơ căn hộ phù hợp</div>
-                      <p className="empty-table-desc">
-                        {searchCode || buildingFilter !== 'ALL' || statusFilter !== 'ALL'
-                          ? 'Không tìm thấy căn hộ khớp với điều kiện lọc hiện tại.'
-                          : 'Bắt đầu khởi tạo dữ liệu bằng cách thêm căn hộ đầu tiên vào hệ thống.'}
-                      </p>
-                      {canWrite && (
-                        <button
-                          type="button"
-                          className="btn btn-primary btn-sm"
-                          onClick={handleOpenCreate}
-                        >
+                  <td colSpan={columns} className="empty-table-cell">
+                    <div className="empty-state-box">
+                      <ApartmentIcon size={32} className="text-slate-400" />
+                      <p className="font-semibold text-slate-900">Chưa có hồ sơ căn hộ phù hợp</p>
+                      <p>{filtered ? 'Không tìm thấy căn hộ khớp với điều kiện lọc hiện tại.' : 'Bắt đầu bằng cách thêm căn hộ đầu tiên vào hệ thống.'}</p>
+                      {canWrite && !filtered && (
+                        <button type="button" className="btn btn-primary btn-sm" onClick={handleOpenCreate}>
                           <PlusIcon size={15} />
                           <span>Thêm căn hộ mới</span>
                         </button>
@@ -419,55 +389,53 @@ export default function ApartmentManagement() {
               ) : (
                 apartments.map((apt) => {
                   const b = buildingMap[apt.buildingId]
-                  const bName = b ? `${b.name} (${b.code})` : '—'
-
+                  const occupancy = occupancyMap.get(apt.id)
                   return (
                     <tr key={apt.id}>
-                      <th scope="row" data-label="Mã căn hộ">
-                        <span className="code-tag">{apt.code}</span>
+                      <th scope="row" className="row-header-th">
+                        <span className={CODE_TAG}>{apt.code}</span>
                       </th>
-                      <td data-label="Tòa nhà">
-                        <span style={{ fontWeight: 500 }}>{bName}</span>
-                      </td>
-                      <td data-label="Tầng">
-                        <span className="floor-tag">Tầng {apt.floorNo}</span>
-                      </td>
-                      <td data-label="Diện tích" className="col-num">
+                      <td data-label="Tòa nhà">{b ? `${b.name} (${b.code})` : '—'}</td>
+                      <td data-label="Tầng">Tầng {apt.floorNo}</td>
+                      <td data-label="Diện tích" className={NUMBER_CELL}>
                         <strong>{apt.areaM2}</strong> m²
                       </td>
                       <td data-label="Trạng thái">
-                        {apt.status === 'VACANT' && (
-                          <span className="badge-pill badge-vacant">
-                            ● Trống
-                          </span>
-                        )}
-                        {apt.status === 'OCCUPIED' && (
-                          <span className="badge-pill badge-occupied">
-                            ● Đang ở
-                          </span>
-                        )}
-                        {apt.status === 'INACTIVE' && (
-                          <span className="badge-pill badge-inactive">
-                            ● Tạm ngưng
-                          </span>
-                        )}
-                        {!['VACANT', 'OCCUPIED', 'INACTIVE'].includes(apt.status) && (
-                          <span className="badge-pill">
-                            {apt.status}
-                          </span>
-                        )}
+                        {APARTMENT_STATUS[apt.status]
+                          ? <StatusBadge tone={APARTMENT_STATUS[apt.status].tone}>{APARTMENT_STATUS[apt.status].label}</StatusBadge>
+                          : <StatusBadge>{apt.status}</StatusBadge>}
                       </td>
-                      {canWrite && (
-                        <td data-label="Thao tác" style={{ textAlign: 'right' }}>
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-xs"
-                            onClick={() => handleOpenEdit(apt)}
-                            title={`Chỉnh sửa thông tin căn hộ ${apt.code}`}
-                          >
-                            <EditIcon size={13} />
-                            <span>Sửa</span>
-                          </button>
+                      {canReadHouseholds && (
+                        <td data-label="Hộ cư trú">
+                          {!residenceReady ? '…' : occupancy ? householdMap.get(occupancy.householdId)?.code ?? '—' : <span className="text-slate-500">Chưa có hộ</span>}
+                        </td>
+                      )}
+                      {hasActions && (
+                        <td data-label="Thao tác" className="text-right!">
+                          <div className="inline-flex flex-wrap justify-end gap-2">
+                            {canLinkHouseholds && residenceReady && !occupancy && apt.status !== 'INACTIVE' && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => { setSuccessMsg(''); setLinkTarget(apt) }}
+                                aria-label={`Gắn hộ gia đình vào căn hộ ${apt.code}`}
+                              >
+                                <PlusIcon size={14} />
+                                <span>Gắn hộ</span>
+                              </button>
+                            )}
+                            {canWrite && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => handleOpenEdit(apt)}
+                                aria-label={`Chỉnh sửa căn hộ ${apt.code}`}
+                              >
+                                <EditIcon size={14} />
+                                <span>Sửa</span>
+                              </button>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -477,37 +445,23 @@ export default function ApartmentManagement() {
             </tbody>
           </table>
         </div>
-
-        {/* Pagination Strip */}
-        {totalPages > 1 && (
-          <div className="pagination-strip">
-            <div>
-              Trang <strong>{page + 1}</strong> trên <strong>{totalPages}</strong>{' '}
-              (Tổng cộng {totalElements} căn hộ)
-            </div>
-            <div className="pagination-controls">
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                disabled={page === 0 || loading}
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-              >
-                Trang trước
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                disabled={page >= totalPages - 1 || loading}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Trang sau
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination page={page} totalPages={totalPages} totalElements={totalElements} unit="căn hộ" disabled={loading} onPageChange={setPage} />
       </div>
 
-      {/* Create / Edit Form Modal */}
+      {linkTarget && (
+        <HouseholdLinkDialog
+          key={linkTarget.id}
+          apartment={linkTarget}
+          households={residence.households}
+          onClose={() => setLinkTarget(null)}
+          onDone={(message) => {
+            setLinkTarget(null)
+            setSuccessMsg(message)
+            refreshApartments()
+          }}
+        />
+      )}
+
       {isModalOpen && (
         <ApartmentFormModal
           key={editingApartment?.id || 'new'}

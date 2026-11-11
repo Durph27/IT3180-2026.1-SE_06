@@ -11969,6 +11969,404 @@
         },
         "x-implemented": true
       }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "Xác thực"
+        ],
+        "summary": "Cư dân đăng ký tài khoản",
+        "operationId": "post_auth_register",
+        "description": "Tạo yêu cầu chờ duyệt, chưa tạo AppUser/Resident nên chưa đăng nhập được. Giới hạn 5 lần/phút theo IP.",
+        "responses": {
+          "201": {
+            "description": "Đã tạo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "description": "Lỗi hệ thống bất ngờ; code INTERNAL_ERROR, không trả chi tiết nội bộ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "x-permission": "PUBLIC",
+        "x-implementation-status": "planned",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationCreate"
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      }
+    },
+    "/registrations": {
+      "get": {
+        "tags": [
+          "Quản trị"
+        ],
+        "summary": "Danh sách yêu cầu đăng ký",
+        "operationId": "get_registrations",
+        "description": "Quyền: `user.manage`.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Size"
+          },
+          {
+            "$ref": "#/components/parameters/Sort"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountRegistrationPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "description": "Lỗi hệ thống bất ngờ; code INTERNAL_ERROR, không trả chi tiết nội bộ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "x-permission": "user.manage",
+        "x-implementation-status": "planned",
+        "x-implemented": true
+      }
+    },
+    "/registrations/{id}/approve": {
+      "post": {
+        "tags": [
+          "Quản trị"
+        ],
+        "summary": "Duyệt yêu cầu đăng ký",
+        "operationId": "post_registrations_by_id_approve",
+        "description": "Quyền: `user.manage`. Trong một giao dịch: tạo/gắn Resident theo CCCD, thêm làm chủ hộ của hộ được chọn, tạo AppUser ACTIVE và cấp vai trò RESIDENT.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountRegistration"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "description": "Lỗi hệ thống bất ngờ; code INTERNAL_ERROR, không trả chi tiết nội bộ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "x-permission": "user.manage",
+        "x-implementation-status": "planned",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationApproveRequest"
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      }
+    },
+    "/registrations/{id}/reject": {
+      "post": {
+        "tags": [
+          "Quản trị"
+        ],
+        "summary": "Từ chối yêu cầu đăng ký",
+        "operationId": "post_registrations_by_id_reject",
+        "description": "Quyền: `user.manage`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountRegistration"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "description": "Lỗi hệ thống bất ngờ; code INTERNAL_ERROR, không trả chi tiết nội bộ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "x-permission": "user.manage",
+        "x-implementation-status": "planned",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectRequest"
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      }
+    },
+    "/households/{id}/family-members": {
+      "post": {
+        "tags": [
+          "Cư trú"
+        ],
+        "summary": "Chủ hộ thêm nhân khẩu",
+        "operationId": "post_households_by_id_family_members",
+        "description": "Quyền: `household.family.write` và phải là chủ hộ đang hiệu lực của chính hộ này. Nhân khẩu có hiệu lực ngay và không được tạo tài khoản.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Đã tạo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdMember"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL chi tiết resource vừa tạo.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "description": "Lỗi hệ thống bất ngờ; code INTERNAL_ERROR, không trả chi tiết nội bộ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "x-permission": "household.family.write",
+        "x-implementation-status": "planned",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FamilyMemberCreate"
+              }
+            }
+          }
+        },
+        "x-implemented": true
+      }
     }
   },
   "components": {
@@ -18021,6 +18419,308 @@
           "size",
           "totalElements",
           "totalPages"
+        ]
+      },
+      "RegistrationCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 60,
+            "pattern": "^[A-Za-z0-9._-]+$"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "writeOnly": true
+          },
+          "fullName": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "ERD: full_name : varchar(120)",
+            "minLength": 1
+          },
+          "identityNo": {
+            "type": "string",
+            "maxLength": 30,
+            "description": "ERD: identity_no : varchar(30) UQ ?",
+            "minLength": 1,
+            "pattern": "^[0-9]{12}$"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "description": "ERD: birth_date : date"
+          },
+          "gender": {
+            "type": "string",
+            "maxLength": 20,
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "UNSPECIFIED"
+            ],
+            "description": "ERD: gender : varchar(20)",
+            "minLength": 1
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "ERD: phone : varchar(20) ?",
+            "pattern": "^[0-9]{10}$"
+          },
+          "apartmentCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          }
+        },
+        "required": [
+          "username",
+          "password",
+          "fullName",
+          "identityNo",
+          "birthDate",
+          "gender",
+          "apartmentCode",
+          "phone"
+        ]
+      },
+      "RegistrationReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "status",
+          "createdAt"
+        ]
+      },
+      "AccountRegistration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "fullName": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "ERD: full_name : varchar(120)"
+          },
+          "identityNo": {
+            "type": "string",
+            "maxLength": 30,
+            "description": "ERD: identity_no : varchar(30) UQ ?"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "description": "ERD: birth_date : date"
+          },
+          "gender": {
+            "type": "string",
+            "maxLength": 20,
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "UNSPECIFIED"
+            ],
+            "description": "ERD: gender : varchar(20)"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "nullable": true,
+            "description": "ERD: phone : varchar(20) ?"
+          },
+          "apartmentCode": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 20,
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "rejectReason": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reviewedBy": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "fullName",
+          "identityNo",
+          "birthDate",
+          "gender",
+          "apartmentCode",
+          "status",
+          "createdAt"
+        ]
+      },
+      "AccountRegistrationPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountRegistration"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "content",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages"
+        ]
+      },
+      "RegistrationApproveRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "householdId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "householdId"
+        ]
+      },
+      "FamilyMemberCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "ERD: full_name : varchar(120)",
+            "minLength": 1
+          },
+          "identityNo": {
+            "type": "string",
+            "maxLength": 30,
+            "nullable": true,
+            "description": "ERD: identity_no : varchar(30) UQ ?",
+            "pattern": "^[0-9]{12}$"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "description": "ERD: birth_date : date"
+          },
+          "gender": {
+            "type": "string",
+            "maxLength": 20,
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "UNSPECIFIED"
+            ],
+            "description": "ERD: gender : varchar(20)",
+            "minLength": 1
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "nullable": true,
+            "description": "ERD: phone : varchar(20) ?",
+            "pattern": "^[0-9]{10}$"
+          },
+          "relationship": {
+            "type": "string",
+            "enum": [
+              "VỢ/CHỒNG",
+              "CON",
+              "BỐ/MẸ",
+              "ANH/CHỊ/EM",
+              "KHÁC"
+            ]
+          }
+        },
+        "required": [
+          "fullName",
+          "birthDate",
+          "gender",
+          "relationship"
         ]
       }
     },

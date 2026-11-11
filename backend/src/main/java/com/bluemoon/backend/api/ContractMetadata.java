@@ -9,7 +9,7 @@ import static com.bluemoon.backend.api.Values.*;
 
 /** Build runtime metadata from the same OpenAPI document shipped to API consumers. */
 final class ContractMetadata {
-    private static final String MODELS = "Building Apartment Household HouseholdApartment Resident HouseholdMember AppUser Role Permission ResidenceChange Vehicle FeeType FeeRate BillingPeriod Invoice InvoiceLine ContributionCampaign Contribution PaymentIntent Payment PaymentAllocation Receipt Provider ServiceSubscription UtilityBill Reconciliation ReconciliationItem PaymentIntentItem AuditLog MaintenanceFund MaintenanceRound MaintenanceAllocation MaintenanceExpense";
+    private static final String MODELS = "Building Apartment Household HouseholdApartment Resident HouseholdMember AppUser AccountRegistration Role Permission ResidenceChange Vehicle FeeType FeeRate BillingPeriod Invoice InvoiceLine ContributionCampaign Contribution PaymentIntent Payment PaymentAllocation Receipt Provider ServiceSubscription UtilityBill Reconciliation ReconciliationItem PaymentIntentItem AuditLog MaintenanceFund MaintenanceRound MaintenanceAllocation MaintenanceExpense";
     private static final Set<String> DERIVED = Set.of("lines","allocations","items","totalAmount","paidAmount","outstandingAmount");
     private static final Pattern NUMERIC = Pattern.compile("numeric\\(\\d+,\\d+\\)");
 
@@ -46,7 +46,7 @@ final class ContractMetadata {
                 var prop = object(value);
                 fields.put(field,map("column",snake(field),"type",sqlType(prop),"json","object".equals(prop.getOrDefault("type","object")) || prop.containsKey("$ref")));
             });
-            if (model.equals("AppUser")) fields.put("passwordHash",map("column","password_hash","type","VARCHAR(255)","json",false));
+            if (Set.of("AppUser","AccountRegistration").contains(model)) fields.put("passwordHash",map("column","password_hash","type","VARCHAR(255)","json",false));
             String table = Map.of("Role","app_role","Permission","app_permission").getOrDefault(model,snake(model));
             entities.put(model,map("table",table,"fields",fields));
         }

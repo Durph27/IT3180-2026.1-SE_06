@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { MoonLogoIcon, AlertTriangleIcon } from './Icons'
+import { MoonLogoIcon, UserIcon, LockIcon, AlertTriangleIcon } from './Icons'
 
-export default function LoginForm() {
+export default function LoginForm({ onRegister }) {
   const { login } = useAuth()
 
   const [username, setUsername] = useState('')
@@ -35,112 +35,118 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="login-split-wrapper">
-      {/* Left Column: Operations Showcase */}
-      <div className="login-showcase-side">
-        <div>
-          <div className="login-showcase-brand">
-            <div className="brand-logo-wrapper">
-              <MoonLogoIcon size={22} />
+    <div className="login-split-wrapper min-[901px]:flex-row-reverse">
+      {/* Form column; the informational showcase has no focusable content, so visual order is safe to swap. */}
+      <div className="login-form-side">
+        <div className="login-card-inner">
+          <div className="login-brand-header">
+            <div className="login-logo-badge">
+              <MoonLogoIcon size={24} />
             </div>
             <div>
-              <div className="login-brand-name">BlueMoon</div>
-              <div className="login-brand-caption">Quản lý căn hộ và thu phí</div>
+              <span className="login-brand-name">BlueMoon</span>
+              <span className="login-brand-tag">Quản lý căn hộ và thu phí</span>
             </div>
           </div>
 
-          <h1 className="login-showcase-title">
-            Thông tin rõ ràng. Quản lý thuận tiện.
-          </h1>
-          <p className="login-showcase-desc">
-            Không gian làm việc của ban quản lý và cư dân: tra cứu hồ sơ căn hộ, theo dõi khoản thu và biểu phí trong phạm vi được cấp quyền.
-          </p>
-        </div>
+          <div className="login-welcome-text">
+            <h2>Đăng nhập tài khoản</h2>
+            <p>Nhập tên đăng nhập và mật khẩu để bắt đầu phiên làm việc</p>
+          </div>
 
-        <div className="login-showcase-footer">
-          <div>Hệ thống quản lý nội bộ BlueMoon</div>
+          {errorMessage && (
+            <div className="alert alert-error" role="alert">
+              <AlertTriangleIcon size={18} className="shrink-0" />
+              <div>{errorMessage}</div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="modern-form" noValidate={false}>
+            <div className="form-group">
+              <label htmlFor="login-username">Tên đăng nhập</label>
+              <div className="input-with-icon">
+                <span className="input-icon">
+                  <UserIcon size={16} />
+                </span>
+                <input
+                  id="login-username"
+                  name="username"
+                  type="text"
+                  className="form-control"
+                  placeholder="Nhập tên đăng nhập"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={loading}
+                  autoComplete="username"
+                  spellCheck="false"
+                  autoCapitalize="none"
+                  enterKeyHint="next"
+                  required
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="login-password">Mật khẩu</label>
+              <div className="input-with-icon">
+                <span className="input-icon">
+                  <LockIcon size={16} />
+                </span>
+                <input
+                  id="login-password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="form-control input-has-toggle"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  autoComplete="current-password"
+                  enterKeyHint="done"
+                  required
+                />
+                <button
+                  type="button"
+                  className="btn-toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-pressed={showPassword}
+                  aria-controls="login-password"
+                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                >
+                  {showPassword ? 'Ẩn' : 'Hiện'}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-block btn-lg"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="btn-spinner" />
+                  <span>Đang xác thực…</span>
+                </>
+              ) : (
+                'Đăng nhập'
+              )}
+            </button>
+
+            <p className="login-switch">Cư dân chưa có tài khoản? <button type="button" className="link-button" disabled={loading} onClick={onRegister}>Đăng ký</button></p>
+          </form>
         </div>
       </div>
 
-      {/* Right Column: Form Side */}
-      <div className="login-form-side">
-        <div className="login-header-group">
-          <h2 className="login-form-title">Đăng nhập tài khoản</h2>
-          <p className="login-form-desc">
-            Nhập tên đăng nhập và mật khẩu để bắt đầu phiên làm việc
+      <div className="login-showcase-side">
+        <div className="showcase-content">
+          <h2 className="showcase-title">Thông tin rõ ràng. Quản lý thuận tiện.</h2>
+          <p className="showcase-desc">
+            Không gian làm việc của ban quản lý và cư dân: tra cứu hồ sơ căn hộ, theo dõi khoản thu và biểu phí trong phạm vi được cấp quyền.
           </p>
+          <p className="showcase-desc">Hệ thống quản lý nội bộ BlueMoon</p>
         </div>
-
-        {errorMessage && (
-          <div className="alert-banner alert-danger" role="alert">
-            <AlertTriangleIcon size={18} aria-hidden="true" />
-            <div>{errorMessage}</div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate={false}>
-          <div className="form-group">
-            <label htmlFor="login-username" className="form-label">
-              Tên đăng nhập <span className="req-star">*</span>
-            </label>
-            <input
-              id="login-username"
-              name="username"
-              type="text"
-              className="form-input"
-              placeholder="Nhập tên đăng nhập"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              disabled={loading}
-              autoComplete="username"
-              spellCheck="false"
-              autoCapitalize="none"
-              enterKeyHint="next"
-              required
-              autoFocus
-            />
-          </div>
-
-          <div className="form-group">
-            <div className="login-password-label">
-              <label htmlFor="login-password" className="form-label">
-                Mật khẩu <span className="req-star">*</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="login-password-toggle"
-                aria-pressed={showPassword}
-                aria-controls="login-password"
-              >
-                {showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-              </button>
-            </div>
-            <input
-              id="login-password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              className="form-input"
-              placeholder="••••••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              autoComplete="current-password"
-              enterKeyHint="done"
-              required
-            />
-          </div>
-
-          <div className="login-form-actions">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Đang xác thực thông tin…' : 'Đăng nhập vào hệ thống'}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   )

@@ -145,6 +145,13 @@ public class ResidenceController {
         return api.execute("POST /households/{id}/members/{memberId}/end", path, query, body, request);
     }
 
+    @RequestMapping(value = "/households/{id}/family-members", method = RequestMethod.POST)
+    public ResponseEntity<?> post_households_by_id_family_members(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /households/{id}/family-members", path, query, body, request);
+    }
+
     @RequestMapping(value = "/households/{id}/head", method = RequestMethod.PUT)
     public ResponseEntity<?> put_households_by_id_head(@PathVariable Map<String, String> path,
             @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,

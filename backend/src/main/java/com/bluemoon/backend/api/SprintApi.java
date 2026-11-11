@@ -18,16 +18,17 @@ import static com.bluemoon.backend.api.Values.*;
 public class SprintApi {
     private static final Map<String,String> MODELS=Map.ofEntries(
         Map.entry("buildings","Building"),Map.entry("apartments","Apartment"),Map.entry("households","Household"),Map.entry("occupancies","HouseholdApartment"),Map.entry("residents","Resident"),Map.entry("residence-changes","ResidenceChange"),
-        Map.entry("users","AppUser"),Map.entry("roles","Role"),Map.entry("permissions","Permission"),Map.entry("fee-types","FeeType"),Map.entry("fee-rates","FeeRate"),Map.entry("billing-periods","BillingPeriod"),Map.entry("invoices","Invoice"),Map.entry("contribution-campaigns","ContributionCampaign"),Map.entry("contributions","Contribution"),Map.entry("payments","Payment"),Map.entry("receipts","Receipt"),Map.entry("maintenance-funds","MaintenanceFund"),Map.entry("maintenance-rounds","MaintenanceRound"));
+        Map.entry("users","AppUser"),Map.entry("registrations","AccountRegistration"),Map.entry("roles","Role"),Map.entry("permissions","Permission"),Map.entry("fee-types","FeeType"),Map.entry("fee-rates","FeeRate"),Map.entry("billing-periods","BillingPeriod"),Map.entry("invoices","Invoice"),Map.entry("contribution-campaigns","ContributionCampaign"),Map.entry("contributions","Contribution"),Map.entry("payments","Payment"),Map.entry("receipts","Receipt"),Map.entry("maintenance-funds","MaintenanceFund"),Map.entry("maintenance-rounds","MaintenanceRound"));
     private final Contract contract;
     private final DomainStore db;
     private final IdentityService identities;
+    private final RegistrationService registrations;
     private final ResourceViews views;
     private final List<FeatureHandler> handlers;
     private final TransactionTemplate tx;
-    public SprintApi(Contract contract, DomainStore db, IdentityService identities, ResourceViews views,
+    public SprintApi(Contract contract, DomainStore db, IdentityService identities, RegistrationService registrations, ResourceViews views,
                      List<FeatureHandler> handlers, PlatformTransactionManager manager) {
-        this.contract=contract; this.db=db; this.identities=identities; this.views=views;
+        this.contract=contract; this.db=db; this.identities=identities; this.registrations=registrations; this.views=views;
         this.handlers=handlers; this.tx=new TransactionTemplate(manager);
     }
     public ResponseEntity<?> execute(String key,Map<String,String> rawIds,Map<String,String> rawQuery,Map<String,Object> raw,HttpServletRequest req) {
@@ -42,6 +43,7 @@ public class SprintApi {
         } else if(!body.isEmpty())throw ApiException.bad("Endpoint không nhận body.");
         validateParameters(route,ids,query,req);
         if(key.equals("POST /auth/login"))return ResponseEntity.ok(identities.login(body,req.getRemoteAddr()));
+        if(key.equals("POST /auth/register"))return ResponseEntity.status(201).body(registrations.register(body,req.getRemoteAddr()));
         return tx.execute(status->{
             boolean mutation=!method.equals("GET");if(mutation)db.lockWrites();
             // Reload after the mutation lock: concurrent role/status changes take effect now.
@@ -68,7 +70,7 @@ public class SprintApi {
             if(http==201 && result instanceof Map<?,?> resultMap && resultMap.get("id")!=null) {
                 String root=path.split("/")[1];
                 if(path.endsWith("/rates"))location="/api/fee-types/"+ids.get("id");
-                else if(path.endsWith("/members"))location="/api/households/"+ids.get("id");
+                else if(path.endsWith("/members") || path.endsWith("/family-members"))location="/api/households/"+ids.get("id");
                 else if(path.endsWith("/lines"))location="/api/invoices/"+ids.get("id");
                 else if(path.endsWith("/contributions"))location="/api/contributions/"+resultMap.get("id");
                 else if(path.endsWith("/expenses"))location="/api/maintenance-funds/"+ids.get("id")+"/expenses";
