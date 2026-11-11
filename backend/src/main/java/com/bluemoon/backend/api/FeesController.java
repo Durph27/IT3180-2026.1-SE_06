@@ -89,6 +89,13 @@ public class FeesController {
         return api.execute("PATCH /billing-periods/{id}", path, query, body, request);
     }
 
+    @RequestMapping(value = "/billing-periods/{id}/generate-invoices", method = RequestMethod.POST)
+    public ResponseEntity<?> post_billing_periods_by_id_generate_invoices(@PathVariable Map<String, String> path,
+            @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
+            HttpServletRequest request) {
+        return api.execute("POST /billing-periods/{id}/generate-invoices", path, query, body, request);
+    }
+
     @RequestMapping(value = "/billing-periods/{id}/issue", method = RequestMethod.POST)
     public ResponseEntity<?> post_billing_periods_by_id_issue(@PathVariable Map<String, String> path,
             @RequestParam Map<String, String> query, @RequestBody(required = false) Map<String, Object> body,
