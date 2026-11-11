@@ -4,6 +4,7 @@ import com.bluemoon.backend.api.*;
 import com.bluemoon.backend.repository.DomainStore;
 import com.bluemoon.backend.security.Actor;
 
+import java.math.*;
 import java.time.*;
 import java.util.*;
 
@@ -42,6 +43,7 @@ public class BillingService {
             return id == null ? db.insert("FeeType", b) : db.update("FeeType", id, b);
         }
         if (path.startsWith("/billing-periods")) {
+            if (path.endsWith("/generate-invoices")) return generateInvoices(id, actor);
             if (path.endsWith("/issue")) return issue(id);
             if (path.endsWith("/close")) {
                 state("ISSUED".equals(db.get("BillingPeriod", id).get("status")));
@@ -190,5 +192,138 @@ public class BillingService {
             }
         rule(invoices.stream().anyMatch(i -> !"CANCELLED".equals(i.get("status"))), "Không có bảng kê để phát hành.");
         return db.update("BillingPeriod", id, map("status", "ISSUED"));
+    }
+
+    private Object generateInvoices(String periodId, Actor actor) {
+        var period = db.get("BillingPeriod", periodId);
+        state("DRAFT".equals(period.get("status")));
+        LocalDate at = date(period, "snapshotDate");
+
+        var activeOccupancies = db.all("HouseholdApartment").stream()
+                .filter(o -> active(o, at))
+                .filter(o -> {
+                    var h = db.get("Household", o.get("householdId"));
+                    return h != null && h.get("closedAt") == null;
+                })
+                .sorted(Comparator.comparing(o -> text(o, "id")))
+                .toList();
+
+        Map<String, String> primaryOccupancyByHousehold = new HashMap<>();
+        Map<String, List<Map<String, Object>>> householdOccupancies = new HashMap<>();
+        for (var occ : activeOccupancies) {
+            String hId = text(occ, "householdId");
+            householdOccupancies.computeIfAbsent(hId, k -> new ArrayList<>()).add(occ);
+        }
+        for (var entry : householdOccupancies.entrySet()) {
+            var list = entry.getValue();
+            list.sort(Comparator.<Map<String, Object>, LocalDate>comparing(o -> date(o, "validFrom"))
+                    .thenComparing(o -> text(o, "id")));
+            primaryOccupancyByHousehold.put(entry.getKey(), text(list.getFirst(), "id"));
+        }
+
+        var feeTypes = db.where("FeeType", "active", true).stream()
+                .filter(f -> "PER_M2".equals(f.get("basis")) || "PER_PERSON".equals(f.get("basis")))
+                .sorted(Comparator.comparing(f -> text(f, "id")))
+                .toList();
+
+        int createdCount = 0;
+        int existingCount = 0;
+        List<Map<String, Object>> resultInvoices = new ArrayList<>();
+
+        for (var occ : activeOccupancies) {
+            String occId = text(occ, "id");
+            String hId = text(occ, "householdId");
+            var existing = db.where("Invoice", "occupancyId", occId).stream()
+                    .filter(i -> periodId.equals(i.get("periodId")))
+                    .findFirst();
+
+            if (existing.isPresent() && "CANCELLED".equals(existing.get().get("status"))) {
+                existingCount++;
+                resultInvoices.add(views.decorate("Invoice", existing.get(), actor));
+                continue;
+            }
+
+            boolean isNew = existing.isEmpty();
+            Map<String, Object> invoice = existing.orElseGet(() -> db.insert("Invoice", map(
+                    "occupancyId", occId,
+                    "periodId", periodId,
+                    "invoiceNo", "INV" + UUID.randomUUID(),
+                    "issuedAt", Instant.now().toString(),
+                    "status", "DRAFT",
+                    "version", 0L
+            )));
+
+            if (isNew) createdCount++;
+            else existingCount++;
+
+            var existingLines = db.where("InvoiceLine", "invoiceId", invoice.get("id"));
+            Set<String> existingFeeTypeIds = new HashSet<>();
+            for (var l : existingLines) existingFeeTypeIds.add(text(l, "feeTypeId"));
+
+            boolean linesAdded = false;
+
+            for (var fee : feeTypes) {
+                String feeId = text(fee, "id");
+                if (existingFeeTypeIds.contains(feeId)) continue;
+
+                var rate = db.where("FeeRate", "feeTypeId", feeId).stream()
+                        .filter(r -> r.get("vehicleType") == null)
+                        .filter(r -> !date(r, "effectiveFrom").isAfter(at) &&
+                                     (date(r, "effectiveTo") == null || date(r, "effectiveTo").isAfter(at)))
+                        .findFirst()
+                        .orElse(null);
+
+                if (rate == null) continue;
+
+                String basis = text(fee, "basis");
+                BigDecimal quantity = null;
+
+                if ("PER_M2".equals(basis)) {
+                    var apt = db.get("Apartment", occ.get("apartmentId"));
+                    quantity = decimal(apt.get("areaM2"));
+                } else if ("PER_PERSON".equals(basis)) {
+                    if (!occId.equals(primaryOccupancyByHousehold.get(hId))) continue;
+                    long memberCount = db.where("HouseholdMember", "householdId", hId).stream()
+                            .filter(m -> !date(m, "validFrom").isAfter(at) &&
+                                         (date(m, "validTo") == null || date(m, "validTo").isAfter(at)))
+                            .count();
+                    if (memberCount <= 0) continue;
+                    quantity = BigDecimal.valueOf(memberCount);
+                }
+
+                if (quantity != null) {
+                    BigDecimal unitPrice = decimal(rate.get("unitPrice"));
+                    String lineAmount = amount(quantity, unitPrice);
+                    String quantityStr = quantity.setScale(3, RoundingMode.HALF_UP).toPlainString();
+                    String priceStr = money(unitPrice);
+
+                    db.insert("InvoiceLine", map(
+                            "invoiceId", invoice.get("id"),
+                            "feeTypeId", feeId,
+                            "rateId", rate.get("id"),
+                            "vehicleId", null,
+                            "utilityBillId", null,
+                            "description", text(fee, "name"),
+                            "quantity", quantityStr,
+                            "unitPrice", priceStr,
+                            "amount", lineAmount
+                    ));
+                    linesAdded = true;
+                    existingFeeTypeIds.add(feeId);
+                }
+            }
+
+            if (linesAdded && !isNew) {
+                db.update("Invoice", invoice.get("id"), map("version", next(invoice)));
+            }
+
+            resultInvoices.add(views.decorate("Invoice", db.get("Invoice", invoice.get("id")), actor));
+        }
+
+        return map(
+                "invoices", resultInvoices,
+                "createdCount", createdCount,
+                "existingCount", existingCount
+        );
     }
 }

@@ -3970,7 +3970,7 @@
         },
         "x-permission": "invoice.generate",
         "x-implementation-status": "planned",
-        "x-implemented": false
+        "x-implemented": true
       }
     },
     "/billing-periods/{id}/issue": {
