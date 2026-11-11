@@ -71,7 +71,7 @@ export default function RegisterForm({ onBackToLogin }) {
               <form onSubmit={submit} className="modern-form" aria-busy={saving}>
                 <div className="form-grid-2">
                   {field('fullName', 'Họ và tên', { maxLength: 120, autoComplete: 'name' })}
-                  {field('identityNo', 'Số CCCD', { maxLength: 12, inputMode: 'numeric', placeholder: '12 chữ số' })}
+                  {field('identityNo', 'Số CCCD', { maxLength: 12, inputMode: 'numeric', pattern: '[0-9]{12}', title: 'CCCD gồm đúng 12 chữ số', placeholder: '12 chữ số' })}
                   {field('birthDate', 'Ngày sinh', { type: 'date', max: todayInVietnam() })}
                   <div className="form-group">
                     <label htmlFor="register-gender">Giới tính</label>
@@ -79,7 +79,7 @@ export default function RegisterForm({ onBackToLogin }) {
                       {GENDERS.map((gender) => <option key={gender.value} value={gender.value}>{gender.label}</option>)}
                     </select>
                   </div>
-                  {field('phone', 'Số điện thoại', { type: 'tel', maxLength: 10, inputMode: 'numeric', autoComplete: 'tel', placeholder: '10 chữ số' })}
+                  {field('phone', 'Số điện thoại', { type: 'tel', maxLength: 10, inputMode: 'numeric', pattern: '[0-9]{10}', title: 'Số điện thoại gồm đúng 10 chữ số', autoComplete: 'tel', placeholder: '10 chữ số' })}
                   {field('apartmentCode', 'Mã căn hộ', { maxLength: 30, placeholder: 'Ví dụ: A-101' })}
                   {field('username', 'Tên đăng nhập', { maxLength: 60, autoComplete: 'username', spellCheck: 'false', autoCapitalize: 'none', placeholder: 'Không dấu, ví dụ: nguyenvana' })}
                   <div aria-hidden="true" />

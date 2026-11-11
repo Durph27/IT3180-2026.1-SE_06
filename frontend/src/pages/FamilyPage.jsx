@@ -126,11 +126,11 @@ function AddMemberForm({ householdId, onAdded }) {
           </div>
           <div className="form-group">
             <label htmlFor="family-identity">Số CCCD (nếu có)</label>
-            <input id="family-identity" name="identityNo" className="form-control" inputMode="numeric" maxLength={12} value={form.identityNo} onChange={update} disabled={saving} />
+            <input id="family-identity" name="identityNo" className="form-control" inputMode="numeric" pattern="[0-9]{12}" title="CCCD gồm đúng 12 chữ số" maxLength={12} value={form.identityNo} onChange={update} disabled={saving} />
           </div>
           <div className="form-group">
             <label htmlFor="family-phone">Số điện thoại (nếu có)</label>
-            <input id="family-phone" name="phone" type="tel" className="form-control" inputMode="numeric" maxLength={10} value={form.phone} onChange={update} disabled={saving} />
+            <input id="family-phone" name="phone" type="tel" className="form-control" inputMode="numeric" pattern="[0-9]{10}" title="Số điện thoại gồm đúng 10 chữ số" maxLength={10} value={form.phone} onChange={update} disabled={saving} />
           </div>
         </div>
         <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Đang lưu…' : 'Thêm nhân khẩu'}</button>
