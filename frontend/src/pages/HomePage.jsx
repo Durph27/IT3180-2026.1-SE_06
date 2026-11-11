@@ -1,43 +1,74 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
+import { ROUTES } from '../routes'
+import { STAFF_ROLES } from '../utils/billingUtils'
 import PermissionGate from '../components/PermissionGate'
 import RoleGuard from '../components/RoleGuard'
 import PageHeader from '../components/PageHeader'
 import SystemHealth from '../components/SystemHealth'
-import { UsersIcon } from '../components/Icons'
+import { ApartmentIcon, ReceiptTaxIcon, ShieldCheckIcon } from '../components/Icons'
 
-export default function HomePage({ onNavigateToUsers }) {
+const WORKSPACE_LINK = 'flex h-full min-w-0 items-start gap-4 rounded-2xl border border-solid border-slate-200 bg-white p-5 text-left no-underline shadow-xs transition-colors hover:border-(--primary-border) hover:bg-(--primary-light) focus-visible:outline-2 focus-visible:outline-(--primary)'
+
+function WorkspaceLink({ to, icon: Icon, title, description, action }) {
+  return (
+    <Link to={to} className={WORKSPACE_LINK}>
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-(--primary-light) text-(--primary)" aria-hidden="true"><Icon size={20} /></span>
+      <span className="flex min-w-0 flex-col gap-1">
+        <span className="text-base font-bold text-slate-900">{title}</span>
+        <span className="text-sm leading-relaxed text-slate-600">{description}</span>
+        <span className="mt-1 text-sm font-semibold text-(--primary)">{action} →</span>
+      </span>
+    </Link>
+  )
+}
+
+export default function HomePage() {
   const { user, roles, householdIds, hasPermission, hasRole } = useAuth()
   const [selectedHousehold, setSelectedHousehold] = useState('')
   const householdId = householdIds.includes(selectedHousehold) ? selectedHousehold : householdIds[0]
-  const buildingWide = ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUTHORITY'].some(hasRole)
+  const buildingWide = STAFF_ROLES.some(hasRole)
   const ownHousehold = !buildingWide && hasRole('RESIDENT')
   const scope = ownHousehold ? { householdId } : undefined
   const roleName = roles.map((role) => typeof role === 'string' ? role : role?.name || role?.code).filter(Boolean).join(', ') || 'Chưa có vai trò'
+  const canViewApartments = hasPermission('apartment.read')
+  const canViewFees = buildingWide && (hasPermission('fee-type.read') || hasPermission('fee-rate.read'))
+  const canManageUsers = hasPermission('user.read')
+  const hasWorkspaces = canViewApartments || canViewFees || canManageUsers
   const hasModules = hasPermission('household.read', scope) || hasPermission('invoice.read', scope)
-    || hasPermission('maintenance-fund.read') || hasPermission('user.read') || hasPermission('ticket.write', scope)
+    || hasPermission('maintenance-fund.read') || hasPermission('user.read') || hasPermission('ticket.write', scope) || canViewFees
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={`Xin chào, ${user?.displayName || user?.username || 'Bạn'}!`}
-        description={ownHousehold ? 'Theo dõi thông tin cư trú, khoản thu và yêu cầu của hộ gia đình bạn.' : 'Các phân hệ dưới đây hiển thị theo quyền truy cập của tài khoản.'}
-        actions={(
-          <PermissionGate permission="user.read">
-            {onNavigateToUsers && <button type="button" className="btn btn-primary" onClick={onNavigateToUsers}><UsersIcon size={16} /><span>Quản lý tài khoản</span></button>}
-          </PermissionGate>
-        )}
+        description={ownHousehold ? 'Theo dõi thông tin cư trú, khoản thu và yêu cầu của hộ gia đình bạn.' : 'Các phân hệ tác nghiệp dưới đây hiển thị theo quyền truy cập của tài khoản.'}
       />
 
       {ownHousehold && householdIds.length === 0 && <p className="alert alert-info" role="status">Tài khoản chưa được liên kết với hộ gia đình. Liên hệ Ban quản trị để cập nhật thông tin.</p>}
 
       <RoleGuard roles={['ADMIN', 'MANAGER']} fallback={null}><SystemHealth /></RoleGuard>
 
+      {hasWorkspaces && (
+        <section className="dashboard-section" aria-labelledby="workspace-title">
+          <div className="section-title-row"><div>
+            <h2 id="workspace-title" className="section-heading">Không gian tác nghiệp</h2>
+            <p className="section-subheading">Truy cập nhanh các phân hệ nghiệp vụ chính của tòa nhà</p>
+          </div></div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {canViewApartments && <WorkspaceLink to={ROUTES.apartments} icon={ApartmentIcon} title="Hồ sơ căn hộ" description="Tra cứu mã căn hộ, tòa nhà, tầng, diện tích m² và cập nhật trạng thái cư trú." action="Mở danh sách căn hộ" />}
+            {canViewFees && <WorkspaceLink to={ROUTES.fees} icon={ReceiptTaxIcon} title="Khoản thu và biểu phí" description="Xem danh mục khoản thu, đơn giá, biểu phí theo loại xe hoặc diện tích căn hộ." action="Xem biểu phí" />}
+            {canManageUsers && <WorkspaceLink to={ROUTES.users} icon={ShieldCheckIcon} title="Quản lý tài khoản" description="Tra cứu người dùng, tạo tài khoản mới, phân vai trò hệ thống và khóa/mở khóa." action="Mở danh sách tài khoản" />}
+          </div>
+        </section>
+      )}
+
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
       <section className="dashboard-section order-2 xl:order-1" aria-labelledby="modules-title">
         <div className="section-title-row"><div>
-          <h2 id="modules-title" className="section-heading">Phạm vi nghiệp vụ của bạn</h2>
-          <p className="section-subheading">Thông tin và thao tác được cấp cho tài khoản hiện tại</p>
+          <h2 id="modules-title" className="section-heading">Phạm vi nghiệp vụ được cấp quyền</h2>
+          <p className="section-subheading">Các thao tác và quyền truy cập hiện hành theo tài khoản</p>
         </div></div>
         {!hasModules && <p role="status">Chưa có phân hệ được cấp quyền trong phạm vi hiện tại. Liên hệ Ban quản trị để được hỗ trợ.</p>}
         <div className="features-grid">

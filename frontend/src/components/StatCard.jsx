@@ -1,4 +1,4 @@
-const TONES = { default: 'text-slate-900', success: 'text-emerald-700', danger: 'text-red-700' }
+const TONES = { default: 'text-slate-900', success: 'text-emerald-700', warning: 'text-amber-800', danger: 'text-red-700' }
 
 export default function StatCard({ label, value, tone = 'default', icon: Icon }) {
   return (

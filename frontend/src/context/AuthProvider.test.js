@@ -301,7 +301,7 @@ test('workspace tab and password dialog reset after logout and a new resident lo
   document.body.append(container)
   root = createRoot(container)
   await act(async () => root.render(h(App)))
-  const users = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Quản lý tài khoản'))
+  const users = [...document.querySelectorAll('main a, main button')].find((b) => b.textContent.includes('Quản lý tài khoản'))
   await act(async () => users.click())
   assert.match(document.body.textContent, /Quản lý Tài khoản Hệ thống/)
   await accountAction('Đổi mật khẩu')

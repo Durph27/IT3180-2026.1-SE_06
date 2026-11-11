@@ -1,12 +1,9 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { useHealth } from '../hooks/useHealth'
-import { MoonLogoIcon, UserIcon, LockIcon, BuildingIcon, ShieldCheckIcon, CheckCircleIcon } from './Icons'
+import { MoonLogoIcon, UserIcon, LockIcon, AlertTriangleIcon } from './Icons'
 
 export default function LoginForm({ onRegister }) {
   const { login } = useAuth()
-  const state = useHealth()
-  const connected = state === 'connected'
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -37,12 +34,6 @@ export default function LoginForm({ onRegister }) {
     }
   }
 
-  const fillAdminCredentials = () => {
-    setUsername('admin')
-    setPassword('Admin@123456!')
-    setErrorMessage('')
-  }
-
   return (
     <div className="login-split-wrapper min-[901px]:flex-row-reverse">
       {/* Form column; the informational showcase has no focusable content, so visual order is safe to swap. */}
@@ -54,18 +45,18 @@ export default function LoginForm({ onRegister }) {
             </div>
             <div>
               <span className="login-brand-name">BlueMoon</span>
-              <span className="login-brand-tag">Quản lý thu phí chung cư</span>
+              <span className="login-brand-tag">Quản lý căn hộ và thu phí</span>
             </div>
           </div>
 
           <div className="login-welcome-text">
             <h2>Đăng nhập tài khoản</h2>
-            <p>Nhập thông tin xác thực để truy cập bảng điều khiển</p>
+            <p>Nhập tên đăng nhập và mật khẩu để bắt đầu phiên làm việc</p>
           </div>
 
           {errorMessage && (
             <div className="alert alert-error" role="alert">
-              <span>⚠️</span>
+              <AlertTriangleIcon size={18} className="shrink-0" />
               <div>{errorMessage}</div>
             </div>
           )}
@@ -82,7 +73,7 @@ export default function LoginForm({ onRegister }) {
                   name="username"
                   type="text"
                   className="form-control"
-                  placeholder="Ví dụ: admin"
+                  placeholder="Nhập tên đăng nhập"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
@@ -119,6 +110,8 @@ export default function LoginForm({ onRegister }) {
                   type="button"
                   className="btn-toggle-password"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-pressed={showPassword}
+                  aria-controls="login-password"
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showPassword ? 'Ẩn' : 'Hiện'}
@@ -142,80 +135,17 @@ export default function LoginForm({ onRegister }) {
             </button>
 
             <p className="login-switch">Cư dân chưa có tài khoản? <button type="button" className="link-button" disabled={loading} onClick={onRegister}>Đăng ký</button></p>
-
-            <div className="demo-credentials-box">
-              <div className="demo-header">
-                <span className="demo-dot" />
-                <span>Tài khoản thử nghiệm (Demo)</span>
-              </div>
-              <p className="demo-desc">Đăng nhập nhanh với quyền Quản trị viên:</p>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm btn-block"
-                onClick={fillAdminCredentials}
-              >
-                ⚡ Tự động điền tài khoản Admin
-              </button>
-            </div>
           </form>
         </div>
       </div>
 
-      {/* Right Column: Hero / Features Showcase */}
       <div className="login-showcase-side">
         <div className="showcase-content">
-          <div className="showcase-badge">
-            <ShieldCheckIcon size={16} />
-            <span>Nền tảng Quản trị Chung cư Thông minh</span>
-          </div>
-
-          <h2 className="showcase-title">
-            Minh bạch thu phí, <br />
-            quản trị cư trú toàn diện
-          </h2>
-
+          <h2 className="showcase-title">Thông tin rõ ràng. Quản lý thuận tiện.</h2>
           <p className="showcase-desc">
-            BlueMoon cung cấp bộ công cụ tự động hóa toàn bộ quy trình từ quản lý căn hộ, lập kỳ thu, bảng kê hóa đơn đến đối soát dòng tiền và quỹ bảo trì.
+            Không gian làm việc của ban quản lý và cư dân: tra cứu hồ sơ căn hộ, theo dõi khoản thu và biểu phí trong phạm vi được cấp quyền.
           </p>
-
-          <div className="showcase-features-list">
-            <div className="showcase-feature-item">
-              <div className="feature-item-icon">
-                <BuildingIcon size={18} />
-              </div>
-              <div>
-                <h4>Quản lý Cư trú & Căn hộ</h4>
-                <p>Theo dõi nhân khẩu, chủ hộ, diện tích căn hộ và lịch sử biến động tạm trú/tạm vắng.</p>
-              </div>
-            </div>
-
-            <div className="showcase-feature-item">
-              <div className="feature-item-icon">
-                <CheckCircleIcon size={18} />
-              </div>
-              <div>
-                <h4>Tự động hóa Kỳ thu & Bảng kê</h4>
-                <p>Lập bảng kê dịch vụ theo diện tích hoặc định mức, xuất biên lai và phiếu thu tức thì.</p>
-              </div>
-            </div>
-
-            <div className="showcase-feature-item">
-              <div className="feature-item-icon">
-                <ShieldCheckIcon size={18} />
-              </div>
-              <div>
-                <h4>Bảo mật & Phân quyền RBAC</h4>
-                <p>Phân tách 5 vai trò hệ thống, mã hóa BCrypt hai lớp, an toàn dữ liệu tài chính.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="showcase-system-status">
-            <div className="status-live-pill">
-              <span className={`status-dot ${connected ? 'dot-pulse' : 'dot-danger'}`} />
-              <span>{connected ? 'Hệ thống Backend & Database: Sẵn sàng' : 'Đang kiểm tra kết nối hệ thống…'}</span>
-            </div>
-          </div>
+          <p className="showcase-desc">Hệ thống quản lý nội bộ BlueMoon</p>
         </div>
       </div>
     </div>

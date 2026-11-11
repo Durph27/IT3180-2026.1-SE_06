@@ -1,0 +1,138 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend (Lint, Test, Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter (oxlint)
+        run: npm run lint
+
+      - name: Run frontend unit & component tests
+        run: npm test
+
+      - name: Build production bundle
+        run: npm run build
+
+  backend:
+    name: Backend (Test & Package)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: bluemoon_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run backend tests
+        env:
+          TEST_POSTGRES_URL: jdbc:postgresql://localhost:5432/bluemoon_db
+          TEST_POSTGRES_USER: postgres
+          TEST_POSTGRES_PASSWORD: postgrespassword
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: bluemoon_db
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgrespassword
+        run: ./mvnw test --batch-mode
+
+      - name: Build backend package (Spring Boot JAR)
+        run: ./mvnw package -DskipTests --batch-mode
+
+      - name: Upload Surefire test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: backend/target/surefire-reports/
+
+  contract-and-tools:
+    name: API Contract & Tools Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate OpenAPI specification JSON syntax
+        run: python3 -m json.tool docs/api/openapi.json > /dev/null
+
+      - name: Validate Python scripts syntax
+        run: python3 -m py_compile tools/*.py
+
+  ci-status:
+    name: CI Status
+    needs: [frontend, backend, contract-and-tools]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [ "${{ needs.frontend.result }}" != "success" ] || \
+             [ "${{ needs.backend.result }}" != "success" ] || \
+             [ "${{ needs.contract-and-tools.result }}" != "success" ]; then
+            echo "::error::One or more CI checks failed. Please check the logs above."
+            exit 1
+          fi
+          echo "All CI pipeline checks passed successfully."

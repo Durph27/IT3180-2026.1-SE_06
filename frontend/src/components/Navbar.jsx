@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react'
 import { Link, NavLink } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { ROUTES } from '../routes'
-import PermissionGate from './PermissionGate'
-import { MoonLogoIcon, BuildingIcon, HomeIcon, ReceiptIcon, ShieldCheckIcon, UsersIcon } from './Icons'
+import { STAFF_ROLES } from '../utils/billingUtils'
+import { MoonLogoIcon, ApartmentIcon, BuildingIcon, HomeIcon, ReceiptIcon, ReceiptTaxIcon, ShieldCheckIcon, UsersIcon } from './Icons'
 
 const GROUP_LABEL = 'mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500'
 
@@ -29,6 +29,10 @@ export default function Navbar({ onNavigate, isOpen = false, onClose, hasUnpaidB
   const canReadResidents = [undefined, ...householdIds].some((householdId) => hasPermission('resident.read', { householdId }) && hasPermission('household.read', { householdId }))
   const canReadBilling = [undefined, ...householdIds].some((householdId) => hasPermission('invoice.read', { householdId }) && hasPermission('billing-period.read', { householdId }))
   const showFamily = hasRole('RESIDENT') && hasPermission('household.read', { householdId: householdIds[0] })
+  const canViewApartments = hasPermission('apartment.read')
+  // Residents read fee types only to classify their bills; the fee schedule screen is for staff.
+  const canViewFees = STAFF_ROLES.some((role) => hasRole(role)) && (hasPermission('fee-type.read') || hasPermission('fee-rate.read'))
+  const canManageUsers = hasPermission('user.read')
   const itemProps = { onNavigate }
 
   // The drawer is only ever open below the lg breakpoint; move keyboard users into it.
@@ -57,17 +61,21 @@ export default function Navbar({ onNavigate, isOpen = false, onClose, hasUnpaidB
             <p className={GROUP_LABEL}>Nghiệp vụ</p>
             <div className="flex flex-col gap-1">
               <NavItem to={ROUTES.overview} label="Tổng quan" icon={BuildingIcon} {...itemProps} />
+              {canViewApartments && <NavItem to={ROUTES.apartments} label="Căn hộ" icon={ApartmentIcon} {...itemProps} />}
               {canReadResidents && <NavItem to={ROUTES.residents} label="Nhân khẩu" icon={UsersIcon} {...itemProps} />}
               {canReadBilling && <NavItem to={ROUTES.billing} label="Khoản thu" icon={ReceiptIcon} attention={hasUnpaidBills ? 'còn khoản chưa đóng' : ''} {...itemProps} />}
               {showFamily && <NavItem to={ROUTES.family} label="Hộ gia đình" icon={HomeIcon} {...itemProps} />}
             </div>
           </div>
-          <PermissionGate permission="user.read">
+          {(canViewFees || canManageUsers) && (
             <div>
               <p className={GROUP_LABEL}>Quản trị</p>
-              <NavItem to={ROUTES.users} label="Quản lý tài khoản" icon={ShieldCheckIcon} {...itemProps} />
+              <div className="flex flex-col gap-1">
+                {canViewFees && <NavItem to={ROUTES.fees} label="Biểu phí" icon={ReceiptTaxIcon} {...itemProps} />}
+                {canManageUsers && <NavItem to={ROUTES.users} label="Quản lý tài khoản" icon={ShieldCheckIcon} {...itemProps} />}
+              </div>
             </div>
-          </PermissionGate>
+          )}
         </nav>
       </aside>
     </>

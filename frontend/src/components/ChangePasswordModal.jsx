@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { KeyIcon, LockIcon, CheckCircleIcon } from './Icons'
+import { KeyIcon, CheckCircleIcon, XIcon, AlertTriangleIcon } from './Icons'
 
 export default function ChangePasswordModal({ isOpen, onClose }) {
   const { changePassword } = useAuth()
@@ -13,6 +13,11 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  const loadingRef = useRef(loading)
+  useEffect(() => {
+    loadingRef.current = loading
+  }, [loading])
 
   const handleReset = useCallback(() => {
     setCurrentPassword('')
@@ -39,13 +44,14 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     }
   }, [isOpen])
 
-  // Native dialog cancel (Esc key) handling
+  // Native dialog cancel (Esc key) handling - block when loading
   useEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
 
     const handleCancel = (e) => {
       e.preventDefault()
+      if (loadingRef.current) return
       handleReset()
     }
 
@@ -53,7 +59,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     return () => dialog.removeEventListener('cancel', handleCancel)
   }, [handleReset])
 
-  // Light-dismiss (click outside dialog boundary) per Modern Web Guidance
+  // Light-dismiss (click outside dialog boundary) - block when loading
   const pressedOutsideRef = useRef(false)
   useEffect(() => {
     const dialog = dialogRef.current
@@ -69,7 +75,9 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     }
     const handlePointerUp = (e) => {
       if (pressedOutsideRef.current && outside(e, dialog)) {
-        handleReset()
+        if (!loadingRef.current) {
+          handleReset()
+        }
       }
       pressedOutsideRef.current = false
     }
@@ -126,58 +134,61 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
   return (
     <dialog
       ref={dialogRef}
-      className="native-modal-dialog"
+      className="modern-dialog"
       aria-labelledby="change-password-title"
     >
-      <div className="modal-content">
-        <div className="modal-header">
-          <div className="modal-title-with-icon">
-            <div className="modal-title-icon">
-              <KeyIcon size={18} />
+      <div>
+        <div className="dialog-header">
+          <div className="dialog-header-title">
+            <div className="dialog-icon-badge">
+              <KeyIcon size={20} />
             </div>
-            <h3 id="change-password-title">Đổi mật khẩu tài khoản</h3>
+            <div>
+              <h3 id="change-password-title" className="dialog-title">Đổi mật khẩu tài khoản</h3>
+              <p className="dialog-subtitle">Cập nhật mật khẩu để bảo vệ an toàn tài khoản</p>
+            </div>
           </div>
           <button
             type="button"
-            className="modal-close"
+            className="dialog-close-btn"
             onClick={handleReset}
+            disabled={loading}
             aria-label="Đóng hộp thoại"
           >
-            &times;
+            <XIcon size={18} />
           </button>
         </div>
 
         {success ? (
-          <div className="modal-body">
-            <div className="success-state-card">
-              <div className="success-state-icon">
-                <CheckCircleIcon size={36} />
-              </div>
-              <h4>Đổi mật khẩu thành công!</h4>
-              <p>Hệ thống đã tự động thu hồi phiên đăng nhập cũ nhằm bảo mật. Đang chuyển hướng về màn hình đăng nhập…</p>
+          <div className="dialog-body">
+            <div className="alert-banner alert-success" style={{ padding: '24px', textAlign: 'center', display: 'block' }}>
+              <CheckCircleIcon size={36} />
+              <h4 style={{ margin: '12px 0 6px' }}>Đổi mật khẩu thành công!</h4>
+              <p style={{ margin: 0, fontSize: '0.85rem' }}>
+                Hệ thống đã tự động thu hồi phiên đăng nhập cũ nhằm bảo mật. Đang chuyển hướng về màn hình đăng nhập…
+              </p>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="modal-body modern-form">
-            {error && (
-              <div className="alert alert-error" role="alert">
-                <span>⚠️</span>
-                <div>{error}</div>
-              </div>
-            )}
+          <form onSubmit={handleSubmit}>
+            <div className="dialog-body">
+              {error && (
+                <div className="alert-banner alert-danger" role="alert">
+                  <AlertTriangleIcon size={18} aria-hidden="true" />
+                  <div>{error}</div>
+                </div>
+              )}
 
-            <div className="form-group">
-              <label htmlFor="current-pw">Mật khẩu hiện tại</label>
-              <div className="input-with-icon">
-                <span className="input-icon">
-                  <LockIcon size={16} />
-                </span>
+              <div className="form-group">
+                <label htmlFor="change-pw-current" className="form-label">
+                  Mật khẩu hiện tại <span className="req-star">*</span>
+                </label>
                 <input
-                  id="current-pw"
+                  id="change-pw-current"
                   name="currentPassword"
                   type={showPassword ? 'text' : 'password'}
-                  className="form-control"
-                  placeholder="Nhập mật khẩu đang dùng..."
+                  className="form-input"
+                  placeholder="Nhập mật khẩu đang dùng…"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   disabled={loading}
@@ -185,89 +196,81 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
                   required
                 />
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="new-pw">Mật khẩu mới (tối thiểu 12 ký tự)</label>
-              <div className="input-with-icon">
-                <span className="input-icon">
-                  <KeyIcon size={16} />
+              <div className="form-group">
+                <label htmlFor="change-pw-new" className="form-label">
+                  Mật khẩu mới (tối thiểu 12 ký tự) <span className="req-star">*</span>
+                </label>
+                <span id="change-pw-new-hint" className="field-hint">
+                  Độ dài: {newPassword.length}/12 ký tự {isLengthValid ? '✓ Đạt chuẩn bảo mật' : ''}
                 </span>
                 <input
-                  id="new-pw"
+                  id="change-pw-new"
                   name="newPassword"
                   type={showPassword ? 'text' : 'password'}
-                  className="form-control"
-                  placeholder="Tối thiểu 12 ký tự bảo mật..."
+                  className="form-input"
+                  placeholder="Tối thiểu 12 ký tự bảo mật…"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   disabled={loading}
                   autoComplete="new-password"
                   minLength={12}
                   required
-                  aria-describedby="password-rules"
+                  aria-describedby="change-pw-new-hint"
                 />
-              </div>
-
-              {/* Strength Meter Bar */}
-              <div className="password-strength-bar">
-                <div
-                  className={`strength-progress ${isLengthValid ? 'is-valid' : ''}`}
-                  style={{ width: `${Math.min(100, (newPassword.length / 12) * 100)}%` }}
-                />
-              </div>
-              <div id="password-rules" className="field-hint-row">
-                <span className="field-hint">
-                  Độ dài: {newPassword.length}/12 ký tự {isLengthValid ? '✓ Đạt chuẩn' : ''}
-                </span>
                 {newPassword && newPassword === currentPassword && (
-                  <span className="field-hint text-danger">Không được trùng mật khẩu cũ</span>
+                  <div className="field-error-msg" role="alert">Mật khẩu mới không được trùng mật khẩu cũ.</div>
                 )}
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="confirm-pw">Xác nhận mật khẩu mới</label>
-              <div className="input-with-icon">
-                <span className="input-icon">
-                  <LockIcon size={16} />
-                </span>
+              <div className="form-group">
+                <label htmlFor="change-pw-confirm" className="form-label">
+                  Xác nhận mật khẩu mới <span className="req-star">*</span>
+                </label>
                 <input
-                  id="confirm-pw"
+                  id="change-pw-confirm"
                   name="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
-                  className="form-control"
-                  placeholder="Nhập lại mật khẩu mới..."
+                  className="form-input"
+                  placeholder="Nhập lại mật khẩu mới…"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={loading}
                   autoComplete="new-password"
                   minLength={12}
                   required
+                  aria-describedby={confirmPassword ? 'change-pw-confirm-msg' : undefined}
                 />
+                {confirmPassword && (
+                  <div
+                    id="change-pw-confirm-msg"
+                    className={isMatching ? 'field-hint' : 'field-error-msg'}
+                    role={isMatching ? undefined : 'alert'}
+                    style={{ color: isMatching ? 'var(--ledger-teal)' : 'var(--signal-crimson)', marginTop: '4px' }}
+                  >
+                    {isMatching ? '✓ Mật khẩu xác nhận trùng khớp' : '✗ Mật khẩu xác nhận chưa khớp'}
+                  </div>
+                )}
               </div>
-              {confirmPassword && (
-                <span className={`field-hint ${isMatching ? 'text-success' : 'text-danger'}`}>
-                  {isMatching ? '✓ Mật khẩu xác nhận trùng khớp' : '✗ Mật khẩu xác nhận chưa khớp'}
-                </span>
-              )}
+
+              <div style={{ marginBottom: '16px', fontSize: '0.825rem' }}>
+                <label htmlFor="change-pw-show" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input
+                    id="change-pw-show"
+                    type="checkbox"
+                    checked={showPassword}
+                    onChange={(e) => setShowPassword(e.target.checked)}
+                    disabled={loading}
+                  />
+                  Hiện các trường mật khẩu
+                </label>
+              </div>
             </div>
 
-            <div className="form-checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={showPassword}
-                  onChange={(e) => setShowPassword(e.target.checked)}
-                />
-                {' '}Hiện các trường mật khẩu
-              </label>
-            </div>
-
-            <div className="modal-actions">
+            <div className="dialog-footer dialog-form-footer">
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-secondary btn-sm"
                 onClick={handleReset}
                 disabled={loading}
               >
@@ -275,7 +278,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
               </button>
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary btn-sm"
                 disabled={loading || !isLengthValid || !isMatching}
               >
                 {loading ? 'Đang cập nhật…' : 'Lưu mật khẩu mới'}

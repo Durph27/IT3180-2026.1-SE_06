@@ -9,6 +9,9 @@ import LoginForm from './components/LoginForm'
 import RegisterForm from './components/RegisterForm'
 import ChangePasswordModal from './components/ChangePasswordModal'
 import UserManagement from './components/UserManagement'
+import ApartmentManagement from './components/ApartmentManagement'
+import FeeManagement from './components/FeeManagement'
+import ErrorBoundary from './components/ErrorBoundary'
 import ResidentManagement from './components/ResidentManagement'
 import HomePage from './pages/HomePage'
 import FamilyPage from './pages/FamilyPage'
@@ -23,6 +26,8 @@ import './App.css'
 const APP_TITLE = 'BlueMoon — Quản lý thu phí'
 const PAGE_TITLES = {
   [ROUTES.overview]: 'Tổng quan',
+  [ROUTES.apartments]: 'Căn hộ',
+  [ROUTES.fees]: 'Biểu phí',
   [ROUTES.residents]: 'Nhân khẩu',
   [ROUTES.billing]: 'Khoản thu',
   [ROUTES.family]: 'Hộ gia đình',
@@ -42,8 +47,8 @@ function AppContent() {
     return (
       <div className="app-loading-screen">
         <div className="loading-spinner-ring" />
-        <h3>Khởi tạo phiên làm việc…</h3>
-        <p>Đang kiểm tra chứng chỉ xác thực và cấu hình hệ thống</p>
+        <h3>Đang mở phiên làm việc…</h3>
+        <p>Vui lòng chờ trong khi kiểm tra tài khoản.</p>
       </div>
     )
   }
@@ -106,6 +111,7 @@ function Workspace({ onLogout }) {
 
   return (
     <div className="flex min-h-screen">
+      <a className="skip-link" href="#main-content">Đến nội dung chính</a>
       <Navbar onNavigate={() => setIsNavOpen(false)} isOpen={isNavOpen} onClose={closeNav} hasUnpaidBills={hasUnpaidBills} />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -118,13 +124,15 @@ function Workspace({ onLogout }) {
           onLogout={onLogout}
         />
 
-        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-6 pb-16 sm:px-6 lg:px-8">
-          <RoleGuard roles={Object.keys(ROLE_PERMISSIONS)} fallback={<ForbiddenView />}>
+        <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-6 pb-16 sm:px-6 lg:px-8">
+          <RoleGuard roles={Object.keys(ROLE_PERMISSIONS)} fallback={<ForbiddenView onBack={goToOverview} />}>
             <Routes>
               <Route path="/" element={<Navigate to={ROUTES.overview} replace />} />
               <Route path={ROUTES.login} element={<ReturnAfterLogin />} />
               <Route path={ROUTES.register} element={<ReturnAfterLogin />} />
-              <Route path={ROUTES.overview} element={<HomePage onNavigateToUsers={() => navigate(ROUTES.users)} />} />
+              <Route path={ROUTES.overview} element={<HomePage />} />
+              <Route path={ROUTES.apartments} element={<ApartmentManagement />} />
+              <Route path={ROUTES.fees} element={<FeeManagement />} />
               <Route path={ROUTES.users} element={<UserManagement onBack={goToOverview} />} />
               <Route path={ROUTES.residents} element={<ResidentManagement />} />
               <Route path={ROUTES.family} element={<FamilyPage onBack={goToOverview} />} />
@@ -145,10 +153,12 @@ function Workspace({ onLogout }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
