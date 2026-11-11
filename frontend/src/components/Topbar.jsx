@@ -4,8 +4,8 @@ import { ChevronDownIcon, KeyIcon, LogoutIcon, MenuIcon } from './Icons'
 
 const MENU_ITEM = 'flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-lg border-0 bg-transparent px-3 text-left text-sm font-semibold [font-family:inherit] transition-colors focus-visible:outline-2 focus-visible:outline-(--primary)'
 
-export default function Topbar({ title, isMenuOpen, menuButtonRef, onOpenMenu, onOpenChangePassword }) {
-  const { user, roles, logout } = useAuth()
+export default function Topbar({ title, isMenuOpen, menuButtonRef, onOpenMenu, onOpenChangePassword, onLogout }) {
+  const { user, roles } = useAuth()
   const [isAccountOpen, setIsAccountOpen] = useState(false)
   const accountRef = useRef(null)
   const accountButtonRef = useRef(null)
@@ -83,7 +83,7 @@ export default function Topbar({ title, isMenuOpen, menuButtonRef, onOpenMenu, o
               <KeyIcon size={16} className="shrink-0" />
               <span>Đổi mật khẩu</span>
             </button>
-            <button type="button" className={`${MENU_ITEM} text-red-700 hover:bg-red-50`} onClick={logout}>
+            <button type="button" className={`${MENU_ITEM} text-red-700 hover:bg-red-50`} onClick={onLogout}>
               <LogoutIcon size={16} className="shrink-0" />
               <span>Đăng xuất</span>
             </button>

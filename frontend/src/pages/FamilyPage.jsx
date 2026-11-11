@@ -11,8 +11,10 @@ import { todayInVietnam } from '../residents/validation'
 const EMPTY = { fullName: '', birthDate: '', gender: 'UNSPECIFIED', relationship: 'CON', identityNo: '', phone: '' }
 
 export default function FamilyPage({ onBack }) {
-  const { householdIds } = useAuth()
+  const { householdIds, hasRole } = useAuth()
   const householdId = householdIds[0]
+  // Staff can hold household.read but have no household of their own to show at this URL.
+  if (!hasRole('RESIDENT')) return <ForbiddenView onBack={onBack} />
   return (
     <PermissionGate permission="household.read" householdId={householdId} fallback={<ForbiddenView onBack={onBack} />}>
       <FamilyContent key={householdId} householdId={householdId} />
