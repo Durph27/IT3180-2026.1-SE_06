@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { addFamilyMemberApi, getHouseholdMembersApi, getResidentApi } from '../api/households'
 import { apiErrorMessage } from '../api/errors'
 import { useAuth } from '../hooks/useAuth'
@@ -7,6 +8,7 @@ import ForbiddenView from '../components/ForbiddenView'
 import PageHeader from '../components/PageHeader'
 import { activeMembers, FAMILY_RELATIONSHIPS, familyMemberError, GENDERS } from '../components/personOptions'
 import { todayInVietnam } from '../residents/validation'
+import { ROUTES } from '../routes'
 
 const EMPTY = { fullName: '', birthDate: '', gender: 'UNSPECIFIED', relationship: 'CON', identityNo: '', phone: '' }
 
@@ -48,7 +50,15 @@ function FamilyContent({ householdId }) {
 
   return (
     <div className="user-management-container">
-      <PageHeader title="Hộ gia đình của tôi" description="Người được thêm chỉ là nhân khẩu của hộ, không có tài khoản đăng nhập." />
+      <PageHeader
+        title="Hộ gia đình của tôi"
+        description="Người được thêm chỉ là nhân khẩu của hộ, không có tài khoản đăng nhập."
+        actions={
+          <Link to={ROUTES.residenceChanges} className="btn btn-outline min-h-11 flex! items-center">
+            Tạm trú, tạm vắng
+          </Link>
+        }
+      />
       {notice && <p className="alert alert-success" role="status">{notice}</p>}
       {error && <p className="alert alert-error" role="alert">{error}</p>}
       <div className={`grid items-start gap-6 ${canAdd ? 'xl:grid-cols-2' : ''}`}>
