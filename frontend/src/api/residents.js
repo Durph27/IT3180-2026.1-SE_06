@@ -28,6 +28,13 @@ export async function getHouseholdsApi(page = 0, signal) {
   return (await api.get('/households', { params: { page, size: 20 }, signal })).data
 }
 
+export async function searchResidentsApi({ q = '', householdId = '', page = 0, size = 50, signal } = {}) {
+  const params = { page, size }
+  if (q?.trim()) params.q = q.trim()
+  if (householdId) params.householdId = householdId
+  return (await api.get('/residents', { params, signal })).data
+}
+
 export function residentError(error) {
   const { status, data } = error.response || {}
   if (status === 409 && data?.code === 'DUPLICATE_RESOURCE') {
