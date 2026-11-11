@@ -1,6 +1,7 @@
 import test, { after } from 'node:test'
 import assert from 'node:assert/strict'
 import { createElement as h } from 'react'
+import { MemoryRouter } from 'react-router'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -28,7 +29,7 @@ function auth(role, permissions, overrides = {}) {
   value.hasRole = (code) => hasRole(value.roles, code)
   return value
 }
-const render = (value, component, props) => renderToStaticMarkup(h(AuthContext.Provider, { value }, h(component, props)))
+const render = (value, component, props) => renderToStaticMarkup(h(MemoryRouter, null, h(AuthContext.Provider, { value }, h(component, props))))
 
 const person = { fullName: 'Nguyễn Văn A', identityNo: '012345678901', birthDate: '1985-05-05', gender: 'MALE', phone: '0900000000' }
 const valid = { ...person, username: 'chu.ho-01', password: 'long-enough-password', confirmPassword: 'long-enough-password' }
@@ -60,7 +61,7 @@ test('registration page states who it is for and needs no session', () => {
 })
 
 test('family tab shows only for residents linked to a household', () => {
-  const props = { currentTab: 'overview', onSelectTab() {}, onOpenChangePassword() {} }
+  const props = {}
   const resident = ROLE_PERMISSIONS.RESIDENT
   assert.match(render(auth('RESIDENT', resident), Navbar, props), /Hộ gia đình/)
   assert.doesNotMatch(render(auth('RESIDENT', resident, { householdIds: [] }), Navbar, props), /Hộ gia đình/)

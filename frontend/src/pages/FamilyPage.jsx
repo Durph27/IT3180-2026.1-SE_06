@@ -4,14 +4,17 @@ import { apiErrorMessage } from '../api/errors'
 import { useAuth } from '../hooks/useAuth'
 import PermissionGate from '../components/PermissionGate'
 import ForbiddenView from '../components/ForbiddenView'
+import PageHeader from '../components/PageHeader'
 import { activeMembers, FAMILY_RELATIONSHIPS, familyMemberError, GENDERS } from '../components/personOptions'
 import { todayInVietnam } from '../residents/validation'
 
 const EMPTY = { fullName: '', birthDate: '', gender: 'UNSPECIFIED', relationship: 'CON', identityNo: '', phone: '' }
 
 export default function FamilyPage({ onBack }) {
-  const { householdIds } = useAuth()
+  const { householdIds, hasRole } = useAuth()
   const householdId = householdIds[0]
+  // Staff can hold household.read but have no household of their own to show at this URL.
+  if (!hasRole('RESIDENT')) return <ForbiddenView onBack={onBack} />
   return (
     <PermissionGate permission="household.read" householdId={householdId} fallback={<ForbiddenView onBack={onBack} />}>
       <FamilyContent key={householdId} householdId={householdId} />
@@ -45,28 +48,25 @@ function FamilyContent({ householdId }) {
 
   return (
     <div className="user-management-container">
-      <div className="page-header-card">
-        <div>
-          <h1 className="header-title">Hộ gia đình của tôi</h1>
-          <p className="header-desc">Người được thêm chỉ là nhân khẩu của hộ, không có tài khoản đăng nhập.</p>
-        </div>
-      </div>
+      <PageHeader title="Hộ gia đình của tôi" description="Người được thêm chỉ là nhân khẩu của hộ, không có tài khoản đăng nhập." />
       {notice && <p className="alert alert-success" role="status">{notice}</p>}
       {error && <p className="alert alert-error" role="alert">{error}</p>}
-      <section className="table-card" aria-labelledby="family-title">
-        <h2 id="family-title" className="section-title">Nhân khẩu đang cư trú</h2>
-        {members === null ? <p role="status">Đang tải danh sách nhân khẩu…</p> : (
-          <ul className="family-list">
-            {members.map((member) => (
-              <li key={member.id}>
-                <span>{member.fullName}</span>
-                <span className="text-muted">{member.relationship}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      {canAdd && <AddMemberForm householdId={householdId} onAdded={(name) => { setNotice(`Đã thêm nhân khẩu "${name}".`); setVersion((value) => value + 1) }} />}
+      <div className={`grid items-start gap-6 ${canAdd ? 'xl:grid-cols-2' : ''}`}>
+        <section className="table-card" aria-labelledby="family-title">
+          <h2 id="family-title" className="section-title">Nhân khẩu đang cư trú</h2>
+          {members === null ? <p role="status">Đang tải danh sách nhân khẩu…</p> : (
+            <ul className="family-list">
+              {members.map((member) => (
+                <li key={member.id}>
+                  <span>{member.fullName}</span>
+                  <span className="text-muted">{member.relationship}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+        {canAdd && <AddMemberForm householdId={householdId} onAdded={(name) => { setNotice(`Đã thêm nhân khẩu "${name}".`); setVersion((value) => value + 1) }} />}
+      </div>
       {members !== null && !isHead && !error && <p className="alert alert-info">Chỉ chủ hộ mới được thêm nhân khẩu.</p>}
     </div>
   )

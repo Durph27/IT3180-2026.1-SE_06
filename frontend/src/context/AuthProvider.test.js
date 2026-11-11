@@ -62,6 +62,7 @@ async function login(role = 'ADMIN') {
 }
 
 beforeEach(() => {
+  window.history.replaceState(null, '', '/')
   auth = null
   requests = []
   localStorage.clear()
@@ -234,6 +235,66 @@ test('StrictMode restore remains valid and unmounted providers remove API callba
   assert.equal(current.isAuthenticated, true)
 })
 
+const renderApp = async () => {
+  const container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  await act(async () => root.render(h(App)))
+}
+const currentPath = () => `${window.location.pathname}${window.location.search}`
+const submitLogin = async (username) => {
+  const setValue = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
+  await act(async () => {
+    for (const [id, value] of [['login-username', username], ['login-password', 'test-password']]) {
+      const input = document.getElementById(id)
+      setValue.call(input, value)
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+  })
+  await act(async () => document.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })))
+}
+const buttonWithText = (text) => [...document.querySelectorAll('button')].find((b) => b.textContent.includes(text))
+const accountAction = async (text) => {
+  await act(async () => document.querySelector('button[aria-label^="Menu tài khoản"]').click())
+  await act(async () => buttonWithText(text).click())
+}
+
+test('a signed-out deep link returns to that page after login', async () => {
+  window.history.replaceState(null, '', '/quan-ly-tai-khoan')
+  await renderApp()
+  assert.equal(currentPath(), '/dang-nhap')
+  await submitLogin('admin')
+  assert.equal(currentPath(), '/quan-ly-tai-khoan')
+  assert.match(document.body.textContent, /Quản lý Tài khoản Hệ thống/)
+})
+
+test('a reload with a stored session stays on the same page', async () => {
+  setStoredToken('restore-token')
+  window.history.replaceState(null, '', '/quan-ly-tai-khoan')
+  await renderApp()
+  assert.equal(currentPath(), '/quan-ly-tai-khoan')
+  assert.match(document.body.textContent, /Quản lý Tài khoản Hệ thống/)
+  assert.equal(document.title, 'Quản lý tài khoản · BlueMoon')
+})
+
+test('the root redirects to the overview and unknown paths show not found', async () => {
+  setStoredToken('restore-token')
+  await renderApp()
+  assert.equal(currentPath(), '/tong-quan')
+  await act(async () => root.unmount())
+  window.history.replaceState(null, '', '/khong-ton-tai')
+  await renderApp()
+  assert.match(document.body.textContent, /Không tìm thấy trang/)
+})
+
+test('staff cannot open the household page by URL', async () => {
+  setStoredToken('restore-token')
+  window.history.replaceState(null, '', '/ho-gia-dinh')
+  await renderApp()
+  assert.match(document.body.textContent, /Bạn không có quyền truy cập/)
+  assert.equal(requests.some((config) => config.url.includes('/households/')), false)
+})
+
 test('workspace tab and password dialog reset after logout and a new resident login', async () => {
   setStoredToken('restore-token')
   const container = document.createElement('div')
@@ -243,29 +304,21 @@ test('workspace tab and password dialog reset after logout and a new resident lo
   const users = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Quản lý tài khoản'))
   await act(async () => users.click())
   assert.match(document.body.textContent, /Quản lý Tài khoản Hệ thống/)
-  const changePassword = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Đổi mật khẩu'))
-  await act(async () => changePassword.click())
+  await accountAction('Đổi mật khẩu')
   assert.ok(document.querySelector('dialog[open]'))
   // Close the native modal before logging out, as a user would.
   await act(async () => document.querySelector('dialog[open]').dispatchEvent(new Event('cancel', { cancelable: true })))
-  const logout = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Đăng xuất'))
-  await act(async () => logout.click())
+  await accountAction('Đăng xuất')
   assert.match(document.body.textContent, /Đăng nhập tài khoản/)
   assert.equal(getStoredToken(), null)
   assert.equal(document.querySelector('table'), null)
   adapter((config) => config.url === '/auth/login'
     ? response(config, { accessToken: 'resident-token', profile: profile('RESIDENT', ['invoice.read', 'household.read']) })
     : response(config, { status: 'UP', database: 'UP' }))
-  const setValue = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
-  await act(async () => {
-    for (const [id, value] of [['login-username', 'resident'], ['login-password', 'test-password']]) {
-      const input = document.getElementById(id)
-      setValue.call(input, value)
-      input.dispatchEvent(new Event('input', { bubbles: true }))
-    }
-  })
-  await act(async () => document.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })))
+  assert.equal(currentPath(), '/dang-nhap')
+  await submitLogin('resident')
   assert.equal(getStoredToken(), 'resident-token')
+  assert.equal(currentPath(), '/tong-quan')
   assert.match(document.body.textContent, /Khoản thu của hộ/)
   assert.ok(!document.body.textContent.includes('Quản lý Tài khoản Hệ thống'))
   assert.equal(document.querySelector('dialog[open]'), null)
@@ -336,8 +389,7 @@ test('session expiry unmounts an open password dialog and the protected workspac
   document.body.append(container)
   root = createRoot(container)
   await act(async () => root.render(h(App)))
-  const button = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Đổi mật khẩu'))
-  await act(async () => button.click())
+  await accountAction('Đổi mật khẩu')
   assert.ok(document.querySelector('dialog[open]'))
   adapter((config) => config.url === '/expired'
     ? response(config, { code: 'TOKEN_EXPIRED' }, 401)

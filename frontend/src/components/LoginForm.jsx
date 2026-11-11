@@ -44,8 +44,8 @@ export default function LoginForm({ onRegister }) {
   }
 
   return (
-    <div className="login-split-wrapper">
-      {/* Left Column: Form */}
+    <div className="login-split-wrapper min-[901px]:flex-row-reverse">
+      {/* Form column; the informational showcase has no focusable content, so visual order is safe to swap. */}
       <div className="login-form-side">
         <div className="login-card-inner">
           <div className="login-brand-header">
