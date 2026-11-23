@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { ROUTES } from '../routes'
 import { STAFF_ROLES } from '../utils/billingUtils'
-import { MoonLogoIcon, ApartmentIcon, BuildingIcon, HomeIcon, ReceiptIcon, ReceiptTaxIcon, ShieldCheckIcon, UsersIcon } from './Icons'
+import { MoonLogoIcon, ApartmentIcon, BuildingIcon, CalendarIcon, HomeIcon, ReceiptIcon, ReceiptTaxIcon, ShieldCheckIcon, UsersIcon } from './Icons'
 
 const GROUP_LABEL = 'mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500'
 
@@ -27,6 +27,7 @@ export default function Navbar({ onNavigate, isOpen = false, onClose, hasUnpaidB
   const { householdIds, hasRole, hasPermission } = useAuth()
   const navRef = useRef(null)
   const canReadResidents = [undefined, ...householdIds].some((householdId) => hasPermission('resident.read', { householdId }) && hasPermission('household.read', { householdId }))
+  const canReadResidenceChanges = [undefined, ...householdIds].some((householdId) => hasPermission('residence-change.read', { householdId }))
   const canReadBilling = [undefined, ...householdIds].some((householdId) => hasPermission('invoice.read', { householdId }) && hasPermission('billing-period.read', { householdId }))
   const showFamily = hasRole('RESIDENT') && hasPermission('household.read', { householdId: householdIds[0] })
   const canViewApartments = hasPermission('apartment.read')
@@ -63,6 +64,7 @@ export default function Navbar({ onNavigate, isOpen = false, onClose, hasUnpaidB
               <NavItem to={ROUTES.overview} label="Tổng quan" icon={BuildingIcon} {...itemProps} />
               {canViewApartments && <NavItem to={ROUTES.apartments} label="Căn hộ" icon={ApartmentIcon} {...itemProps} />}
               {canReadResidents && <NavItem to={ROUTES.residents} label="Nhân khẩu" icon={UsersIcon} {...itemProps} />}
+              {canReadResidenceChanges && <NavItem to={ROUTES.residenceChanges} label="Tạm trú, tạm vắng" icon={CalendarIcon} {...itemProps} />}
               {canReadBilling && <NavItem to={ROUTES.billing} label="Khoản thu" icon={ReceiptIcon} attention={hasUnpaidBills ? 'còn khoản chưa đóng' : ''} {...itemProps} />}
               {showFamily && <NavItem to={ROUTES.family} label="Hộ gia đình" icon={HomeIcon} {...itemProps} />}
             </div>

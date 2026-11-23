@@ -1516,6 +1516,102 @@ dialog.resident-form-dialog {
   color: var(--primary-hover);
   border: 1px solid var(--primary-border);
 }
+
+/* Residence change dialogs (Tạm trú / Tạm vắng / Từ chối) */
+dialog.residence-change-dialog {
+  width: 580px;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
+  margin: auto;
+}
+
+.residence-change-dialog .modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+  max-width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.residence-change-dialog .modal-header {
+  flex-shrink: 0;
+  gap: 12px;
+  padding: 18px 24px;
+}
+
+.residence-change-dialog .modal-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--slate-900);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.residence-change-dialog .modal-close {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.residence-change-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.residence-change-form .modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+  padding: 20px 24px;
+}
+
+.residence-change-form .modal-actions {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  margin-top: 0;
+  border-top: 1px solid var(--slate-200);
+  background-color: #fafbfc;
+}
+
+.residence-change-form .modal-actions .btn {
+  min-height: 44px;
+  white-space: normal;
+}
+
+@media (max-width: 600px) {
+  dialog.residence-change-dialog {
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .residence-change-dialog .modal-header {
+    padding: 14px 16px;
+  }
+
+  .residence-change-form .modal-body {
+    padding: 16px;
+  }
+
+  .residence-change-form .modal-actions {
+    padding: 12px 16px;
+  }
+
+  .residence-change-form .modal-actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
 dialog.account-edit-dialog {
   width: min(560px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);
