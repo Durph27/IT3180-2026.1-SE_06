@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { Link } from 'react-router'
-import { ROUTES } from '../routes'
+import { MAINTENANCE_PAGE, ROUTES } from '../routes'
 import { formatDate, formatMoney, periodMonthLabel, toCents } from '../utils/billingUtils'
 import { formatDateTime, PAYMENT_CHANNEL_LABELS } from '../utils/paymentUtils'
 import { formatDateVn } from '../utils/residentDirectoryUtils'
@@ -57,9 +57,9 @@ export function BillingProgressCard({
       {!currentPeriod && !loading && (
         <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
           <p className="text-sm font-semibold text-slate-700">Chưa có kỳ thu để tổng hợp số liệu</p>
-          <p className="mt-1 text-xs text-slate-500">Bấm “Lập phiếu báo phí” ở trang Khoản thu để bắt đầu thu phí tháng này.</p>
+          <p className="mt-1 text-xs text-slate-500">Bấm “Lập phiếu báo phí” ở trang Đợt thu để bắt đầu thu phí tháng này.</p>
           <Link to={ROUTES.billing} className="btn btn-primary btn-sm mt-3 no-underline">
-            Mở Khoản thu
+            Mở Đợt thu
           </Link>
         </div>
       )}
@@ -81,7 +81,7 @@ export function BillingProgressCard({
             <div className="flex items-start gap-2.5 rounded-xl border border-solid border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-900">
               <AlertTriangleIcon size={16} className="mt-0.5 shrink-0" />
               <span>
-                Phát hiện {reconciliation.discrepantCount} phiếu báo phí lệch đối chiếu dòng phí. Kiểm tra ở phần Đối chiếu kế toán trong trang Khoản thu.
+                Phát hiện {reconciliation.discrepantCount} phiếu báo phí lệch đối chiếu dòng phí. Kiểm tra ở phần Đối chiếu kế toán trong trang Đợt thu.
               </span>
             </div>
           )}
@@ -232,7 +232,7 @@ export function RecentPaymentsCard({ paymentSummary, maintenanceSummary, loading
             Quỹ bảo trì ({maintenanceSummary.fundCount} quỹ) · Đã ghi sổ thu:{' '}
             <strong className="text-slate-800 tabular-nums">{formatMoney(postedTotal || 0n)}</strong>
           </span>
-          <Link to={ROUTES.maintenanceFunds} className="font-semibold text-(--primary) no-underline hover:underline">
+          <Link to={MAINTENANCE_PAGE} className="font-semibold text-(--primary) no-underline hover:underline">
             Số dư: {formatMoney(maintenanceSummary.totalBalance || 0n)} →
           </Link>
         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useSearchParams } from 'react-router'
 import {
   getBillingPeriodsApi,
   getContributionCampaignsApi,
@@ -9,6 +9,7 @@ import {
 } from '../api/billing'
 import { apiErrorMessage } from '../api/errors'
 import { useAuth } from '../hooks/useAuth'
+import { placeOptionLabel, useHouseholdPlaces } from '../hooks/useHouseholdPlaces'
 import BillingPeriodSelector from '../components/BillingPeriodSelector'
 import DueDateAlertBanner from '../components/DueDateAlertBanner'
 import FeeItemTable from '../components/FeeItemTable'
@@ -17,12 +18,13 @@ import PermissionGate from '../components/PermissionGate'
 import PageHeader from '../components/PageHeader'
 import FilterBar from '../components/FilterBar'
 import StatCard from '../components/StatCard'
-import { BuildingIcon, CheckCircleIcon, ReceiptIcon } from '../components/Icons'
+import { BuildingIcon, ReceiptIcon } from '../components/Icons'
 import StaffPeriodsTab from '../components/billing/StaffPeriodsTab'
-import FeeTableTab from '../components/billing/FeeTableTab'
 import OutstandingPeriods from '../components/OutstandingPeriods'
+import ResidentContributions from '../components/contributions/ResidentContributions'
 import { classifyFeeItems, collectDueAlerts, defaultPeriod, FEE_CATEGORY, formatMoney, STAFF_ROLES, summarizeOutstandingPeriods, summarizeTotals } from '../utils/billingUtils'
 import { canAccess } from '../auth/rbac'
+import { ROUTES } from '../routes'
 
 export default function BillingPage({ onBack }) {
   const { householdIds, hasRole } = useAuth()
@@ -40,46 +42,20 @@ export default function BillingPage({ onBack }) {
   )
 }
 
-const STAFF_TABS = Object.freeze([
-  { id: 'dot-thu', label: 'Đợt thu', allowed: (auth) => canAccess(auth, 'invoice.read') && canAccess(auth, 'billing-period.read') },
-  { id: 'bang-phi', label: 'Bảng phí', allowed: (auth) => canAccess(auth, 'fee-type.read') && canAccess(auth, 'fee-rate.read') },
-])
-
-// Staff work in two places only: send this month's bills, and keep the price list current.
+// Staff send this month's bills here; the price list is its own page ("Phí cố định").
 function StaffBilling({ onBack }) {
   const auth = useAuth()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const tabs = STAFF_TABS.filter((tab) => tab.allowed(auth))
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   if (auth.isLoading) return null
-  if (tabs.length === 0) return <ForbiddenView onBack={onBack} />
-  const active = tabs.find((tab) => tab.id === searchParams.get('tab'))?.id ?? tabs[0].id
-  const select = (id) => setSearchParams({ tab: id })
+  // Old links to the price-list tab land on the page that replaced it.
+  if (searchParams.get('tab') === 'bang-phi') return <Navigate to={ROUTES.fixedFees} replace />
+  if (!canAccess(auth, 'invoice.read') || !canAccess(auth, 'billing-period.read')) return <ForbiddenView onBack={onBack} />
+  const canOpenFees = canAccess(auth, 'fee-type.read') && canAccess(auth, 'fee-rate.read')
   return (
     <div className="user-management-container">
-      <PageHeader title="Khoản thu" description="Lập phiếu báo phí hằng tháng, theo dõi thu tiền và quản lý bảng phí của chung cư." />
-      {tabs.length > 1 && (
-        <div className="filter-buttons-group w-fit max-w-full flex-wrap" role="tablist" aria-label="Khoản thu">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              id={`billing-tab-${tab.id}`}
-              aria-selected={active === tab.id}
-              aria-controls={`billing-panel-${tab.id}`}
-              className={`filter-btn ${active === tab.id ? 'active' : ''}`}
-              onClick={() => select(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      )}
-      <div role="tabpanel" id={`billing-panel-${active}`} aria-labelledby={`billing-tab-${active}`}>
-        {active === 'dot-thu'
-          ? <StaffPeriodsTab onOpenFees={tabs.some((tab) => tab.id === 'bang-phi') ? () => select('bang-phi') : undefined} />
-          : <FeeTableTab />}
-      </div>
+      <PageHeader title="Đợt thu" description="Lập và gửi phiếu báo phí hằng tháng, theo dõi thu tiền và khóa sổ từng tháng." />
+      <StaffPeriodsTab onOpenFees={canOpenFees ? () => navigate(ROUTES.fixedFees) : undefined} />
     </div>
   )
 }
@@ -91,6 +67,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
   const canReadFeeTypes = hasPermission('fee-type.read', scope)
   const canReadCampaigns = hasPermission('campaign.read', scope)
 
+  const placeLabels = useHouseholdPlaces(householdOptions, householdOptions.length > 1)
   const [catalog, setCatalog] = useState(null)
   const [loaded, setLoaded] = useState({ key: null, invoices: [] })
   const [openInvoices, setOpenInvoices] = useState(null)
@@ -142,7 +119,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
 
   const outstanding = useMemo(() => (catalog && openInvoices ? summarizeOutstandingPeriods({ invoices: openInvoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : null), [catalog, openInvoices])
   const invoices = useMemo(() => (loaded.key === invoiceKey ? loaded.invoices : []), [loaded, invoiceKey])
-  const items = useMemo(() => (catalog && selectedPeriod ? classifyFeeItems({ invoices, feeTypes: catalog.feeTypes, campaigns: catalog.campaigns, period: selectedPeriod }) : []), [catalog, invoices, selectedPeriod])
+  const items = useMemo(() => (catalog && selectedPeriod ? classifyFeeItems({ invoices, feeTypes: catalog.feeTypes, campaigns: [], period: selectedPeriod }) : []), [catalog, invoices, selectedPeriod])
   const alerts = useMemo(() => (catalog ? collectDueAlerts({ invoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : []), [catalog, invoices])
   const totals = summarizeTotals(items)
   const mandatoryItems = items.filter((item) => item.category === FEE_CATEGORY.MANDATORY)
@@ -173,7 +150,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
             <div className="household-select-field">
               <label htmlFor="billing-household">Hộ gia đình</label>
               <select id="billing-household" className="form-control block min-h-11 w-full" value={householdId} onChange={(event) => onSelectHousehold(event.target.value)}>
-                {householdOptions.map((id, index) => <option key={id} value={id}>Hộ {index + 1}</option>)}
+                {householdOptions.map((id, index) => <option key={id} value={id}>{placeOptionLabel(placeLabels, id, index, householdOptions.length)}</option>)}
               </select>
             </div>
           )}
@@ -186,14 +163,17 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
 
       {selectedPeriod && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <StatCard label="Tổng phí bắt buộc" value={formatMoney(totals.mandatory)} icon={ReceiptIcon} />
-            <StatCard label="Tổng đóng góp tự nguyện" value={formatMoney(totals.voluntary)} icon={CheckCircleIcon} />
-            <StatCard label="Số khoản trong kỳ" value={items.length} icon={BuildingIcon} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <StatCard label="Tổng phải đóng tháng này" value={formatMoney(totals.mandatory)} icon={ReceiptIcon} />
+            <StatCard label="Số khoản trong phiếu" value={items.length} icon={BuildingIcon} />
           </div>
           <FeeItemTable key={`mandatory-${selectedPeriod.id}`} category={FEE_CATEGORY.MANDATORY} items={mandatoryItems} total={totals.mandatory} />
-          <FeeItemTable key={`voluntary-${selectedPeriod.id}`} category={FEE_CATEGORY.VOLUNTARY} items={voluntaryItems} total={totals.voluntary} />
+          {voluntaryItems.length > 0 && <FeeItemTable key={`voluntary-${selectedPeriod.id}`} category={FEE_CATEGORY.VOLUNTARY} items={voluntaryItems} total={totals.voluntary} />}
         </>
+      )}
+
+      {catalog && (
+        <ResidentContributions campaigns={catalog.campaigns} householdId={householdId} canReadContributions={hasPermission('contribution.read', scope)} />
       )}
     </div>
   )

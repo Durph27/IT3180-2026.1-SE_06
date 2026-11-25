@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { useAuth } from '../hooks/useAuth'
-import { getAllApartmentsApi, getAllBuildingsApi } from '../api/apartments'
-import { getBillingPeriodsApi, getFeeTypesApi, getInvoicesApi } from '../api/billing'
-import { getAllHouseholdsApi } from '../api/households'
+import { useAuth } from '../../hooks/useAuth'
+import { getAllApartmentsApi, getAllBuildingsApi } from '../../api/apartments'
+import { getBillingPeriodsApi, getFeeTypesApi, getInvoicesApi } from '../../api/billing'
+import { getAllHouseholdsApi } from '../../api/households'
 import {
   getAllOccupanciesApi,
   getMaintenanceExpensesApi,
@@ -11,35 +11,26 @@ import {
   getMaintenanceFundsApi,
   getMaintenanceRoundsApi,
   getPostedPaymentsApi,
-} from '../api/maintenance'
-import { getUsersApi } from '../api/users'
-import { apiErrorMessage } from '../api/errors'
-import { STAFF_ROLES, formatMoney, monthLabel, periodMonth, toCents } from '../utils/billingUtils'
-import { buildFundReconciliationReport } from '../utils/maintenanceUtils'
-import { ROUTES } from '../routes'
-import PageHeader from '../components/PageHeader'
-import ForbiddenView from '../components/ForbiddenView'
-import MaintenanceFundCreateModal from '../components/MaintenanceFundCreateModal'
-import MaintenanceExpenseRecordModal from '../components/MaintenanceExpenseRecordModal'
-import CollectMaintenanceModal from '../components/maintenance/CollectMaintenanceModal'
-import ExpenseList from '../components/maintenance/ExpenseList'
-import FundSummary from '../components/maintenance/FundSummary'
-import ReconciliationDialog from '../components/maintenance/ReconciliationDialog'
-import RoundApartmentsDialog from '../components/maintenance/RoundApartmentsDialog'
-import RoundList from '../components/maintenance/RoundList'
-import { AlertTriangleIcon, CheckCircleIcon, PlusIcon, ReceiptIcon, WalletIcon } from '../components/Icons'
+} from '../../api/maintenance'
+import { getUsersApi } from '../../api/users'
+import { apiErrorMessage } from '../../api/errors'
+import { formatMoney, monthLabel, periodMonth, toCents } from '../../utils/billingUtils'
+import { buildFundReconciliationReport } from '../../utils/maintenanceUtils'
+import { ROUTES } from '../../routes'
+import MaintenanceFundCreateModal from '../MaintenanceFundCreateModal'
+import MaintenanceExpenseRecordModal from '../MaintenanceExpenseRecordModal'
+import CollectMaintenanceModal from './CollectMaintenanceModal'
+import ExpenseList from './ExpenseList'
+import FundSummary from './FundSummary'
+import ReconciliationDialog from './ReconciliationDialog'
+import RoundApartmentsDialog from './RoundApartmentsDialog'
+import RoundList from './RoundList'
+import { AlertTriangleIcon, CheckCircleIcon, PlusIcon, ReceiptIcon, WalletIcon } from '../Icons'
 
-export default function MaintenancePage({ onBack }) {
-  const { hasRole, hasPermission } = useAuth()
-  const isStaff = STAFF_ROLES.some((role) => hasRole(role))
-  const canReadFunds = hasPermission('maintenance-fund.read')
-  const canReadRounds = hasPermission('maintenance-round.read')
-
-  if (!isStaff || (!canReadFunds && !canReadRounds)) {
-    return <ForbiddenView onBack={onBack} />
-  }
-
-  return <MaintenanceContent canReadFunds={canReadFunds} canReadRounds={canReadRounds} />
+/** Maintenance tab of "Phí đột xuất": one fund at a time, its rounds and expenses. */
+export default function MaintenanceTab() {
+  const { hasPermission } = useAuth()
+  return <MaintenanceContent canReadFunds={hasPermission('maintenance-fund.read')} canReadRounds={hasPermission('maintenance-round.read')} />
 }
 
 function MaintenanceContent({ canReadFunds, canReadRounds }) {
@@ -227,14 +218,12 @@ function MaintenanceContent({ canReadFunds, canReadRounds }) {
     else next.delete('xem')
     setSearchParams(next)
   }
-  const selectFund = (id) => setSearchParams({ quy: id })
+  const selectFund = (id) => setSearchParams({ tab: 'bao-tri', quy: id })
 
   return (
-    <div className="user-management-container">
-      <PageHeader
-        title="Quỹ bảo trì"
-        actions={fund && (
-          <>
+    <div className="flex flex-col gap-6">
+      {fund && (canCollect || canRecordExpense) && (
+        <div className="flex flex-wrap items-center justify-end gap-2">
             {canCollect && (
               <button type="button" className="btn btn-primary" onClick={() => setModal('collect')} disabled={loadingOverview}>
                 <PlusIcon size={16} />
@@ -247,9 +236,8 @@ function MaintenanceContent({ canReadFunds, canReadRounds }) {
                 <span>Ghi khoản chi</span>
               </button>
             )}
-          </>
-        )}
-      />
+        </div>
+      )}
 
       {success && (
         <div className="alert alert-success" role="status">
@@ -357,7 +345,7 @@ function MaintenanceContent({ canReadFunds, canReadRounds }) {
           onSuccess={(created) => {
             setSuccess({ message: `Đã tạo quỹ "${created?.name ?? ''}".` })
             refreshAll()
-            if (created?.id) setSearchParams({ quy: created.id })
+            if (created?.id) setSearchParams({ tab: 'bao-tri', quy: created.id })
           }}
         />
       )}

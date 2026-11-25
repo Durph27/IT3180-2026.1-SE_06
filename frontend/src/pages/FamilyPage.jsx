@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { useHouseholdPlaces } from '../hooks/useHouseholdPlaces'
 import { addFamilyMemberApi, getHouseholdMembersApi, getResidentApi } from '../api/households'
 import { apiErrorMessage } from '../api/errors'
 import { useAuth } from '../hooks/useAuth'
@@ -46,12 +47,13 @@ function FamilyContent({ householdId }) {
   }, [householdId, version])
 
   const isHead = !!members?.some((member) => member.isHead && member.residentId === user.residentId)
+  const place = useHouseholdPlaces([householdId])[householdId] || ''
   const canAdd = isHead && hasPermission('household.family.write', { householdId })
 
   return (
     <div className="user-management-container">
       <PageHeader
-        title="Hộ gia đình của tôi"
+        title={place ? `Hộ gia đình của tôi · Căn ${place}` : 'Hộ gia đình của tôi'}
         description="Người được thêm chỉ là nhân khẩu của hộ, không có tài khoản đăng nhập."
         actions={
           <Link to={ROUTES.residenceChanges} className="btn btn-outline min-h-11 flex! items-center">
