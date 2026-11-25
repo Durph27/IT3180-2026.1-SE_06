@@ -14,12 +14,26 @@ async function fetchAll(path, params, signal) {
   return rows
 }
 
+export function generateIdempotencyKey(prefix = 'cmd') {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `${prefix}-${crypto.randomUUID()}`
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export function getBillingPeriodsApi(signal) {
   return fetchAll('/billing-periods', {}, signal)
 }
 
+}
+
 export async function createBillingPeriodApi(payload, signal) {
   const { data } = await api.post('/billing-periods', payload, { signal })
+  return data
+}
+
+export async function closeBillingPeriodApi(periodId, signal) {
+  const { data } = await api.post(`/billing-periods/${periodId}/close`, null, { signal })
   return data
 }
 

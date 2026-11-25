@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import {
   getBillingPeriodsApi,
@@ -10,12 +10,14 @@ import {
   issueBillingPeriodApi,
   deleteInvoiceLineApi,
   cancelInvoiceApi,
+  closeBillingPeriodApi,
 } from '../api/billing'
 import { getAllApartmentsApi } from '../api/apartments'
 import { getAllHouseholdsApi, getActiveOccupanciesApi } from '../api/households'
 import { apiErrorMessage } from '../api/errors'
 import { useAuth } from '../hooks/useAuth'
 import BillingPeriodSelector from '../components/BillingPeriodSelector'
+import BillingPeriodCreateModal from '../components/BillingPeriodCreateModal'
 import DueDateAlertBanner from '../components/DueDateAlertBanner'
 import FeeItemTable from '../components/FeeItemTable'
 import ForbiddenView from '../components/ForbiddenView'
@@ -32,13 +34,14 @@ import CreateBillingPeriodModal from '../components/CreateBillingPeriodModal'
 import AddInvoiceLineModal from '../components/AddInvoiceLineModal'
 import CancelInvoiceModal from '../components/CancelInvoiceModal'
 import {
+  AlertTriangleIcon,
   BuildingIcon,
+  CalendarIcon,
   CheckCircleIcon,
+  LockIcon,
+  PlusIcon,
   ReceiptIcon,
   RefreshIcon,
-  AlertTriangleIcon,
-  CalendarIcon,
-  PlusIcon,
 } from '../components/Icons'
 import StatusBadge from '../components/StatusBadge'
 import OutstandingPeriods from '../components/OutstandingPeriods'
@@ -84,6 +87,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
   const canReadCampaigns = hasPermission('campaign.read', scope)
   const canGenerateInvoices = hasPermission('invoice.generate')
   const canIssuePeriod = hasPermission('billing-period.issue')
+  const canClosePeriod = hasPermission('billing-period.close')
   const canReadApartments = hasPermission('apartment.read')
   const canReadHouseholds = hasPermission('household.read')
   const canReadOccupancies = hasPermission('occupancy.read')
@@ -91,6 +95,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
   const canWritePeriod = hasPermission('billing-period.write')
   const canWriteInvoice = hasPermission('invoice.write')
   const canCancelInvoice = hasPermission('invoice.cancel') || hasPermission('invoice.write')
+  const isStaff = !householdId && (canWritePeriod || canGenerateInvoices || canIssuePeriod || canClosePeriod)
 
   const [catalog, setCatalog] = useState(null)
   const [loaded, setLoaded] = useState({ key: null, invoices: [] })
@@ -133,6 +138,24 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
   // Residence metadata mappings (apartment/household codes for occupancyId)
   const [residenceMaps, setResidenceMaps] = useState({ apartments: {}, households: {} })
   const [rawResidenceData, setRawResidenceData] = useState({ apartments: [], households: [], occupancies: [] })
+
+  // Actions & Modals state
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [actionLoading, setActionLoading] = useState('')
+  const [actionSuccess, setActionSuccess] = useState('')
+  const [actionError, setActionError] = useState('')
+  const [confirmAction, setConfirmAction] = useState(null)
+  const confirmDialogRef = useRef(null)
+
+  useEffect(() => {
+    const dialog = confirmDialogRef.current
+    if (!dialog) return
+    if (confirmAction) {
+      if (!dialog.open) dialog.showModal()
+    } else {
+      if (dialog.open) dialog.close()
+    }
+  }, [confirmAction])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -240,6 +263,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
     setVersion((value) => value + 1)
   }
 
+<<<<<<< HEAD
   // Batch invoice generation
   const handleGenerateInvoices = async () => {
     if (isGenerating || isIssuing || !selectedPeriod || selectedPeriod.status !== 'DRAFT') return
@@ -444,6 +468,69 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
       )}
     </div>
   ) : null
+=======
+  const handleGenerateInvoices = async () => {
+    if (!selectedPeriod) return
+    setActionLoading('generating')
+    setActionError('')
+    setActionSuccess('')
+    try {
+      const res = await generateInvoicesApi(selectedPeriod.id)
+      const { createdCount = 0, existingCount = 0 } = res.data ?? {}
+      setActionSuccess(`Lập bảng kê nháp thành công! Đã tạo mới ${createdCount} bảng kê, ${existingCount} bảng kê đã tồn tại.`)
+      setVersion((v) => v + 1)
+    } catch (err) {
+      setActionError(apiErrorMessage(err, 'Không thể lập bảng kê nháp. Vui lòng kiểm tra lại biểu phí.'))
+    } finally {
+      setActionLoading('')
+    }
+  }
+
+  const executeIssuePeriod = async () => {
+    if (!selectedPeriod) return
+    setActionLoading('issuing')
+    setActionError('')
+    setActionSuccess('')
+    setConfirmAction(null)
+    try {
+      await issueBillingPeriodApi(selectedPeriod.id)
+      setActionSuccess(`Phát hành kỳ thu ${selectedPeriod.code} thành công! Toàn bộ bảng kê đã chuyển sang trạng thái Đã phát hành.`)
+      setVersion((v) => v + 1)
+    } catch (err) {
+      setActionError(apiErrorMessage(err, 'Không thể phát hành kỳ thu. Vui lòng kiểm tra lại.'))
+    } finally {
+      setActionLoading('')
+    }
+  }
+
+  const executeClosePeriod = async () => {
+    if (!selectedPeriod) return
+    setActionLoading('closing')
+    setActionError('')
+    setActionSuccess('')
+    setConfirmAction(null)
+    try {
+      await closeBillingPeriodApi(selectedPeriod.id)
+      setActionSuccess(`Đã khóa kỳ thu ${selectedPeriod.code}.`)
+      setVersion((v) => v + 1)
+    } catch (err) {
+      setActionError(apiErrorMessage(err, 'Không thể khóa kỳ thu. Vui lòng thử lại.'))
+    } finally {
+      setActionLoading('')
+    }
+  }
+
+  const headerActions = canWritePeriod ? (
+    <button
+      type="button"
+      className="btn btn-primary"
+      onClick={() => setShowCreateModal(true)}
+    >
+      <PlusIcon size={16} />
+      <span>Tạo kỳ thu mới</span>
+    </button>
+  ) : undefined
+>>>>>>> origin/main
 
   return (
     <div className="user-management-container">
@@ -453,6 +540,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
         description={householdId ? 'Các khoản thu của hộ gia đình theo từng kỳ.' : 'Các khoản thu toàn chung cư theo từng kỳ.'}
         actions={headerActions}
       />
+<<<<<<< HEAD
 
       {error && (
         <div className="alert alert-error" role="alert">
@@ -511,6 +599,31 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
         />
       )}
 
+=======
+
+      {error && <div className="alert alert-error" role="alert"><div>{error} <button type="button" className="btn btn-outline" onClick={retry}>Thử lại</button></div></div>}
+
+      {actionSuccess && (
+        <div className="alert alert-success" role="status">
+          <div className="flex flex-1 items-center justify-between gap-4">
+            <span>{actionSuccess}</span>
+            <button type="button" className="btn btn-outline btn-xs" onClick={() => setActionSuccess('')}>Đóng</button>
+          </div>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="alert alert-error" role="alert">
+          <div className="flex flex-1 items-center justify-between gap-4">
+            <span>{actionError}</span>
+            <button type="button" className="btn btn-outline btn-xs" onClick={() => setActionError('')}>Đóng</button>
+          </div>
+        </div>
+      )}
+
+      {outstanding && <OutstandingPeriods summary={outstanding} selectedId={selectedPeriod?.id} onSelect={selectPeriod} showInvoiceCount={!householdId} />}
+
+>>>>>>> origin/main
       {(householdOptions.length > 1 || selectedPeriod) && (
         <FilterBar>
           {householdOptions.length > 1 && (
@@ -541,6 +654,88 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
         </FilterBar>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Notice for residents when viewing a DRAFT period */}
+      {householdId && selectedPeriod?.status === 'DRAFT' && (
+        <div className="alert alert-info my-3" role="status">
+          <div>
+            Kỳ thu này đang ở trạng thái <strong>Bản nháp</strong> và chưa được Ban quản trị phát hành.
+            Số tiền và danh sách các khoản thu sẽ chính thức hiển thị sau khi kỳ thu được phát hành.
+          </div>
+        </div>
+      )}
+
+      {/* Staff Management Control Panel for Selected Period */}
+      {isStaff && selectedPeriod && (
+        <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-slate-900">Quản lý kỳ thu:</span>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${selectedPeriod.status === 'DRAFT' ? 'bg-amber-100 text-amber-800' : selectedPeriod.status === 'ISSUED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-700 text-white'}`}>
+                  {selectedPeriod.status === 'DRAFT' ? 'Bản nháp (DRAFT)' : selectedPeriod.status === 'ISSUED' ? 'Đã phát hành (ISSUED)' : 'Đã đóng (CLOSED)'}
+                </span>
+                <span className="text-xs text-slate-500">
+                  • {invoices.length} bảng kê trong kỳ
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-600">
+                {selectedPeriod.status === 'DRAFT' && (
+                  invoices.length === 0
+                    ? 'Kỳ thu này chưa có bảng kê nào. Nhấn "Lập bảng kê nháp" để tự động tính tiền cho các căn hộ theo diện tích, nhân khẩu và biểu phí.'
+                    : 'Bảng kê đang ở dạng nháp (cư dân chưa thấy số tiền). Nhấn "Phát hành kỳ thu" để chính thức công bố bảng kê và mở cổng thu phí.'
+                )}
+                {selectedPeriod.status === 'ISSUED' && 'Kỳ thu đã phát hành. Cư dân có thể xem và thực hiện nộp tiền phí.'}
+                {selectedPeriod.status === 'CLOSED' && 'Kỳ thu đã khóa, không thể phát hành thêm bảng kê.'}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {selectedPeriod.status === 'DRAFT' && canGenerateInvoices && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleGenerateInvoices}
+                  disabled={Boolean(actionLoading)}
+                  title="Quét diện tích, nhân khẩu và biểu phí để tự động tạo bảng kê nháp"
+                >
+                  <RefreshIcon size={16} />
+                  <span>{actionLoading === 'generating' ? 'Đang lập bảng kê…' : 'Lập bảng kê nháp'}</span>
+                </button>
+              )}
+
+              {selectedPeriod.status === 'DRAFT' && canIssuePeriod && (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setConfirmAction('issue')}
+                  disabled={Boolean(actionLoading) || invoices.length === 0}
+                  title={invoices.length === 0 ? 'Cần lập bảng kê trước khi phát hành' : 'Phát hành toàn bộ bảng kê sang ISSUED'}
+                >
+                  <CheckCircleIcon size={16} />
+                  <span>Phát hành kỳ thu</span>
+                </button>
+              )}
+
+              {selectedPeriod.status === 'ISSUED' && canClosePeriod && (
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => setConfirmAction('close')}
+                  disabled={Boolean(actionLoading)}
+                  title="Đóng kỳ thu sau khi hoàn tất"
+                >
+                  <LockIcon size={16} />
+                  <span>Khóa kỳ thu</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+>>>>>>> origin/main
       {loading && <p role="status">Đang tải khoản thu…</p>}
       {catalog?.periods.length === 0 && (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center my-4">
@@ -845,6 +1040,65 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
           onClose={() => {
             setIsCancelInvoiceOpen(false)
             setSelectedInvoiceToCancel(null)
+          }}
+        />
+      )}
+
+      {/* Confirmation Dialog */}
+      {confirmAction && (
+        <dialog
+          ref={confirmDialogRef}
+          className="native-modal-dialog"
+          aria-labelledby="billing-confirm-title"
+        >
+          <div className="modal-dialog">
+            <div className="dialog-header">
+              <div className={`dialog-icon-circle ${confirmAction === 'issue' ? 'icon-success' : 'icon-danger'}`}>
+                {confirmAction === 'issue' ? <CheckCircleIcon size={24} /> : <LockIcon size={24} />}
+              </div>
+              <h3 id="billing-confirm-title" className="dialog-title">
+                {confirmAction === 'issue' ? 'Xác nhận phát hành kỳ thu' : 'Xác nhận khóa kỳ thu'}
+              </h3>
+              <p className="dialog-desc">
+                {confirmAction === 'issue'
+                  ? `Bạn có chắc chắn muốn phát hành kỳ thu ${selectedPeriod?.code}? Toàn bộ bảng kê nháp sẽ được công bố chính thức đến cư dân để bắt đầu thu phí.`
+                  : `Bạn có chắc chắn muốn khóa kỳ thu ${selectedPeriod?.code}? Sau khi khóa sẽ không thể thay đổi thông tin kỳ thu.`}
+              </p>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setConfirmAction(null)}
+                disabled={Boolean(actionLoading)}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                className={`btn ${confirmAction === 'issue' ? 'btn-success' : 'btn-danger'}`}
+                onClick={confirmAction === 'issue' ? executeIssuePeriod : executeClosePeriod}
+                disabled={Boolean(actionLoading)}
+              >
+                {actionLoading ? 'Đang xử lý…' : (confirmAction === 'issue' ? 'Đồng ý phát hành' : 'Đồng ý khóa')}
+              </button>
+            </div>
+          </div>
+        </dialog>
+      )}
+
+      {/* Create Billing Period Modal */}
+      {canWritePeriod && (
+        <BillingPeriodCreateModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={(created) => {
+            setVersion((v) => v + 1)
+            if (created?.code) {
+              setSearchParams({ ky: created.code })
+            }
+            setActionSuccess(`Đã tạo kỳ thu ${created?.code || ''} thành công (trạng thái Bản nháp)! Bạn có thể bắt đầu lập bảng kê.`)
           }}
         />
       )}
