@@ -2,20 +2,22 @@ import { useState } from 'react'
 import { registerApi } from '../api/auth'
 import { apiErrorMessage } from '../api/errors'
 import { MoonLogoIcon } from './Icons'
-import { GENDERS, registrationError } from './personOptions'
-import { todayInVietnam } from '../residents/validation'
+import { registrationError } from './personOptions'
 
-const EMPTY = {
-  fullName: '', birthDate: '', gender: 'UNSPECIFIED', identityNo: '', phone: '',
-  apartmentCode: '', username: '', password: '', confirmPassword: '',
-}
+const EMPTY = { identityNo: '', phone: '', password: '', confirmPassword: '' }
+const DIGITS_ONLY = new Set(['identityNo', 'phone'])
 
+// Residents are entered by the management board beforehand; registering claims that record with the CCCD and phone on file.
 export default function RegisterForm({ onBackToLogin }) {
   const [form, setForm] = useState(EMPTY)
+  const [showPassword, setShowPassword] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const update = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+  const [createdFor, setCreatedFor] = useState('')
+  const update = (event) => {
+    const { name, value } = event.target
+    setForm((current) => ({ ...current, [name]: DIGITS_ONLY.has(name) ? value.replace(/\D/g, '') : value }))
+  }
 
   const submit = async (event) => {
     event.preventDefault()
@@ -25,24 +27,19 @@ export default function RegisterForm({ onBackToLogin }) {
     setSaving(true)
     try {
       await registerApi(form)
+      setCreatedFor(form.identityNo)
       setForm(EMPTY)
-      setSubmitted(true)
     } catch (err) {
-      setError(apiErrorMessage(err, 'Không thể gửi đăng ký. Vui lòng thử lại.'))
+      setError(apiErrorMessage(err, 'Không thể tạo tài khoản. Vui lòng thử lại.'))
     } finally {
       setSaving(false)
     }
   }
 
-  const field = (name, label, props = {}) => (
-    <div className="form-group">
-      <label htmlFor={`register-${name}`}>{label}</label>
-      <input id={`register-${name}`} name={name} className="form-control" value={form[name]} onChange={update} disabled={saving} required {...props} />
-    </div>
-  )
+  const passwordType = showPassword ? 'text' : 'password'
 
   return (
-    <div className="login-split-wrapper register-wrapper">
+    <div className="login-split-wrapper register-wrapper max-w-[480px]!">
       <div className="login-form-side">
         <div className="login-card-inner">
           <div className="login-brand-header">
@@ -53,40 +50,63 @@ export default function RegisterForm({ onBackToLogin }) {
             </div>
           </div>
 
-          {submitted ? (
+          {createdFor ? (
             <>
-              <div className="login-welcome-text">
-                <h2>Đã gửi đăng ký</h2>
-                <p>Tài khoản sẽ dùng được sau khi Ban quản trị hoặc Admin duyệt và gắn bạn vào hộ gia đình.</p>
+              <div className="login-welcome-text" role="status">
+                <h2>Đã tạo tài khoản</h2>
+                <p>Đăng nhập bằng số CCCD <strong>{createdFor}</strong> và mật khẩu vừa đặt.</p>
               </div>
-              <button type="button" className="btn btn-primary btn-block" onClick={onBackToLogin}>Quay lại đăng nhập</button>
+              <button type="button" className="btn btn-primary btn-block" onClick={onBackToLogin}>Đến trang đăng nhập</button>
             </>
           ) : (
             <>
               <div className="login-welcome-text">
-                <h2>Đăng ký tài khoản cư dân</h2>
-                <p>Dành cho chủ hộ. Người trong gia đình được chủ hộ thêm sau và không cần tài khoản riêng.</p>
+                <h2>Tạo tài khoản cư dân</h2>
+                <p>Hồ sơ cư dân đã được Ban quản trị lưu sẵn. Nhập số CCCD và số điện thoại trong hồ sơ, rồi đặt mật khẩu. Số CCCD sẽ là tên đăng nhập.</p>
               </div>
               {error && <div className="alert alert-error" role="alert"><div>{error}</div></div>}
               <form onSubmit={submit} className="modern-form" aria-busy={saving}>
-                <div className="form-grid-2">
-                  {field('fullName', 'Họ và tên', { maxLength: 120, autoComplete: 'name' })}
-                  {field('identityNo', 'Số CCCD', { maxLength: 12, inputMode: 'numeric', pattern: '[0-9]{12}', title: 'CCCD gồm đúng 12 chữ số', placeholder: '12 chữ số' })}
-                  {field('birthDate', 'Ngày sinh', { type: 'date', max: todayInVietnam() })}
-                  <div className="form-group">
-                    <label htmlFor="register-gender">Giới tính</label>
-                    <select id="register-gender" name="gender" className="form-control" value={form.gender} onChange={update} disabled={saving}>
-                      {GENDERS.map((gender) => <option key={gender.value} value={gender.value}>{gender.label}</option>)}
-                    </select>
-                  </div>
-                  {field('phone', 'Số điện thoại', { type: 'tel', maxLength: 10, inputMode: 'numeric', pattern: '[0-9]{10}', title: 'Số điện thoại gồm đúng 10 chữ số', autoComplete: 'tel', placeholder: '10 chữ số' })}
-                  {field('apartmentCode', 'Mã căn hộ', { maxLength: 30, placeholder: 'Ví dụ: A-101' })}
-                  {field('username', 'Tên đăng nhập', { maxLength: 60, autoComplete: 'username', spellCheck: 'false', autoCapitalize: 'none', placeholder: 'Không dấu, ví dụ: nguyenvana' })}
-                  <div aria-hidden="true" />
-                  {field('password', 'Mật khẩu', { type: 'password', minLength: 12, maxLength: 128, autoComplete: 'new-password' })}
-                  {field('confirmPassword', 'Nhập lại mật khẩu', { type: 'password', autoComplete: 'new-password' })}
+                <div className="form-group">
+                  <label htmlFor="register-identityNo">Số CCCD</label>
+                  <input
+                    id="register-identityNo" name="identityNo" className="form-control" value={form.identityNo} onChange={update} disabled={saving} required autoFocus
+                    maxLength={12} inputMode="numeric" pattern="[0-9]{12}" title="CCCD gồm đúng 12 chữ số" placeholder="12 chữ số"
+                    autoComplete="username"
+                  />
                 </div>
-                <button type="submit" className="btn btn-primary btn-block" disabled={saving}>{saving ? 'Đang gửi…' : 'Gửi đăng ký'}</button>
+                <div className="form-group">
+                  <label htmlFor="register-phone">Số điện thoại</label>
+                  <input
+                    id="register-phone" name="phone" type="tel" className="form-control" value={form.phone} onChange={update} disabled={saving} required
+                    maxLength={10} inputMode="numeric" pattern="[0-9]{10}" title="Số điện thoại gồm đúng 10 chữ số" placeholder="10 chữ số"
+                    autoComplete="tel" aria-describedby="register-phone-hint"
+                  />
+                  <span id="register-phone-hint" className="field-hint">Dùng số đã khai với Ban quản trị. Nếu đã đổi số, hãy liên hệ Ban quản trị để cập nhật hồ sơ.</span>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="register-password">Mật khẩu</label>
+                  <div className="relative flex items-center">
+                    <input
+                      id="register-password" name="password" type={passwordType} className="form-control input-has-toggle" value={form.password} onChange={update} disabled={saving} required
+                      minLength={12} maxLength={128} autoComplete="new-password" aria-describedby="register-password-hint"
+                    />
+                    <button
+                      type="button" className="btn-toggle-password" onClick={() => setShowPassword((value) => !value)}
+                      aria-pressed={showPassword} aria-controls="register-password register-confirmPassword" aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    >
+                      {showPassword ? 'Ẩn' : 'Hiện'}
+                    </button>
+                  </div>
+                  <span id="register-password-hint" className="field-hint">Ít nhất 12 ký tự.</span>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="register-confirmPassword">Nhập lại mật khẩu</label>
+                  <input
+                    id="register-confirmPassword" name="confirmPassword" type={passwordType} className="form-control" value={form.confirmPassword} onChange={update} disabled={saving} required
+                    maxLength={128} autoComplete="new-password"
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary btn-block" disabled={saving}>{saving ? 'Đang tạo tài khoản…' : 'Tạo tài khoản'}</button>
               </form>
               <p className="login-switch">Đã có tài khoản? <button type="button" className="link-button" disabled={saving} onClick={onBackToLogin}>Đăng nhập</button></p>
             </>

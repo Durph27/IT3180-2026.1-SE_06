@@ -32,17 +32,16 @@ function auth(role, permissions, overrides = {}) {
 const render = (value, component, props) => renderToStaticMarkup(h(MemoryRouter, null, h(AuthContext.Provider, { value }, h(component, props))))
 
 const person = { fullName: 'Nguyễn Văn A', identityNo: '012345678901', birthDate: '1985-05-05', gender: 'MALE', phone: '0900000000' }
-const valid = { ...person, username: 'chu.ho-01', password: 'long-enough-password', confirmPassword: 'long-enough-password' }
+const valid = { identityNo: '012345678901', phone: '0912345678', password: 'long-enough-password', confirmPassword: 'long-enough-password' }
 
-test('registration validates account fields before calling the server', () => {
+test('registration checks the CCCD, phone and password before calling the server', () => {
   assert.equal(registrationError(valid), '')
-  assert.match(registrationError({ ...valid, username: 'có dấu' }), /Tên đăng nhập/)
-  assert.match(registrationError({ ...valid, username: 'ab' }), /Tên đăng nhập/)
+  assert.match(registrationError({ ...valid, identityNo: '12345' }), /12 chữ số/)
+  assert.match(registrationError({ ...valid, identityNo: '01234567890a' }), /12 chữ số/)
+  assert.match(registrationError({ ...valid, phone: '' }), /10 chữ số/)
+  assert.match(registrationError({ ...valid, phone: '091234567' }), /10 chữ số/)
   assert.match(registrationError({ ...valid, password: 'short', confirmPassword: 'short' }), /12 ký tự/)
   assert.match(registrationError({ ...valid, confirmPassword: 'different-password' }), /không khớp/)
-  assert.match(registrationError({ ...valid, identityNo: '12345' }), /12 chữ số/)
-  assert.match(registrationError({ ...valid, phone: '' }), /Chủ hộ bắt buộc/)
-  assert.match(registrationError({ ...valid, phone: '123' }), /10 chữ số/)
 })
 
 test('family members need a valid CCCD only when one is entered', () => {
@@ -53,11 +52,12 @@ test('family members need a valid CCCD only when one is entered', () => {
   assert.match(familyMemberError({ ...member, relationship: 'CHILD' }), /danh mục/)
 })
 
-test('registration page states who it is for and needs no session', () => {
+test('registration page asks only for the CCCD, phone and a password and needs no session', () => {
   const html = renderToStaticMarkup(h(RegisterForm, { onBackToLogin() {} }))
-  assert.match(html, /Đăng ký tài khoản cư dân/)
-  assert.match(html, /Dành cho chủ hộ/)
-  assert.match(html, /name="apartmentCode"/)
+  assert.match(html, /Tạo tài khoản cư dân/)
+  assert.match(html, /Số CCCD sẽ là tên đăng nhập/)
+  const fields = [...html.matchAll(/<input[^>]*name="([^"]+)"/g)].map((match) => match[1])
+  assert.deepEqual(fields, ['identityNo', 'phone', 'password', 'confirmPassword'])
 })
 
 test('family tab shows only for residents linked to a household', () => {
@@ -88,11 +88,8 @@ test('only current memberships are listed', () => {
   assert.deepEqual(activeMembers(rows, '2026-06-01').map((row) => row.id), ['current'])
 })
 
-test('account page still renders for reviewers with the registration panel mounted', () => {
+test('account page no longer shows a registration review panel', () => {
   const html = render(auth('MANAGER', ROLE_PERMISSIONS.MANAGER), UserManagement, { onBack() {} })
-  assert.match(html, /Yêu cầu đăng ký chờ duyệt/)
-  const withoutReview = ROLE_PERMISSIONS.MANAGER.filter((permission) => permission !== 'user.manage')
-  const denied = render(auth('MANAGER', withoutReview), UserManagement, { onBack() {} })
-  assert.match(denied, /Quản lý Tài khoản/)
-  assert.doesNotMatch(denied, /Yêu cầu đăng ký/)
+  assert.match(html, /Quản lý Tài khoản/)
+  assert.doesNotMatch(html, /Yêu cầu đăng ký/)
 })

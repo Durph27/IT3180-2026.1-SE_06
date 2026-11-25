@@ -1,5 +1,4 @@
-import { hasValidUsernameChars, USERNAME_HINT } from '../auth/username'
-import { RELATIONSHIPS, validateResident } from '../residents/validation'
+import { isValidIdentityNo, isValidPhone, RELATIONSHIPS, validateResident } from '../residents/validation'
 
 export const GENDERS = [
   { value: 'MALE', label: 'Nam' },
@@ -12,15 +11,13 @@ export const FAMILY_RELATIONSHIPS = RELATIONSHIPS.filter((relationship) => relat
 
 const firstError = (errors) => Object.values(errors)[0] ?? ''
 
-// Applicants register as household heads, so the head rules apply.
+// The resident record is already on file, so registration only checks the CCCD (the username), the phone on file and the password.
 export function registrationError(form) {
-  const { length } = form.username.trim()
-  if (!hasValidUsernameChars(form.username) || length < 3 || length > 60) {
-    return `Tên đăng nhập dài 3–60 ký tự. ${USERNAME_HINT}`
-  }
+  if (!isValidIdentityNo(form.identityNo.trim())) return 'CCCD phải gồm đúng 12 chữ số.'
+  if (!isValidPhone(form.phone.trim())) return 'Số điện thoại phải gồm đúng 10 chữ số.'
   if (form.password.length < 12) return 'Mật khẩu phải có ít nhất 12 ký tự.'
   if (form.password !== form.confirmPassword) return 'Mật khẩu nhập lại không khớp.'
-  return firstError(validateResident({ ...form, dob: form.birthDate, relationship: 'CHỦ HỘ' }))
+  return ''
 }
 
 // Children may not have a CCCD yet: the format is only checked when one is entered.

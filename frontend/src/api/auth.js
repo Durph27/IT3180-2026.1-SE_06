@@ -1,15 +1,11 @@
 import { api } from './client'
 
-export async function registerApi(form) {
+// The server matches the CCCD and phone against the pre-loaded resident record and uses the CCCD as the username.
+export async function registerApi({ identityNo, phone, password }) {
   const response = await api.post('/auth/register', {
-    username: form.username.trim().toLowerCase(),
-    password: form.password,
-    fullName: form.fullName.trim(),
-    identityNo: form.identityNo.trim(),
-    birthDate: form.birthDate,
-    gender: form.gender,
-    phone: form.phone.trim() || null,
-    apartmentCode: form.apartmentCode.trim(),
+    identityNo: identityNo.trim(),
+    phone: phone.trim(),
+    password,
   })
   return response.data
 }
