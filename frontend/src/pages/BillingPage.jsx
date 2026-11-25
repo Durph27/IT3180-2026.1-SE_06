@@ -236,7 +236,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
 
   const outstanding = useMemo(() => (catalog && openInvoices ? summarizeOutstandingPeriods({ invoices: openInvoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : null), [catalog, openInvoices])
   const invoices = useMemo(() => (loaded.key === invoiceKey ? loaded.invoices : []), [loaded, invoiceKey])
-  const items = useMemo(() => (catalog && selectedPeriod ? classifyFeeItems({ invoices, feeTypes: catalog.feeTypes, campaigns: catalog.campaigns, period: selectedPeriod }) : []), [catalog, invoices, selectedPeriod])
+  const items = useMemo(() => (catalog && selectedPeriod ? classifyFeeItems({ invoices, feeTypes: catalog.feeTypes, campaigns: catalog.campaigns, period: selectedPeriod, includeDraft: isStaff && selectedPeriod.status === 'DRAFT' }) : []), [catalog, invoices, selectedPeriod, isStaff])
   const alerts = useMemo(() => (catalog ? collectDueAlerts({ invoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : []), [catalog, invoices])
   const totals = summarizeTotals(items)
   const mandatoryItems = items.filter((item) => item.category === FEE_CATEGORY.MANDATORY)
@@ -272,11 +272,15 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
       const result = await generateInvoicesApi(selectedPeriod.id)
       const totalDuration = Math.round(performance.now() - startTime)
       const { createdCount = 0, existingCount = 0 } = result.data ?? {}
-      setBatchSuccess({
-        message: `Đã tính phí toàn tòa nhà thành công. Tạo mới: ${createdCount} bảng kê, Đã có: ${existingCount} bảng kê.`,
-        apiDuration: result.apiDuration,
-        totalDuration,
-      })
+      if (createdCount === 0 && existingCount === 0) {
+        setBatchError('Không tạo được bảng kê nào. Hãy kiểm tra xem biểu phí còn hiệu lực tại ngày chốt của kỳ và hộ gia đình đã có căn hộ/nhân khẩu phù hợp chưa.')
+      } else {
+        setBatchSuccess({
+          message: `Đã tính phí toàn tòa nhà thành công. Tạo mới: ${createdCount} bảng kê, Đã có: ${existingCount} bảng kê.`,
+          apiDuration: result.apiDuration,
+          totalDuration,
+        })
+      }
       setVersion((v) => v + 1)
     } catch (err) {
       setBatchError(apiErrorMessage(err, 'Không thể tính phí toàn tòa nhà. Vui lòng thử lại.'))

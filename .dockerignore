@@ -1,0 +1,17 @@
+.git
+.local
+.agents
+.codex
+
+**/node_modules
+**/target
+**/dist
+
+**/.env
+**/.env.*
+**/*.key
+**/*.pem
+**/*.dump
+
+backups
+local

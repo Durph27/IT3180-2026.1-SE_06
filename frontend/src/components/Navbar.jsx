@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { ROUTES } from '../routes'
 import { STAFF_ROLES } from '../utils/billingUtils'
-import { MoonLogoIcon, ApartmentIcon, BuildingIcon, CalendarIcon, CreditCardIcon, HomeIcon, ReceiptIcon, ReceiptTaxIcon, ShieldCheckIcon, UsersIcon } from './Icons'
+import { MoonLogoIcon, ApartmentIcon, BuildingIcon, CalendarIcon, CreditCardIcon, HomeIcon, ReceiptIcon, ReceiptTaxIcon, ShieldCheckIcon, UsersIcon, WalletIcon } from './Icons'
 
 const GROUP_LABEL = 'mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500'
 
@@ -34,6 +34,8 @@ export default function Navbar({ onNavigate, isOpen = false, onClose, hasUnpaidB
   const canViewApartments = hasPermission('apartment.read')
   // Residents read fee types only to classify their bills; the fee schedule screen is for staff.
   const canViewFees = STAFF_ROLES.some((role) => hasRole(role)) && (hasPermission('fee-type.read') || hasPermission('fee-rate.read'))
+  const canViewMaintenance = STAFF_ROLES.some((role) => hasRole(role))
+    && (hasPermission('maintenance-fund.read') || hasPermission('maintenance-round.read'))
   const canManageUsers = hasPermission('user.read')
   const itemProps = { onNavigate }
 
@@ -71,11 +73,12 @@ export default function Navbar({ onNavigate, isOpen = false, onClose, hasUnpaidB
               {showFamily && <NavItem to={ROUTES.family} label="Hộ gia đình" icon={HomeIcon} {...itemProps} />}
             </div>
           </div>
-          {(canViewFees || canManageUsers) && (
+          {(canViewFees || canViewMaintenance || canManageUsers) && (
             <div>
               <p className={GROUP_LABEL}>Quản trị</p>
               <div className="flex flex-col gap-1">
                 {canViewFees && <NavItem to={ROUTES.fees} label="Biểu phí" icon={ReceiptTaxIcon} {...itemProps} />}
+                {canViewMaintenance && <NavItem to={ROUTES.maintenanceFunds} label="Quỹ bảo trì" icon={WalletIcon} {...itemProps} />}
                 {canManageUsers && <NavItem to={ROUTES.users} label="Quản lý tài khoản" icon={ShieldCheckIcon} {...itemProps} />}
               </div>
             </div>

@@ -8,7 +8,6 @@ import PermissionGate from './PermissionGate'
 import ForbiddenView from './ForbiddenView'
 import CreateUserDialog from './CreateUserDialog'
 import UserRoleDialog from './UserRoleDialog'
-import RegistrationRequests from './RegistrationRequests'
 import { apiErrorMessage } from '../api/errors'
 
 const ALERT_CLOSE = 'ml-auto grid size-8 shrink-0 cursor-pointer place-items-center rounded-md border-0 bg-transparent text-current opacity-70 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-current'
@@ -279,8 +278,6 @@ function UserManagementContent({ onBack }) {
           </button>
         </div>
       )}
-
-      {canManage && <RegistrationRequests onReviewed={refreshUsers} />}
 
       <div className="table-card">
         <div className="table-toolbar">

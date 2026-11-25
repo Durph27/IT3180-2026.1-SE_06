@@ -222,7 +222,7 @@ public class BillingService {
         }
 
         var feeTypes = db.where("FeeType", "active", true).stream()
-                .filter(f -> "PER_M2".equals(f.get("basis")) || "PER_PERSON".equals(f.get("basis")))
+                .filter(f -> Set.of("PER_M2", "PER_PERSON", "PER_APARTMENT", "PER_VEHICLE").contains(f.get("basis")))
                 .sorted(Comparator.comparing(f -> text(f, "id")))
                 .toList();
 
@@ -233,6 +233,7 @@ public class BillingService {
         for (var occ : activeOccupancies) {
             String occId = text(occ, "id");
             String hId = text(occ, "householdId");
+            boolean isPrimaryOccupancy = occId.equals(primaryOccupancyByHousehold.get(hId));
             var existing = db.where("Invoice", "occupancyId", occId).stream()
                     .filter(i -> periodId.equals(i.get("periodId")))
                     .findFirst();
@@ -244,6 +245,81 @@ public class BillingService {
             }
 
             boolean isNew = existing.isEmpty();
+            var existingLines = existing.isPresent()
+                    ? db.where("InvoiceLine", "invoiceId", existing.get().get("id"))
+                    : List.<Map<String, Object>>of();
+            Set<String> existingFeeTypeIds = new HashSet<>();
+            Set<String> existingVehicleFeeKeys = new HashSet<>();
+            for (var l : existingLines) {
+                if (l.get("vehicleId") != null) {
+                    existingVehicleFeeKeys.add(text(l, "feeTypeId") + "|" + text(l, "vehicleId"));
+                } else if (db.where("MaintenanceAllocation", "invoiceLineId", l.get("id")).isEmpty()) {
+                    // Maintenance allocations share a PER_APARTMENT feeTypeId without a rateId;
+                    // do not let them suppress the scheduled monthly fee rate.
+                    existingFeeTypeIds.add(text(l, "feeTypeId"));
+                }
+            }
+
+            List<Map<String, Object>> linesToInsert = new ArrayList<>();
+
+            for (var fee : feeTypes) {
+                String feeId = text(fee, "id");
+                String basis = text(fee, "basis");
+
+                if ("PER_VEHICLE".equals(basis)) {
+                    if (!isPrimaryOccupancy) continue;
+                    var vehicles = db.where("Vehicle", "householdId", hId).stream()
+                            .filter(v -> !date(v, "registeredFrom").isAfter(at) &&
+                                         (date(v, "registeredTo") == null || date(v, "registeredTo").isAfter(at)))
+                            .sorted(Comparator.comparing((Map<String, Object> v) -> text(v, "plateNo"))
+                                    .thenComparing(v -> text(v, "id")))
+                            .toList();
+                    for (var vehicle : vehicles) {
+                        String vehicleId = text(vehicle, "id");
+                        String key = feeId + "|" + vehicleId;
+                        if (existingVehicleFeeKeys.contains(key)) continue;
+                        var rate = activeRate(feeId, text(vehicle, "vehicleType"), at);
+                        if (rate == null) continue;
+                        linesToInsert.add(buildGeneratedLine(
+                                feeId, rate, vehicleId,
+                                text(fee, "name") + " (" + text(vehicle, "plateNo") + ")",
+                                BigDecimal.ONE
+                        ));
+                        existingVehicleFeeKeys.add(key);
+                    }
+                    continue;
+                }
+
+                if (existingFeeTypeIds.contains(feeId)) continue;
+
+                var rate = activeRate(feeId, null, at);
+                if (rate == null) continue;
+
+                BigDecimal quantity = null;
+                if ("PER_APARTMENT".equals(basis)) {
+                    quantity = BigDecimal.ONE;
+                } else if ("PER_M2".equals(basis)) {
+                    var apt = db.get("Apartment", occ.get("apartmentId"));
+                    quantity = decimal(apt.get("areaM2"));
+                } else if ("PER_PERSON".equals(basis)) {
+                    if (!isPrimaryOccupancy) continue;
+                    long memberCount = db.where("HouseholdMember", "householdId", hId).stream()
+                            .filter(m -> !date(m, "validFrom").isAfter(at) &&
+                                         (date(m, "validTo") == null || date(m, "validTo").isAfter(at)))
+                            .count();
+                    if (memberCount <= 0) continue;
+                    quantity = BigDecimal.valueOf(memberCount);
+                }
+
+                if (quantity != null) {
+                    linesToInsert.add(buildGeneratedLine(feeId, rate, null, text(fee, "name"), quantity));
+                    existingFeeTypeIds.add(feeId);
+                }
+            }
+
+            // Avoid creating empty DRAFT invoices that would block issuing the billing period.
+            if (isNew && linesToInsert.isEmpty()) continue;
+
             Map<String, Object> invoice = existing.orElseGet(() -> db.insert("Invoice", map(
                     "occupancyId", occId,
                     "periodId", periodId,
@@ -256,64 +332,13 @@ public class BillingService {
             if (isNew) createdCount++;
             else existingCount++;
 
-            var existingLines = db.where("InvoiceLine", "invoiceId", invoice.get("id"));
-            Set<String> existingFeeTypeIds = new HashSet<>();
-            for (var l : existingLines) existingFeeTypeIds.add(text(l, "feeTypeId"));
-
-            boolean linesAdded = false;
-
-            for (var fee : feeTypes) {
-                String feeId = text(fee, "id");
-                if (existingFeeTypeIds.contains(feeId)) continue;
-
-                var rate = db.where("FeeRate", "feeTypeId", feeId).stream()
-                        .filter(r -> r.get("vehicleType") == null)
-                        .filter(r -> !date(r, "effectiveFrom").isAfter(at) &&
-                                     (date(r, "effectiveTo") == null || date(r, "effectiveTo").isAfter(at)))
-                        .findFirst()
-                        .orElse(null);
-
-                if (rate == null) continue;
-
-                String basis = text(fee, "basis");
-                BigDecimal quantity = null;
-
-                if ("PER_M2".equals(basis)) {
-                    var apt = db.get("Apartment", occ.get("apartmentId"));
-                    quantity = decimal(apt.get("areaM2"));
-                } else if ("PER_PERSON".equals(basis)) {
-                    if (!occId.equals(primaryOccupancyByHousehold.get(hId))) continue;
-                    long memberCount = db.where("HouseholdMember", "householdId", hId).stream()
-                            .filter(m -> !date(m, "validFrom").isAfter(at) &&
-                                         (date(m, "validTo") == null || date(m, "validTo").isAfter(at)))
-                            .count();
-                    if (memberCount <= 0) continue;
-                    quantity = BigDecimal.valueOf(memberCount);
-                }
-
-                if (quantity != null) {
-                    BigDecimal unitPrice = decimal(rate.get("unitPrice"));
-                    String lineAmount = amount(quantity, unitPrice);
-                    String quantityStr = quantity.setScale(3, RoundingMode.HALF_UP).toPlainString();
-                    String priceStr = money(unitPrice);
-
-                    db.insert("InvoiceLine", map(
-                            "invoiceId", invoice.get("id"),
-                            "feeTypeId", feeId,
-                            "rateId", rate.get("id"),
-                            "vehicleId", null,
-                            "utilityBillId", null,
-                            "description", text(fee, "name"),
-                            "quantity", quantityStr,
-                            "unitPrice", priceStr,
-                            "amount", lineAmount
-                    ));
-                    linesAdded = true;
-                    existingFeeTypeIds.add(feeId);
-                }
+            for (var lineValues : linesToInsert) {
+                var row = new LinkedHashMap<>(lineValues);
+                row.put("invoiceId", invoice.get("id"));
+                db.insert("InvoiceLine", row);
             }
 
-            if (linesAdded && !isNew) {
+            if (!linesToInsert.isEmpty() && !isNew) {
                 db.update("Invoice", invoice.get("id"), map("version", next(invoice)));
             }
 
@@ -324,6 +349,29 @@ public class BillingService {
                 "invoices", resultInvoices,
                 "createdCount", createdCount,
                 "existingCount", existingCount
+        );
+    }
+
+    private Map<String, Object> activeRate(String feeId, String vehicleType, LocalDate at) {
+        return db.where("FeeRate", "feeTypeId", feeId).stream()
+                .filter(r -> Objects.equals(vehicleType, r.get("vehicleType")))
+                .filter(r -> !date(r, "effectiveFrom").isAfter(at) &&
+                             (date(r, "effectiveTo") == null || date(r, "effectiveTo").isAfter(at)))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private Map<String, Object> buildGeneratedLine(String feeId, Map<String, Object> rate, String vehicleId, String description, BigDecimal quantity) {
+        BigDecimal unitPrice = decimal(rate.get("unitPrice"));
+        return map(
+                "feeTypeId", feeId,
+                "rateId", rate.get("id"),
+                "vehicleId", vehicleId,
+                "utilityBillId", null,
+                "description", description,
+                "quantity", quantity.setScale(3, RoundingMode.HALF_UP).toPlainString(),
+                "unitPrice", money(unitPrice),
+                "amount", amount(quantity, unitPrice)
         );
     }
 }

@@ -92,11 +92,12 @@ function categoryOf(line, mandatoryById) {
   return mandatoryById.get(line.feeTypeId) === false ? FEE_CATEGORY.VOLUNTARY : FEE_CATEGORY.MANDATORY
 }
 
-export function classifyFeeItems({ invoices, feeTypes, campaigns, period, today = todayInVietnam() }) {
+export function classifyFeeItems({ invoices, feeTypes, campaigns, period, today = todayInVietnam(), includeDraft = false }) {
   const mandatoryById = mandatoryFeeIds(feeTypes)
   const items = []
   for (const invoice of invoices) {
-    if (invoice.periodId !== period.id || !BILLABLE_INVOICE_STATUSES.has(invoice.status)) continue
+    const isDraft = invoice.status === 'DRAFT'
+    if (invoice.periodId !== period.id || (!BILLABLE_INVOICE_STATUSES.has(invoice.status) && !(includeDraft && isDraft))) continue
     const paid = invoice.status === 'PAID'
     for (const line of invoice.lines ?? []) {
       const category = categoryOf(line, mandatoryById)
@@ -108,7 +109,7 @@ export function classifyFeeItems({ invoices, feeTypes, campaigns, period, today 
         invoiceNo: invoice.invoiceNo,
         amount: toCents(line.amount),
         dueDate: mandatory ? period.dueDate : null,
-        due: mandatory || paid ? getDueInfo(period.dueDate, { paid, today }) : null,
+        due: !isDraft && (mandatory || paid) ? getDueInfo(period.dueDate, { paid, today }) : null,
       })
     }
   }
