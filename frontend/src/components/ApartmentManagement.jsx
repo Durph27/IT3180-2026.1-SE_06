@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { getApartmentsApi, getAllBuildingsApi } from '../api/apartments'
+import { getAllApartmentsApi, getAllBuildingsApi } from '../api/apartments'
 import { useAuth } from '../hooks/useAuth'
 import ApartmentFormModal from './ApartmentFormModal'
 import HouseholdLinkDialog from './HouseholdLinkDialog'
@@ -48,7 +48,7 @@ export default function ApartmentManagement() {
   const createdBuildings = useRef(new Map())
 
   // Data states
-  const [apartments, setApartments] = useState([])
+  const [allApartments, setAllApartments] = useState([])
   const [buildings, setBuildings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -57,12 +57,11 @@ export default function ApartmentManagement() {
   // Pagination states (Spring Boot 0-indexed)
   const [page, setPage] = useState(0)
   const [pageSize] = useState(15)
-  const [totalElements, setTotalElements] = useState(0)
-  const [totalPages, setTotalPages] = useState(0)
 
   // Filters
   const [searchCode, setSearchCode] = useState('')
   const [buildingFilter, setBuildingFilter] = useState('ALL')
+  const [floorFilter, setFloorFilter] = useState('ALL')
   const [statusFilter, setStatusFilter] = useState('ALL')
 
   // Modal states
@@ -121,37 +120,36 @@ export default function ApartmentManagement() {
     const controller = new AbortController()
     setLoading(true)
     setError('')
-    getApartmentsApi({
-      page,
-      size: pageSize,
-      buildingId: canReadBuildings && buildingFilter !== 'ALL' ? buildingFilter : null,
-      status: statusFilter !== 'ALL' ? statusFilter : null,
-      code: searchCode.trim() || null,
-      sort: 'code,asc',
-    }, { signal: controller.signal })
+    getAllApartmentsApi({ signal: controller.signal })
       .then((data) => {
         if (controller.signal.aborted) return
-        const lastPage = Math.max(0, data.totalPages - 1)
-        if (page > lastPage) {
-          setPage(lastPage)
-          return
-        }
-        setApartments(data.content)
-        setTotalElements(data.totalElements)
-        setTotalPages(data.totalPages)
+        setAllApartments(data)
       })
       .catch((err) => {
         if (controller.signal.aborted) return
-        setApartments([])
-        setTotalElements(0)
-        setTotalPages(0)
+        setAllApartments([])
         setError(err.response?.data?.message || 'Không thể tải danh sách căn hộ. Vui lòng thử lại.')
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false)
       })
     return () => controller.abort()
-  }, [canRead, canReadBuildings, page, pageSize, buildingFilter, statusFilter, searchCode, revision])
+  }, [canRead, revision])
+
+  const buildingApartments = useMemo(() => allApartments.filter((apt) =>
+    !canReadBuildings || buildingFilter === 'ALL' || apt.buildingId === buildingFilter
+  ), [allApartments, canReadBuildings, buildingFilter])
+  const floors = useMemo(() => [...new Set(buildingApartments.map((apt) => apt.floorNo))]
+    .sort((a, b) => a - b), [buildingApartments])
+  const filteredApartments = useMemo(() => buildingApartments.filter((apt) =>
+    (floorFilter === 'ALL' || String(apt.floorNo) === floorFilter) &&
+    (statusFilter === 'ALL' || apt.status === statusFilter) &&
+    (!searchCode.trim() || apt.code === searchCode.trim())
+  ), [buildingApartments, floorFilter, statusFilter, searchCode])
+  const totalElements = filteredApartments.length
+  const totalPages = Math.ceil(totalElements / pageSize)
+  const currentPage = Math.min(page, Math.max(0, totalPages - 1))
+  const apartments = filteredApartments.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
 
   // Building mapping lookup dictionary
   const buildingMap = useMemo(() => {
@@ -221,7 +219,7 @@ export default function ApartmentManagement() {
 
   const hasActions = canWrite || canLinkHouseholds
   const columns = 5 + (canReadHouseholds ? 1 : 0) + (hasActions ? 1 : 0)
-  const filtered = Boolean(searchCode || buildingFilter !== 'ALL' || statusFilter !== 'ALL')
+  const filtered = Boolean(searchCode || buildingFilter !== 'ALL' || floorFilter !== 'ALL' || statusFilter !== 'ALL')
 
   return (
     <div className="user-management-container">
@@ -302,6 +300,7 @@ export default function ApartmentManagement() {
             value={buildingFilter}
             onChange={(e) => {
               setBuildingFilter(e.target.value)
+              setFloorFilter('ALL')
               setPage(0)
             }}
             disabled={!canReadBuildings || buildingLoading}
@@ -316,6 +315,21 @@ export default function ApartmentManagement() {
                 ))}
               </>
             )}
+          </select>
+        </FilterField>
+        <FilterField id="filter-floor" label="Tầng">
+          <select
+            id="filter-floor"
+            className={CONTROL}
+            value={floorFilter}
+            disabled={loading || (canReadBuildings && buildingFilter === 'ALL')}
+            onChange={(e) => {
+              setFloorFilter(e.target.value)
+              setPage(0)
+            }}
+          >
+            <option value="ALL">{canReadBuildings && buildingFilter === 'ALL' ? 'Chọn tòa nhà trước' : 'Tất cả tầng'}</option>
+            {floors.map((floor) => <option key={floor} value={String(floor)}>Tầng {floor}</option>)}
           </select>
         </FilterField>
         <FilterField id="filter-status" label="Trạng thái">
@@ -445,7 +459,7 @@ export default function ApartmentManagement() {
             </tbody>
           </table>
         </div>
-        <Pagination page={page} totalPages={totalPages} totalElements={totalElements} unit="căn hộ" disabled={loading} onPageChange={setPage} />
+        <Pagination page={currentPage} totalPages={totalPages} totalElements={totalElements} unit="căn hộ" disabled={loading} onPageChange={setPage} />
       </div>
 
       {linkTarget && (
