@@ -36,8 +36,9 @@ export default function Navbar({ onNavigate, isOpen = false, onClose, hasUnpaidB
   // Residents read fee types only to classify their bills; the price list is a tab of the staff billing page.
   const canViewFees = isStaff && hasPermission('fee-type.read') && hasPermission('fee-rate.read')
   const showBilling = canReadBilling || canViewFees
-  const canViewMaintenance = STAFF_ROLES.some((role) => hasRole(role))
-    && (hasPermission('maintenance-fund.read') || hasPermission('maintenance-round.read'))
+  // Maintenance rounds and voluntary campaigns: money collected per round, not every month.
+  const canViewAdhoc = isStaff
+    && (hasPermission('maintenance-fund.read') || hasPermission('maintenance-round.read') || hasPermission('campaign.read'))
   const canManageUsers = hasPermission('user.read')
   const itemProps = { onNavigate }
 
@@ -70,16 +71,16 @@ export default function Navbar({ onNavigate, isOpen = false, onClose, hasUnpaidB
               {canViewApartments && <NavItem to={ROUTES.apartments} label="Căn hộ" icon={ApartmentIcon} {...itemProps} />}
               {canReadResidents && <NavItem to={ROUTES.residents} label="Nhân khẩu" icon={UsersIcon} {...itemProps} />}
               {canReadResidenceChanges && <NavItem to={ROUTES.residenceChanges} label="Tạm trú, tạm vắng" icon={CalendarIcon} {...itemProps} />}
-              {showBilling && <NavItem to={ROUTES.billing} label="Khoản thu" icon={ReceiptIcon} attention={hasUnpaidBills ? 'còn khoản chưa đóng' : ''} {...itemProps} />}
+              {showBilling && <NavItem to={ROUTES.billing} label={isStaff ? 'Phí cố định' : 'Khoản thu'} icon={ReceiptIcon} attention={hasUnpaidBills ? 'còn khoản chưa đóng' : ''} {...itemProps} />}
+              {canViewAdhoc && <NavItem to={ROUTES.adhocFees} label="Phí đột xuất" icon={WalletIcon} {...itemProps} />}
               {canReadPayments && <NavItem to={ROUTES.payments} label="Sổ thu tiền" icon={CreditCardIcon} {...itemProps} />}
               {showFamily && <NavItem to={ROUTES.family} label="Hộ gia đình" icon={HomeIcon} {...itemProps} />}
             </div>
           </div>
-          {(canViewMaintenance || canManageUsers) && (
+          {canManageUsers && (
             <div>
               <p className={GROUP_LABEL}>Quản trị</p>
               <div className="flex flex-col gap-1">
-                {canViewMaintenance && <NavItem to={ROUTES.maintenanceFunds} label="Quỹ bảo trì" icon={WalletIcon} {...itemProps} />}
                 {canManageUsers && <NavItem to={ROUTES.users} label="Quản lý tài khoản" icon={ShieldCheckIcon} {...itemProps} />}
               </div>
             </div>

@@ -1,5 +1,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import { getFeeCatalogApi } from '../../api/fees'
+import { ROUTES } from '../../routes'
 import { apiErrorMessage } from '../../api/errors'
 import { useAuth } from '../../hooks/useAuth'
 import { todayInVietnam } from '../../residents/validation.js'
@@ -15,7 +17,7 @@ const vehicleLabel = (value) => VEHICLE_TYPE_OPTIONS.find((option) => option.val
 function CurrentPrice({ fee, rates, today }) {
   const unit = BASIS_SIMPLE[fee.basis]?.unit ?? 'đ'
   if (fee.basis === 'ACTUAL') return <span className="text-slate-500">Theo hóa đơn thực tế</span>
-  if (isMaintenanceFeeType(fee, rates)) return <span className="text-slate-500">Thu theo đợt bảo trì (Quỹ bảo trì)</span>
+  if (isMaintenanceFeeType(fee, rates)) return <span className="text-slate-500">Thu theo đợt bảo trì (Phí đột xuất)</span>
   const active = rates.filter((rate) => rateActiveAt(rate, today))
   if (active.length === 0) return <span className="font-semibold text-amber-700">Chưa có giá: chưa được tính vào phiếu báo phí</span>
   if (fee.basis === 'PER_VEHICLE') {
@@ -152,6 +154,11 @@ export default function FeeTableTab() {
           </button>
         )}
       </div>
+
+      <p className="m-0 text-sm text-slate-600">
+        Bảng phí dùng cho các khoản thu hằng tháng. Bảo trì và đóng góp tự nguyện thu theo đợt ở trang{' '}
+        <Link to={ROUTES.adhocFees} className="font-semibold text-(--primary) underline">Phí đột xuất</Link>.
+      </p>
 
       <div className="table-card">
         <div tabIndex={0} role="region" aria-labelledby="fee-price-caption" className="table-wrapper">

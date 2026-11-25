@@ -17,26 +17,35 @@ import HomePage from './pages/HomePage'
 import FamilyPage from './pages/FamilyPage'
 import BillingPage from './pages/BillingPage'
 import PaymentPage from './pages/PaymentPage'
-import MaintenancePage from './pages/MaintenancePage'
+import AdhocFeesPage from './pages/AdhocFeesPage'
 import RoleGuard from './components/RoleGuard'
 import ForbiddenView from './components/ForbiddenView'
 import NotFoundView from './components/NotFoundView'
 import { ROLE_PERMISSIONS } from './auth/rbac'
 import { ROUTES } from './routes'
+import { STAFF_ROLES } from './utils/billingUtils'
 import './App.css'
 
 const APP_TITLE = 'BlueMoon — Quản lý thu phí'
 const PAGE_TITLES = {
   [ROUTES.overview]: 'Tổng quan',
   [ROUTES.apartments]: 'Căn hộ',
-  [ROUTES.fees]: 'Khoản thu',
+  [ROUTES.fees]: 'Phí cố định',
   [ROUTES.residents]: 'Nhân khẩu',
-  [ROUTES.billing]: 'Khoản thu',
+  [ROUTES.billing]: 'Phí cố định',
   [ROUTES.payments]: 'Sổ thu tiền',
   [ROUTES.family]: 'Hộ gia đình',
   [ROUTES.residenceChanges]: 'Tạm trú, tạm vắng',
-  [ROUTES.maintenanceFunds]: 'Quỹ bảo trì',
+  [ROUTES.adhocFees]: 'Phí đột xuất',
   [ROUTES.users]: 'Quản lý tài khoản',
+}
+
+// /quy-bao-tri?quy=… keeps working: same fund, now on the maintenance tab of "Phí đột xuất".
+function LegacyMaintenanceRedirect() {
+  const { search } = useLocation()
+  const params = new URLSearchParams(search)
+  params.set('tab', 'bao-tri')
+  return <Navigate to={`${ROUTES.adhocFees}?${params}`} replace />
 }
 
 function AppContent() {
@@ -89,7 +98,10 @@ function Workspace({ onLogout }) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const pageKey = pathname.replace(/\/+$/, '').toLowerCase()
-  const title = PAGE_TITLES[pageKey] ?? 'Không tìm thấy trang'
+  const { hasRole } = useAuth()
+  // Residents keep one "Khoản thu" page; staff split it into fixed and ad-hoc fees.
+  const residentBilling = pageKey === ROUTES.billing && !STAFF_ROLES.some((role) => hasRole(role))
+  const title = residentBilling ? 'Khoản thu' : PAGE_TITLES[pageKey] ?? 'Không tìm thấy trang'
   const goToOverview = () => navigate(ROUTES.overview)
   const closeNav = useCallback(() => {
     setIsNavOpen(false)
@@ -145,7 +157,8 @@ function Workspace({ onLogout }) {
               <Route path={ROUTES.residenceChanges} element={<ResidenceChangeManagement onBack={goToOverview} />} />
               <Route path={ROUTES.billing} element={<BillingPage onBack={goToOverview} />} />
               <Route path={ROUTES.payments} element={<PaymentPage onBack={goToOverview} />} />
-              <Route path={ROUTES.maintenanceFunds} element={<MaintenancePage onBack={goToOverview} />} />
+              <Route path={ROUTES.adhocFees} element={<AdhocFeesPage onBack={goToOverview} />} />
+              <Route path={ROUTES.maintenanceFunds} element={<LegacyMaintenanceRedirect />} />
               <Route path="*" element={<NotFoundView />} />
             </Routes>
           </RoleGuard>

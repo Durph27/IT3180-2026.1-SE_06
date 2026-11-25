@@ -39,7 +39,10 @@ const navProps = {}
 
 test('billing tab follows invoice access and household scope', () => {
   const accountant = render(auth('ACCOUNTANT'), Navbar, navProps)
-  assert.match(accountant, /Khoản thu/)
+  // Staff see fixed and ad-hoc fees as two pages; residents keep one "Khoản thu".
+  assert.match(accountant, /Phí cố định/)
+  assert.match(accountant, /Phí đột xuất/)
+  assert.doesNotMatch(accountant, /Khoản thu/)
   // The price list is a tab of the billing page now, not its own menu entry.
   assert.doesNotMatch(accountant, /Biểu phí/)
   assert.match(render(auth('RESIDENT'), Navbar, navProps), /Khoản thu/)
@@ -77,7 +80,7 @@ test('outstanding periods show totals and mark the selected period', () => {
 
 test('billing page renders only with both invoice and period access', () => {
   assert.match(render(auth('RESIDENT'), BillingPage, { onBack() {} }), /Các khoản thu của hộ gia đình/)
-  assert.match(render(auth('MANAGER'), BillingPage, { onBack() {} }), /Lập phiếu báo phí hằng tháng/)
+  assert.match(render(auth('MANAGER'), BillingPage, { onBack() {} }), /Phí cố định/)
   assert.doesNotMatch(render(auth('AUTHORITY'), BillingPage, { onBack() {} }), /header-title/)
   const noPeriods = auth('RESIDENT', { permissions: ROLE_PERMISSIONS.RESIDENT.filter((permission) => permission !== 'billing-period.read') })
   assert.doesNotMatch(render(noPeriods, BillingPage, { onBack() {} }), /header-title/)
@@ -188,10 +191,10 @@ test('the send dialog shows the total, the due date and what would make bills wr
   assert.match(html, /Phí vệ sinh chưa có giá/)
   assert.match(html, /1 căn hộ đang có người ở/)
   assert.match(html, /Gửi cho cư dân/)
-  assert.doesNotMatch(html, /Quỹ bảo trì/)
+  assert.doesNotMatch(html, /Phí đột xuất/)
   const withMaintenance = render(auth('ACCOUNTANT'), IssueConfirmDialog, { ...props, maintenanceHint: true })
-  assert.match(withMaintenance, /Thu bảo trì&quot; ở Quỹ bảo trì trước khi gửi/)
-  assert.match(withMaintenance, /href="\/quy-bao-tri"/)
+  assert.match(withMaintenance, /Thu bảo trì&quot; ở trang Phí đột xuất trước khi gửi/)
+  assert.match(withMaintenance, /href="\/phi-dot-xuat\?tab=bao-tri"/)
   const withEmptyBill = render(auth('ACCOUNTANT'), IssueConfirmDialog, { ...props, warnings: { ...props.warnings, emptyInvoices: [{ id: 'x', occupancyId: 'o' }] } })
   assert.match(withEmptyBill, /1 phiếu báo phí không còn khoản phí nào \(A101\)/)
   assert.match(withEmptyBill, /disabled=""[^>]*>Gửi cho cư dân/)

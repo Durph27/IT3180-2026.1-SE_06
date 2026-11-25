@@ -29,6 +29,7 @@ import ForbiddenView from './ForbiddenView'
 import PageHeader from './PageHeader'
 import FilterBar, { FilterField } from './FilterBar'
 import StatCard from './StatCard'
+import { placeOptionLabel, useHouseholdPlaces } from '../hooks/useHouseholdPlaces'
 import Pagination from './Pagination'
 import { BuildingIcon, CalendarIcon, CheckCircleIcon, DownloadIcon, RefreshIcon, UsersIcon } from './Icons'
 
@@ -66,6 +67,7 @@ function Management({ buildingWide }) {
   const [notice, setNotice] = useState('')
   const [modal, setModal] = useState(null)
 
+  const placeLabels = useHouseholdPlaces(householdIds, !buildingWide)
   const householdRequestKey = `${householdPage}-${householdRetry}`
   const householdCurrent = householdResult?.key === householdRequestKey
   const householdLoading = buildingWide && !householdCurrent
@@ -75,7 +77,7 @@ function Management({ buildingWide }) {
     ? householdCurrent
       ? householdResult.content
       : []
-    : householdIds.map((id) => ({ id, code: id }))
+    : householdIds.map((id, index) => ({ id, code: placeOptionLabel(placeLabels, id, index, householdIds.length) }))
   const householdId = options.some((item) => item.id === selected) ? selected : options[0]?.id || ''
 
   useEffect(() => {
@@ -474,12 +476,11 @@ function Management({ buildingWide }) {
                 }}
                 onViewHistory={(resident) =>
                   setTimelineTarget({
-                    resident: {
-                      ...resident,
-                      householdCode:
-                        options.find((o) => o.id === householdId)?.code || householdId,
-                    },
+                    resident: buildingWide
+                      ? { ...resident, householdCode: options.find((o) => o.id === householdId)?.code || '' }
+                      : { ...resident, apartmentCode: resident.apartmentCode || placeLabels[householdId] || '', householdCode: '' },
                     householdId,
+                    householdLabel: buildingWide ? '' : placeLabels[householdId] || '',
                     preloaded: null,
                   })
                 }
@@ -668,6 +669,7 @@ function Management({ buildingWide }) {
           isOpen={Boolean(timelineTarget)}
           resident={timelineTarget.resident}
           householdId={timelineTarget.householdId}
+          householdLabel={timelineTarget.householdLabel}
           preloadedTimeline={timelineTarget.preloaded}
           onClose={() => setTimelineTarget(null)}
         />

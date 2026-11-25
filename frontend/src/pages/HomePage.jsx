@@ -308,7 +308,7 @@ export default function HomePage() {
       links.push({
         key: 'billing',
         to: ROUTES.billing,
-        title: ownHousehold ? 'Khoản thu của hộ' : 'Khoản thu',
+        title: ownHousehold ? 'Khoản thu của hộ' : 'Phí cố định',
         description: ownHousehold
           ? 'Xem phiếu báo phí và công nợ từng tháng.'
           : canGenerateInvoices
@@ -341,11 +341,11 @@ export default function HomePage() {
     if (canViewMaintenance) {
       links.push({
         key: 'maintenanceFunds',
-        to: ROUTES.maintenanceFunds,
-        title: 'Quỹ bảo trì',
+        to: ROUTES.adhocFees,
+        title: 'Phí đột xuất',
         description: hasPermission('maintenance-fund.write')
-          ? 'Quản lý quỹ, phân bổ sửa chữa và đối chiếu số dư.'
-          : 'Theo dõi số dư quỹ bảo trì và các đợt đóng góp.',
+          ? 'Thu bảo trì theo đợt, đóng góp tự nguyện và đối chiếu quỹ.'
+          : 'Theo dõi quỹ bảo trì và các đợt đóng góp tự nguyện.',
       })
     }
     if (ownHousehold && householdId && canViewHouseholds) {

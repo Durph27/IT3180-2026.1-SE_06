@@ -22,6 +22,7 @@ export default function ResidentTimelineModal({
   isOpen,
   resident,
   householdId = '',
+  householdLabel = '',
   preloadedTimeline = null,
   onClose,
 }) {
@@ -49,7 +50,7 @@ export default function ResidentTimelineModal({
     const targetHouseholdIds = buildingWide ? null : householdId ? [householdId] : []
 
     Promise.all([
-      buildingWide ? getAllHouseholdsApi(signal) : Promise.resolve(targetHouseholdIds.map((id) => ({ id, code: id }))),
+      buildingWide ? getAllHouseholdsApi(signal) : Promise.resolve(targetHouseholdIds.map((id) => ({ id, code: householdLabel ? `Căn ${householdLabel}` : 'Hộ của tôi' }))),
       canReadApartments ? getAllApartmentsApi({ signal }) : Promise.resolve([]),
       canReadOccupancies ? getAllOccupanciesHistoryApi(signal) : Promise.resolve([]),
       canReadChanges
@@ -108,6 +109,7 @@ export default function ResidentTimelineModal({
     resident,
     buildingWide,
     householdId,
+    householdLabel,
     canReadApartments,
     canReadOccupancies,
     canReadChanges,

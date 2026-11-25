@@ -332,8 +332,12 @@ class SprintOneTests {
         Home home=home();var campaign=create("/contribution-campaigns",map("name","Quỹ vì người nghèo","startDate",start(),"endDate",today().plusDays(5).toString(),"purpose","Đóng góp tự nguyện"));
         var c=create("/contribution-campaigns/"+id(campaign)+"/contributions",map("householdId",home.household(),"pledgedAmount","100.00"));
         var body=map("householdId",home.household(),"channel","CASH","amount","200.00","paidAt",Instant.now().minusSeconds(1).toString(),"allocations",List.of(map("contributionId",id(c),"amount","200.00")));
-        assertThat(call("POST","/payments",body,admin,unique()).status()).isEqualTo(201);
+        var paid=call("POST","/payments",body,admin,unique());
+        assertThat(paid.status()).isEqualTo(201);
         assertThat(call("GET","/contributions/"+id(c),null,admin,null).body().get("paidAmount")).isEqualTo("200.00");
+        // The receipt names the household's apartment even though no invoice line points at it.
+        var snapshot=(Map<?,?>)call("GET","/payments/"+id(paid.body())+"/receipt",null,admin,null).body().get("snapshot");
+        assertThat((List<Object>)snapshot.get("apartmentCodes")).containsExactly((Object)text(call("GET","/apartments/"+home.apartment(),null,admin,null).body(),"code"));
         assertThat(call("GET","/invoices?householdId="+home.household(),null,admin,null).body().get("totalElements")).isEqualTo(0);
     }
     @Test void receiptSnapshotIsImmutableAndPdfShowsVietnameseAndVoidMark()throws Exception {

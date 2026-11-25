@@ -66,6 +66,9 @@ public class PaymentService {
                 var day = paidAt.atZoneSameInstant(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
                 rule(!day.isBefore(date(campaign, "startDate")) && !day.isAfter(date(campaign, "endDate")), "Ngày thu ngoài chiến dịch đóng góp.");
                 description = text(campaign, "name");
+                // A gift has no invoice line to point at an apartment: use where the household lives that day.
+                for (var occupancy : db.where("HouseholdApartment", "householdId", b.get("householdId")))
+                    if (active(occupancy, day)) apartmentCodes.add(text(db.get("Apartment", occupancy.get("apartmentId")), "code"));
             }
             snapshotAllocations.add(map("invoiceLineId", allocation.get("invoiceLineId"), "contributionId", allocation.get("contributionId"), "description", description, "amount", allocation.get("amount")));
         }

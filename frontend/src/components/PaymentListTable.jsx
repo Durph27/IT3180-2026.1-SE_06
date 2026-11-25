@@ -217,7 +217,7 @@ export default function PaymentListTable({
                     <p className="font-semibold text-slate-800">Không có phiếu thu nào</p>
                     <p className="text-sm text-slate-500">
                       {payments.length === 0
-                        ? 'Chưa có giao dịch thu phí nào được ghi nhận vào sổ quỹ. Nhấn "Ghi nhận thu tiền" ở trên hoặc sang trang "Khoản thu" để thu phí cho các phiếu báo phí đã phát hành.'
+                        ? 'Chưa có giao dịch thu phí nào được ghi nhận vào sổ quỹ. Nhấn "Ghi nhận thu tiền" ở trên hoặc sang trang "Phí cố định" để thu phí cho các phiếu báo phí đã phát hành.'
                         : 'Không tìm thấy phiếu thu nào khớp với bộ lọc.'}
                     </p>
                   </div>

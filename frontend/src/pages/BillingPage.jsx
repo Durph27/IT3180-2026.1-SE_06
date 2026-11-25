@@ -9,6 +9,7 @@ import {
 } from '../api/billing'
 import { apiErrorMessage } from '../api/errors'
 import { useAuth } from '../hooks/useAuth'
+import { placeOptionLabel, useHouseholdPlaces } from '../hooks/useHouseholdPlaces'
 import BillingPeriodSelector from '../components/BillingPeriodSelector'
 import DueDateAlertBanner from '../components/DueDateAlertBanner'
 import FeeItemTable from '../components/FeeItemTable'
@@ -17,10 +18,11 @@ import PermissionGate from '../components/PermissionGate'
 import PageHeader from '../components/PageHeader'
 import FilterBar from '../components/FilterBar'
 import StatCard from '../components/StatCard'
-import { BuildingIcon, CheckCircleIcon, ReceiptIcon } from '../components/Icons'
+import { BuildingIcon, ReceiptIcon } from '../components/Icons'
 import StaffPeriodsTab from '../components/billing/StaffPeriodsTab'
 import FeeTableTab from '../components/billing/FeeTableTab'
 import OutstandingPeriods from '../components/OutstandingPeriods'
+import ResidentContributions from '../components/contributions/ResidentContributions'
 import { classifyFeeItems, collectDueAlerts, defaultPeriod, FEE_CATEGORY, formatMoney, STAFF_ROLES, summarizeOutstandingPeriods, summarizeTotals } from '../utils/billingUtils'
 import { canAccess } from '../auth/rbac'
 
@@ -56,9 +58,9 @@ function StaffBilling({ onBack }) {
   const select = (id) => setSearchParams({ tab: id })
   return (
     <div className="user-management-container">
-      <PageHeader title="Khoản thu" description="Lập phiếu báo phí hằng tháng, theo dõi thu tiền và quản lý bảng phí của chung cư." />
+      <PageHeader title="Phí cố định" description="Phí thu hằng tháng theo bảng phí (diện tích, nhân khẩu, xe…): lập phiếu báo phí, theo dõi thu tiền và quản lý giá." />
       {tabs.length > 1 && (
-        <div className="filter-buttons-group w-fit max-w-full flex-wrap" role="tablist" aria-label="Khoản thu">
+        <div className="filter-buttons-group w-fit max-w-full flex-wrap" role="tablist" aria-label="Phí cố định">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -91,6 +93,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
   const canReadFeeTypes = hasPermission('fee-type.read', scope)
   const canReadCampaigns = hasPermission('campaign.read', scope)
 
+  const placeLabels = useHouseholdPlaces(householdOptions, householdOptions.length > 1)
   const [catalog, setCatalog] = useState(null)
   const [loaded, setLoaded] = useState({ key: null, invoices: [] })
   const [openInvoices, setOpenInvoices] = useState(null)
@@ -142,7 +145,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
 
   const outstanding = useMemo(() => (catalog && openInvoices ? summarizeOutstandingPeriods({ invoices: openInvoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : null), [catalog, openInvoices])
   const invoices = useMemo(() => (loaded.key === invoiceKey ? loaded.invoices : []), [loaded, invoiceKey])
-  const items = useMemo(() => (catalog && selectedPeriod ? classifyFeeItems({ invoices, feeTypes: catalog.feeTypes, campaigns: catalog.campaigns, period: selectedPeriod }) : []), [catalog, invoices, selectedPeriod])
+  const items = useMemo(() => (catalog && selectedPeriod ? classifyFeeItems({ invoices, feeTypes: catalog.feeTypes, campaigns: [], period: selectedPeriod }) : []), [catalog, invoices, selectedPeriod])
   const alerts = useMemo(() => (catalog ? collectDueAlerts({ invoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : []), [catalog, invoices])
   const totals = summarizeTotals(items)
   const mandatoryItems = items.filter((item) => item.category === FEE_CATEGORY.MANDATORY)
@@ -173,7 +176,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
             <div className="household-select-field">
               <label htmlFor="billing-household">Hộ gia đình</label>
               <select id="billing-household" className="form-control block min-h-11 w-full" value={householdId} onChange={(event) => onSelectHousehold(event.target.value)}>
-                {householdOptions.map((id, index) => <option key={id} value={id}>Hộ {index + 1}</option>)}
+                {householdOptions.map((id, index) => <option key={id} value={id}>{placeOptionLabel(placeLabels, id, index, householdOptions.length)}</option>)}
               </select>
             </div>
           )}
@@ -186,14 +189,17 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
 
       {selectedPeriod && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <StatCard label="Tổng phí bắt buộc" value={formatMoney(totals.mandatory)} icon={ReceiptIcon} />
-            <StatCard label="Tổng đóng góp tự nguyện" value={formatMoney(totals.voluntary)} icon={CheckCircleIcon} />
-            <StatCard label="Số khoản trong kỳ" value={items.length} icon={BuildingIcon} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <StatCard label="Tổng phải đóng tháng này" value={formatMoney(totals.mandatory)} icon={ReceiptIcon} />
+            <StatCard label="Số khoản trong phiếu" value={items.length} icon={BuildingIcon} />
           </div>
           <FeeItemTable key={`mandatory-${selectedPeriod.id}`} category={FEE_CATEGORY.MANDATORY} items={mandatoryItems} total={totals.mandatory} />
-          <FeeItemTable key={`voluntary-${selectedPeriod.id}`} category={FEE_CATEGORY.VOLUNTARY} items={voluntaryItems} total={totals.voluntary} />
+          {voluntaryItems.length > 0 && <FeeItemTable key={`voluntary-${selectedPeriod.id}`} category={FEE_CATEGORY.VOLUNTARY} items={voluntaryItems} total={totals.voluntary} />}
         </>
+      )}
+
+      {catalog && (
+        <ResidentContributions campaigns={catalog.campaigns} householdId={householdId} canReadContributions={hasPermission('contribution.read', scope)} />
       )}
     </div>
   )
