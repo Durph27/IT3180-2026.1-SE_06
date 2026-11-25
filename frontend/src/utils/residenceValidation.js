@@ -1,4 +1,4 @@
-import { todayInVietnam } from '../residents/validation.js'
+import { todayInVietnam, isValidIdentityNo, isValidPhone, isValidDob } from '../residents/validation.js'
 
 export const TEMPORARY_RELATIONSHIPS = Object.freeze([
   'TẠM TRÚ',
@@ -156,7 +156,7 @@ export function resolveChangeResidentInfo(change, residentsById = {}) {
 }
 
 /**
- * Validates data for temporary residence registration (existing resident profile required).
+ * Validates temporary residence for an existing profile or a new person.
  */
 export function validateTemporaryResidence(values) {
   const errors = {}
@@ -165,7 +165,14 @@ export function validateTemporaryResidence(values) {
     errors.householdId = 'Vui lòng chọn hộ gia đình đăng ký tạm trú.'
   }
 
-  if (!values.residentId?.trim()) {
+  if (values.resident) {
+    const person = values.resident
+    if (!person.fullName?.trim() || person.fullName.trim().length > 120) errors.fullName = 'Vui lòng nhập họ tên (tối đa 120 ký tự).'
+    if (!isValidIdentityNo(person.identityNo)) errors.identityNo = 'CCCD phải gồm đúng 12 chữ số.'
+    if (!isValidDob(person.birthDate)) errors.birthDate = 'Ngày sinh không hợp lệ hoặc trong tương lai.'
+    if (!isValidPhone(person.phone)) errors.phone = 'Số điện thoại phải gồm đúng 10 chữ số.'
+    if (!values.permanentAddress?.trim()) errors.permanentAddress = 'Vui lòng nhập địa chỉ thường trú.'
+  } else if (!values.residentId?.trim()) {
     errors.residentId = 'Vui lòng tìm và chọn nhân khẩu đã có hồ sơ để đăng ký tạm trú.'
   }
 
@@ -202,10 +209,11 @@ export function validateTemporaryResidence(values) {
   }
   if (permanentAddress) details.permanentAddress = permanentAddress
   if (note) details.note = note
+  if (values.resident) details.resident = values.resident
 
   const residenceChangePayload = {
     householdId: values.householdId?.trim() || '',
-    residentId: values.residentId?.trim() || '',
+    ...(values.resident ? {} : { residentId: values.residentId?.trim() || '' }),
     changeType: 'TEMPORARY_RESIDENCE',
     effectiveFrom: values.effectiveFrom,
     effectiveTo: values.effectiveTo,

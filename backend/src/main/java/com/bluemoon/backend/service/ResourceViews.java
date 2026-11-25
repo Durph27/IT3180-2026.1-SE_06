@@ -40,7 +40,12 @@ public class ResourceViews {
         };
         if (household != null) return actor.households().contains(household);
         if (model.equals("Resident"))
-            return db.where("HouseholdMember", "residentId", row.get("id")).stream().anyMatch(m -> active(m, today()) && actor.households().contains(text(m, "householdId")));
+            return db.where("HouseholdMember", "residentId", row.get("id")).stream().anyMatch(m -> active(m, today()) && actor.households().contains(text(m, "householdId")))
+                    || db.where("ResidenceChange", "residentId", row.get("id")).stream().anyMatch(c ->
+                            "TEMPORARY_RESIDENCE".equals(c.get("changeType"))
+                                    && Boolean.TRUE.equals(object(c.get("details")).get("registeredNewResident"))
+                                    && actor.id().equals(c.get("requestedBy"))
+                                    && actor.households().contains(text(c, "householdId")));
         if (model.equals("Apartment"))
             return db.where("HouseholdApartment", "apartmentId", row.get("id")).stream().anyMatch(o -> active(o, today()) && actor.households().contains(text(o, "householdId")));
         if (model.equals("Building"))

@@ -38,9 +38,10 @@ export default function TemporaryResidenceModal({
 }) {
   const { hasPermission } = useAuth()
   const canReadIdentity = hasPermission('resident.identity.read')
-  const canWriteResident = hasPermission('resident.write')
 
   const isRenewMode = Boolean(initialValues?.isRenewal)
+  const [personMode, setPersonMode] = useState(() => initialValues?.residentId ? 'existing' : 'new')
+  const [person, setPerson] = useState({ fullName: '', identityNo: '', birthDate: '', phone: '' })
 
   const [selectedHouseholdId, setSelectedHouseholdId] = useState(
     () => initialValues?.householdId || initialHouseholdId || ''
@@ -121,6 +122,7 @@ export default function TemporaryResidenceModal({
     const validation = validateTemporaryResidence({
       householdId,
       residentId,
+      ...(personMode === 'new' ? { resident: person } : {}),
       relationship,
       permanentAddress,
       note,
@@ -147,6 +149,9 @@ export default function TemporaryResidenceModal({
       await createTemporaryResidenceApi({
         householdId,
         residentId,
+        ...(personMode === 'new' ? { resident: {
+          ...person, fullName: person.fullName.trim(),
+        } } : {}),
         effectiveFrom,
         effectiveTo,
         relationship,
@@ -249,8 +254,37 @@ export default function TemporaryResidenceModal({
               </div>
             )}
 
+            {!isRenewMode && (
+              <div className="form-group">
+                <label htmlFor="temporary-person-mode">Người đăng ký tạm trú</label>
+                <select id="temporary-person-mode" className="form-control" value={personMode} disabled={saving}
+                  onChange={(event) => { setPersonMode(event.target.value); setFieldErrors({}); setError('') }}>
+                  <option value="new">Nhập thông tin người đăng ký</option>
+                  <option value="existing">Chọn người đã có hồ sơ</option>
+                </select>
+              </div>
+            )}
+            {personMode === 'new' && (
+              <div className="form-grid-2">
+                {[
+                  { name: 'identityNo', label: 'CCCD', type: 'text', maxLength: 12, inputMode: 'numeric' },
+                  { name: 'fullName', label: 'Họ và tên', type: 'text', maxLength: 120 },
+                  { name: 'birthDate', label: 'Ngày sinh', type: 'date', max: todayInVietnam() },
+                  { name: 'phone', label: 'Số điện thoại', type: 'tel', maxLength: 10 },
+                ].map(({ name, label, ...props }) => (
+                  <div className="form-group" key={name}>
+                    <label htmlFor={`temporary-person-${name}`}>{label} <span aria-hidden="true">*</span></label>
+                    <input {...props} id={`temporary-person-${name}`} name={name} className="form-control"
+                      value={person[name]} required disabled={saving} aria-invalid={Boolean(fieldErrors[name])}
+                      aria-describedby={fieldErrors[name] ? `temporary-person-${name}-error` : undefined}
+                      onChange={(event) => { setPerson((prev) => ({ ...prev, [name]: event.target.value })); clearFieldError(name) }} />
+                    {fieldErrors[name] && <span id={`temporary-person-${name}-error`} className="field-hint text-danger">{fieldErrors[name]}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
             {/* Chọn nhân khẩu đã có hồ sơ */}
-            <div className="form-group">
+            {personMode === 'existing' && <div className="form-group">
               <label htmlFor="resident-search-term">
                 Nhân khẩu đăng ký tạm trú <span aria-hidden="true">*</span>
               </label>
@@ -361,11 +395,6 @@ export default function TemporaryResidenceModal({
                     </p>
                   )}
 
-                  {!canWriteResident && (
-                    <p className="text-xs text-slate-500 mt-2 mb-0">
-                      Trường hợp người lưu trú chưa có hồ sơ trong hệ thống, vui lòng liên hệ Ban quản lý để lập hồ sơ nhân khẩu trước.
-                    </p>
-                  )}
                 </div>
               )}
 
@@ -374,7 +403,7 @@ export default function TemporaryResidenceModal({
                   {fieldErrors.residentId}
                 </span>
               )}
-            </div>
+            </div>}
 
             {/* Quan hệ & Địa chỉ thường trú */}
             <div className="form-grid-2">
@@ -408,7 +437,7 @@ export default function TemporaryResidenceModal({
               </div>
 
               <div className="form-group">
-                <label htmlFor={permanentAddressId}>Nơi thường trú (trước khi đến)</label>
+                <label htmlFor={permanentAddressId}>Nơi thường trú (trước khi đến){personMode === 'new' && ' *'}</label>
                 <input
                   id={permanentAddressId}
                   name="permanentAddress"
@@ -423,6 +452,8 @@ export default function TemporaryResidenceModal({
                   }}
                   disabled={saving}
                   placeholder="VD: Phường Lộc Hạ, TP. Nam Định"
+                  required={personMode === 'new'}
+                  aria-invalid={Boolean(fieldErrors.permanentAddress)}
                 />
                 {fieldErrors.permanentAddress && (
                   <span className="field-hint text-danger">{fieldErrors.permanentAddress}</span>

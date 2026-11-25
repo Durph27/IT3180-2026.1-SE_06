@@ -61,6 +61,7 @@ export async function endResidenceChangeApi(id, { effectiveTo, reason } = {}) {
 export function createTemporaryResidenceApi({
   householdId,
   residentId,
+  resident,
   effectiveFrom,
   effectiveTo,
   relationship,
@@ -75,10 +76,11 @@ export function createTemporaryResidenceApi({
   const trimmedNote = String(note || '').trim()
   if (trimmedAddress) details.permanentAddress = trimmedAddress
   if (trimmedNote) details.note = trimmedNote
+  if (resident) details.resident = resident
 
   return createResidenceChangeApi({
     householdId,
-    residentId,
+    ...(resident ? {} : { residentId }),
     changeType: 'TEMPORARY_RESIDENCE',
     effectiveFrom,
     effectiveTo,

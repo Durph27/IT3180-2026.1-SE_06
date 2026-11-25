@@ -240,6 +240,47 @@ class SprintOneTests {
         var reply=call("POST","/residence-changes/"+id(rejected)+"/reject",map("reason","Không đủ hồ sơ"),approver,null);
         assertThat(reply.body().get("status")).isEqualTo("REJECTED");assertThat(object(reply.body().get("details")).get("decisionReason")).isEqualTo("Không đủ hồ sơ");
     }
+    @Test void temporaryResidenceCreatesNewPersonAtomicallyAndReusesIdentity() throws Exception {
+        var home = home();
+        var owner = resident();
+        member(home, owner, true);
+        String residentToken = token(user("RESIDENT", id(owner)));
+        String identity = String.format("%012d", Math.abs(UUID.randomUUID().getMostSignificantBits() % 1000000000000L));
+        var person = map("fullName", "Khách tạm trú mới", "identityNo", identity,
+                "birthDate", "2000-01-01", "phone", "0901234567");
+        var body = map("householdId", home.household(), "changeType", "TEMPORARY_RESIDENCE",
+                "effectiveFrom", today().toString(), "effectiveTo", today().plusDays(30).toString(),
+                "details", map("relationship", "TẠM TRÚ", "isHead", false, "permanentAddress", "Hà Nội", "resident", person));
+        var created = call("POST", "/residence-changes", body, residentToken, null);
+        assertThat(created.status()).as(created.body().toString()).isEqualTo(201);
+        String guestId = text(created.body(), "residentId");
+        assertThat(db.where("Resident", "identityNo", identity)).hasSize(1);
+        assertThat(db.get("Resident", guestId).get("phone")).isEqualTo("0901234567");
+        assertThat(db.where("HouseholdMember", "residentId", guestId)).isEmpty();
+        assertThat(call("GET", "/residents/" + guestId, null, residentToken, null).status()).isEqualTo(200);
+        var unrelated = resident();
+        var existingRequest = new LinkedHashMap<>(body);
+        existingRequest.put("residentId", id(unrelated));
+        existingRequest.put("details", map("relationship", "TẠM TRÚ", "isHead", false));
+        assertThat(call("POST", "/residence-changes", existingRequest, residentToken, null).status()).isEqualTo(201);
+        assertThat(call("GET", "/residents/" + id(unrelated), null, residentToken, null).status()).isEqualTo(404);
+        assertThat(call("POST", "/residence-changes", body, residentToken, null).status()).isEqualTo(409);
+        assertThat(db.where("Resident", "identityNo", identity)).hasSize(1);
+        var denied = new LinkedHashMap<>(body);
+        denied.put("householdId", home().household());
+        assertThat(call("POST", "/residence-changes", denied, residentToken, null).status()).isEqualTo(404);
+        var invalidPerson = new LinkedHashMap<>(person);
+        invalidPerson.put("identityNo", (identity.startsWith("9") ? "8" : "9") + identity.substring(1));
+        invalidPerson.put("fullName", "Khách bị rollback");
+        var invalid = new LinkedHashMap<>(body);
+        invalid.put("effectiveTo", today().minusDays(1).toString());
+        invalid.put("details", map("relationship", "TẠM TRÚ", "isHead", false, "permanentAddress", "Hà Nội", "resident", invalidPerson));
+        assertThat(call("POST", "/residence-changes", invalid, residentToken, null).status()).isEqualTo(422);
+        assertThat(db.where("Resident", "fullName", "Khách bị rollback")).isEmpty();
+        assertThat(call("POST", "/residence-changes/" + id(created.body()) + "/approve", null, admin, null).status()).isEqualTo(200);
+        assertThat(db.where("HouseholdMember", "residentId", guestId)).hasSize(1);
+    }
+
     @Test void temporaryResidenceSupportsEarlyEndOverlapChecksAndRichAbsenceDetails()throws Exception {
         Home home=home();var guest=resident();
         var pending=create("/residence-changes",map(
