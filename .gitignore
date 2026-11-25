@@ -43,3 +43,6 @@ skills-lock.json
 __pycache__/
 *.py[cod]
 .venv/
+
+AGENTS.md
+docs/requirements
