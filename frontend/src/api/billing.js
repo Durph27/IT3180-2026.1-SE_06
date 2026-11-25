@@ -29,6 +29,13 @@ export async function createBillingPeriodApi(payload, signal) {
   return data
 }
 
+// Once invoices exist the backend accepts only dueDate and snapshotDate; moving the snapshot
+// clears the rate-priced lines so the next generation recomputes them.
+export async function updateBillingPeriodApi(periodId, changes, signal) {
+  const { data } = await api.patch(`/billing-periods/${periodId}`, changes, { signal })
+  return data
+}
+
 export async function closeBillingPeriodApi(periodId, signal) {
   const { data } = await api.post(`/billing-periods/${periodId}/close`, null, { signal })
   return data
@@ -128,7 +135,7 @@ export async function updateInvoiceLineApi(invoiceId, lineId, payload, { version
   return response.data
 }
 
-export async function cancelInvoiceApi(invoiceId, { version } = {}, signal) {
-  const response = await api.post(`/invoices/${invoiceId}/cancel`, { version }, { signal })
+export async function cancelInvoiceApi(invoiceId, { version, reason } = {}, signal) {
+  const response = await api.post(`/invoices/${invoiceId}/cancel`, { version, reason }, { signal })
   return response.data
 }

@@ -177,7 +177,7 @@ export function collectDueAlerts({ invoices, feeTypes, periods, today = todayInV
     const period = periodById.get(invoice.periodId)
     if (!period || !owesMandatoryFee(invoice, mandatoryById)) continue
     const due = getDueInfo(period.dueDate, { today })
-    if (ALERT_ORDER.includes(due.status)) alerts.push({ invoiceNo: invoice.invoiceNo, periodCode: period.code, dueDate: period.dueDate, due })
+    if (ALERT_ORDER.includes(due.status)) alerts.push({ invoiceNo: invoice.invoiceNo, periodCode: period.code, periodLabel: periodMonthLabel(period), dueDate: period.dueDate, due })
   }
   return alerts.sort((a, b) => ALERT_ORDER.indexOf(a.due.status) - ALERT_ORDER.indexOf(b.due.status)
     || b.due.daysOverdue - a.due.daysOverdue || a.due.daysRemaining - b.due.daysRemaining)
@@ -186,6 +186,152 @@ export function collectDueAlerts({ invoices, feeTypes, periods, today = todayInV
 export function defaultPeriod(periods) {
   const newestFirst = [...periods].sort((a, b) => b.startDate.localeCompare(a.startDate))
   return newestFirst.find((period) => period.status === 'ISSUED') ?? newestFirst[0] ?? null
+}
+
+// ---- Simplified monthly billing -------------------------------------------------------------
+// Accountants pick a month; the four period dates the backend needs are derived here.
+
+export const PERIOD_STATUS_LABEL = Object.freeze({ DRAFT: 'Đang soạn', ISSUED: 'Đã gửi cư dân', CLOSED: 'Đã khóa sổ' })
+
+export function periodStatusLabel(status) {
+  return PERIOD_STATUS_LABEL[status] ?? status ?? '—'
+}
+
+const pad2 = (value) => String(value).padStart(2, '0')
+
+export function addMonths(yyyyMm, count) {
+  const [year, month] = yyyyMm.split('-').map(Number)
+  const index = year * 12 + (month - 1) + count
+  return `${Math.floor(index / 12)}-${pad2((index % 12) + 1)}`
+}
+
+export function monthLabel(yyyyMm) {
+  const [year, month] = yyyyMm.split('-')
+  return `${month}/${year}`
+}
+
+export function periodCodeForMonth(yyyyMm) {
+  return `KY-${yyyyMm}`
+}
+
+// The snapshot is the day the bills are computed, kept inside the month, so a bill never claims
+// to count people or vehicles on a date whose data did not exist yet. The due date is the 10th
+// of the next month because the backend requires dueDate >= endDate.
+export function periodDefaultsForMonth(yyyyMm, today = todayInVietnam()) {
+  const [year, month] = yyyyMm.split('-').map(Number)
+  const startDate = `${yyyyMm}-01`
+  const endDate = `${yyyyMm}-${pad2(new Date(Date.UTC(year, month, 0)).getUTCDate())}`
+  const snapshotDate = today < startDate ? startDate : today > endDate ? endDate : today
+  return { code: periodCodeForMonth(yyyyMm), startDate, endDate, snapshotDate, dueDate: `${addMonths(yyyyMm, 1)}-10` }
+}
+
+export function periodMonth(period) {
+  return period.startDate.slice(0, 7)
+}
+
+// The default months around today plus every month that already has a period, so a draft
+// created ahead of time (e.g. by a maintenance round) can always be opened and sent.
+export function billingMonthOptions(periods = [], thisMonth) {
+  const months = new Set([1, 0, -1, -2, -3].map((offset) => addMonths(thisMonth, offset)))
+  for (const period of periods) if (period.startDate) months.add(periodMonth(period))
+  return [...months].sort().reverse()
+}
+
+export function findPeriodForMonth(periods, yyyyMm) {
+  return periods.find((period) => period.code === periodCodeForMonth(yyyyMm))
+    ?? periods.find((period) => periodMonth(period) === yyyyMm)
+    ?? null
+}
+
+export function previousPeriod(periods, period) {
+  return [...periods]
+    .filter((other) => other.id !== period.id && other.status !== 'DRAFT' && other.startDate < period.startDate)
+    .sort((a, b) => b.startDate.localeCompare(a.startDate))[0] ?? null
+}
+
+const liveInvoices = (invoices) => invoices.filter((invoice) => invoice.status !== 'CANCELLED')
+
+export function summarizeInvoices(invoices) {
+  const live = liveInvoices(invoices)
+  const sum = (field) => live.reduce((total, invoice) => total + toCents(invoice[field]), 0n)
+  const total = sum('totalAmount')
+  const paid = sum('paidAmount')
+  return {
+    count: live.length,
+    paidCount: live.filter((invoice) => invoice.status === 'PAID').length,
+    total,
+    paid,
+    outstanding: sum('outstandingAmount'),
+    percentPaid: total > 0n ? Number((paid * 100n) / total) : 0,
+  }
+}
+
+// One row per household; a household renting two apartments gets one row with both codes.
+export function summarizeByHousehold(invoices, { occupancies = [], apartments = [], households = [] } = {}) {
+  const occupancyById = new Map(occupancies.map((row) => [row.id, row]))
+  const apartmentById = new Map(apartments.map((row) => [row.id, row]))
+  const householdById = new Map(households.map((row) => [row.id, row]))
+  const rows = new Map()
+  for (const invoice of liveInvoices(invoices)) {
+    const occupancy = occupancyById.get(invoice.occupancyId)
+    const key = occupancy?.householdId ?? invoice.occupancyId
+    const row = rows.get(key) ?? {
+      key,
+      householdCode: householdById.get(occupancy?.householdId)?.code ?? null,
+      apartmentCodes: [],
+      total: 0n,
+      paid: 0n,
+      outstanding: 0n,
+    }
+    const apartmentCode = apartmentById.get(occupancy?.apartmentId)?.code
+    if (apartmentCode && !row.apartmentCodes.includes(apartmentCode)) row.apartmentCodes.push(apartmentCode)
+    row.total += toCents(invoice.totalAmount)
+    row.paid += toCents(invoice.paidAmount)
+    row.outstanding += toCents(invoice.outstandingAmount)
+    rows.set(key, row)
+  }
+  return [...rows.values()]
+    .map((row) => ({ ...row, settled: row.outstanding <= 0n }))
+    .sort((a, b) => Number(a.settled) - Number(b.settled) || String(a.apartmentCodes[0] ?? '').localeCompare(String(b.apartmentCodes[0] ?? '')))
+}
+
+export function rateActiveAt(rate, date) {
+  return rate.effectiveFrom <= date && (!rate.effectiveTo || rate.effectiveTo > date)
+}
+
+// Fee bases the backend generates on its own; ACTUAL (utility pass-through) needs imported bills.
+export const GENERATED_BASES = Object.freeze(['PER_M2', 'PER_APARTMENT', 'PER_PERSON', 'PER_VEHICLE'])
+
+const activeOn = (row, date, from = 'validFrom', to = 'validTo') => row[from] <= date && (!row[to] || row[to] > date)
+
+// The one fee type every maintenance round bills under. Its code is reserved so a fee named
+// "Phí bảo trì" in the price list (code PHI_BAO_TRI) can never be mistaken for it. It has no unit
+// price, since each round sets its own amounts; one that has a price is an ordinary fee.
+export const MAINTENANCE_FEE_CODE = 'QUY_BAO_TRI'
+export const MAINTENANCE_FEE_NAME = 'Phí bảo trì (theo đợt)'
+
+export function isMaintenanceFeeType(feeType, rates = []) {
+  return feeType?.code === MAINTENANCE_FEE_CODE && rates.length === 0
+}
+
+export function generationWarnings({ feeTypes = [], ratesByFeeType = {}, invoices = [], occupancies = [], snapshotDate }) {
+  const feesWithoutPrice = feeTypes.filter((fee) => fee.active && GENERATED_BASES.includes(fee.basis) && !isMaintenanceFeeType(fee, ratesByFeeType[fee.id] ?? [])
+    && !(ratesByFeeType[fee.id] ?? []).some((rate) => rateActiveAt(rate, snapshotDate)))
+  const billed = new Set(liveInvoices(invoices).map((invoice) => invoice.occupancyId))
+  const unbilledOccupancies = occupancies.filter((row) => activeOn(row, snapshotDate) && !billed.has(row.id))
+  // The backend refuses to send a month while any live bill has no lines.
+  const emptyInvoices = liveInvoices(invoices).filter((invoice) => (invoice.lines ?? []).length === 0)
+  return { feesWithoutPrice, unbilledOccupancies, emptyInvoices }
+}
+
+export function formatDay(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}/.test(value)) return '—'
+  const [year, month, day] = value.slice(0, 10).split('-')
+  return `${day}/${month}/${year}`
+}
+
+export function formatPrice(unitPrice) {
+  return formatMoney(toCents(unitPrice))
 }
 
 export function formatDate(value) {
@@ -272,8 +418,8 @@ export function reconcileInvoices(invoices = [], period = null, today = todayInV
 
     if (lineDiff !== 0n || balanceDiff !== 0n || invTotal < 0n || invPaid < 0n || invOutstanding < 0n) {
       const reasons = []
-      if (lineDiff !== 0n) reasons.push(`Tổng dòng phí (${formatMoney(lineSum)}) không khớp tổng bảng kê (${formatMoney(invTotal)})`)
-      if (balanceDiff !== 0n) reasons.push(`Đã thu (${formatMoney(invPaid)}) + Còn nợ (${formatMoney(invOutstanding)}) không khớp tổng bảng kê (${formatMoney(invTotal)})`)
+      if (lineDiff !== 0n) reasons.push(`Tổng dòng phí (${formatMoney(lineSum)}) không khớp tổng phiếu báo phí (${formatMoney(invTotal)})`)
+      if (balanceDiff !== 0n) reasons.push(`Đã thu (${formatMoney(invPaid)}) + Còn nợ (${formatMoney(invOutstanding)}) không khớp tổng phiếu báo phí (${formatMoney(invTotal)})`)
       if (invTotal < 0n || invPaid < 0n || invOutstanding < 0n) reasons.push('Số tiền âm không hợp lệ')
 
       discrepancies.push({
@@ -335,4 +481,22 @@ export function filterInvoices(invoices = [], { status = 'ALL', search = '', apa
 
     return invNo.includes(query) || aptCode.includes(query) || hhCode.includes(query) || occId.includes(query)
   })
+}
+
+// One button creates the period, computes the bills and sends them, so it needs all three rights.
+export function canCreateBilling(hasPermission) {
+  return hasPermission('billing-period.write') && hasPermission('invoice.generate') && hasPermission('billing-period.issue')
+}
+
+// InvoiceListTable and AccountingReconciliation look up apartment and household by occupancyId.
+export function occupancyLookups({ occupancies = [], apartments = [], households = [] }) {
+  const apartmentById = new Map(apartments.map((row) => [row.id, row]))
+  const householdById = new Map(households.map((row) => [row.id, row]))
+  const apartmentMap = {}
+  const householdMap = {}
+  for (const occupancy of occupancies) {
+    if (apartmentById.has(occupancy.apartmentId)) apartmentMap[occupancy.id] = apartmentById.get(occupancy.apartmentId)
+    if (householdById.has(occupancy.householdId)) householdMap[occupancy.id] = householdById.get(occupancy.householdId)
+  }
+  return { apartmentMap, householdMap }
 }

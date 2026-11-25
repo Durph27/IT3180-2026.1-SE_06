@@ -357,8 +357,8 @@ export function validateMaintenanceExpenseForm(
 }
 
 function buildAllocationStatus({ invoiceStatus, allocatedCents, collectedCents, hasExactPayments }) {
-  if (invoiceStatus === 'CANCELLED') return { code: 'CANCELLED', label: 'Đã hủy bảng kê', tone: 'neutral' }
-  if (invoiceStatus === 'DRAFT') return { code: 'DRAFT', label: 'Bảng kê nháp', tone: 'warning' }
+  if (invoiceStatus === 'CANCELLED') return { code: 'CANCELLED', label: 'Đã hủy phiếu báo phí', tone: 'neutral' }
+  if (invoiceStatus === 'DRAFT') return { code: 'DRAFT', label: 'Phiếu báo phí nháp', tone: 'warning' }
   if (hasExactPayments) {
     if (collectedCents >= allocatedCents && allocatedCents > 0n) return { code: 'PAID', label: 'Đã thu đủ', tone: 'success' }
     if (collectedCents > 0n) return { code: 'PARTIALLY_PAID', label: 'Thu một phần', tone: 'info' }
@@ -469,7 +469,8 @@ export function buildFundReconciliationReport({
       else if (status.code === 'PARTIALLY_PAID') partialCount += 1
       else if (status.code !== 'CANCELLED') unpaidCount += 1
 
-      const apartmentLabel = apt ? (building ? `${building.code}-${apt.code}` : apt.code) : alloc.occupancyId
+      // Seeded apartment codes already start with the building code ("B1-0101").
+      const apartmentLabel = apt ? (building && !apt.code.startsWith(`${building.code}-`) ? `${building.code}-${apt.code}` : apt.code) : alloc.occupancyId
       const householdCode = hh?.code ?? (occ?.householdId || '—')
 
       return {
@@ -562,4 +563,55 @@ export function buildFundReconciliationReport({
       collectionRatePct,
     },
   }
+}
+
+// ---- Simplified maintenance page ------------------------------------------------------------
+
+export { MAINTENANCE_FEE_CODE, MAINTENANCE_FEE_NAME, isMaintenanceFeeType } from './billingUtils.js'
+
+const nextMonth = (yyyyMm) => {
+  const [year, month] = yyyyMm.split('-').map(Number)
+  return month === 12 ? `${year + 1}-01` : `${year}-${String(month + 1).padStart(2, '0')}`
+}
+
+// A round joins a month whose bills are not sent yet: this month if still open, else the next.
+export function maintenanceMonthOptions(periods = [], today = todayInVietnam(), count = 3) {
+  const periodOf = (yyyyMm) => periods.find((period) => period.code === `KY-${yyyyMm}`)
+    ?? periods.find((period) => period.startDate?.slice(0, 7) === yyyyMm)
+  const options = []
+  let month = today.slice(0, 7)
+  for (let i = 0; i < count; i += 1) {
+    const period = periodOf(month) ?? null
+    options.push({ month, period, available: !period || period.status === 'DRAFT' })
+    month = nextMonth(month)
+  }
+  return options
+}
+
+export function defaultMaintenanceMonth(periods = [], today = todayInVietnam()) {
+  const options = maintenanceMonthOptions(periods, today)
+  return (options.find((option) => option.available) ?? options[options.length - 1]).month
+}
+
+// Paid/total apartments of one round; cancelled bills are left out of both counts.
+export function summarizeRoundCollection(round) {
+  const total = (round.paidCount ?? 0) + (round.partialCount ?? 0) + (round.unpaidCount ?? 0)
+  const percent = round.collectedCents !== null && round.collectedCents !== undefined && round.totalCostCents > 0n
+    ? Number((round.collectedCents * 100n) / round.totalCostCents)
+    : null
+  return { paidCount: round.paidCount ?? 0, total, percent }
+}
+
+export const ALLOCATION_FILTERS = Object.freeze({ UNPAID: 'UNPAID', PAID: 'PAID', ALL: 'ALL' })
+
+// "Unpaid" means anything still owed, including partly paid bills.
+export function filterRoundAllocations(allocations = [], { status = ALLOCATION_FILTERS.UNPAID, search = '' } = {}) {
+  const term = search.trim().toLowerCase()
+  return allocations.filter((row) => {
+    const code = row.status?.code
+    if (code === 'CANCELLED' && status !== ALLOCATION_FILTERS.ALL) return false
+    if (status === ALLOCATION_FILTERS.PAID && code !== 'PAID') return false
+    if (status === ALLOCATION_FILTERS.UNPAID && code === 'PAID') return false
+    return !term || `${row.apartmentLabel ?? ''} ${row.householdCode ?? ''}`.toLowerCase().includes(term)
+  })
 }

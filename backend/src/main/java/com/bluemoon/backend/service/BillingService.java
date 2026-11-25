@@ -29,12 +29,25 @@ public class BillingService {
             if (path.endsWith("/rates")) {
                 var values = new LinkedHashMap<>(b);
                 values.put("feeTypeId", id);
+                var corrected = supersedeOpenRate(values);
+                if (corrected != null) return corrected;
                 validateRate(values, null);
                 return db.insert("FeeRate", values);
             }
             if (path.startsWith("/fee-rates")) {
                 var rate = db.get("FeeRate", id);
-                state(db.where("InvoiceLine", "rateId", id).isEmpty());
+                // A used price can still be ended, as long as every period that billed it was
+                // snapshotted before the new end date; those bills keep their price either way.
+                var usedBy = db.where("InvoiceLine", "rateId", id);
+                if (!usedBy.isEmpty() && b.get("effectiveTo") != null) {
+                    LocalDate end = LocalDate.parse(String.valueOf(b.get("effectiveTo")));
+                    for (var line : usedBy) {
+                        var period = db.get("BillingPeriod", db.get("Invoice", line.get("invoiceId")).get("periodId"));
+                        rule(date(period, "snapshotDate").isBefore(end), "Giá này đã được dùng cho đợt thu chốt ngày " + text(period, "snapshotDate") + "; ngày ngừng áp dụng phải sau ngày đó.");
+                    }
+                } else {
+                    state(usedBy.isEmpty());
+                }
                 var merged = new LinkedHashMap<>(rate);
                 merged.putAll(b);
                 validateRate(merged, id);
@@ -50,12 +63,20 @@ public class BillingService {
                 return db.update("BillingPeriod", id, map("status", "CLOSED"));
             }
             var merged = id == null ? new LinkedHashMap<String, Object>() : new LinkedHashMap<>(db.get("BillingPeriod", id));
+            boolean snapshotMoved = false;
             if (id != null) {
                 state("DRAFT".equals(merged.get("status")));
-                state(db.where("Invoice", "periodId", id).isEmpty());
+                // Once invoices exist only the due date and snapshot date may move: neither changes which month is billed.
+                if (!db.where("Invoice", "periodId", id).isEmpty())
+                    state(Set.of("dueDate", "snapshotDate").containsAll(b.keySet()));
+                snapshotMoved = b.containsKey("snapshotDate") && !Objects.equals(text(merged, "snapshotDate"), String.valueOf(b.get("snapshotDate")));
+                // Maintenance lines were split over the apartments occupied on the old snapshot.
+                if (snapshotMoved)
+                    rule(db.where("MaintenanceRound", "periodId", id).isEmpty(), "Tháng này đã có đợt thu bảo trì, không đổi được ngày chốt.");
             }
             merged.putAll(b);
             validatePeriod(merged);
+            if (snapshotMoved) clearGeneratedLines(id);
             if (id == null) {
                 merged.put("status", "DRAFT");
                 return db.insert("BillingPeriod", merged);
@@ -143,6 +164,53 @@ public class BillingService {
         for (var other : db.where("FeeRate", "feeTypeId", r.get("feeTypeId")))
             if (!Objects.equals(id, other.get("id")) && Objects.equals(r.get("vehicleType"), other.get("vehicleType")))
                 rule(!overlap(date(r, "effectiveFrom"), date(r, "effectiveTo"), date(other, "effectiveFrom"), date(other, "effectiveTo")), "Biểu phí bị chồng khoảng hiệu lực.");
+    }
+
+    /**
+     * A new price ends the open-ended one for the same fee and vehicle type, so changing a price is one call.
+     * Re-entering a price on the day the open one starts corrects it in place while no invoice has used it.
+     * Returns the corrected rate, or null when the caller should insert the new one.
+     */
+    private Map<String, Object> supersedeOpenRate(Map<String, Object> values) {
+        if (values.get("effectiveFrom") == null) return null;
+        LocalDate from = date(values, "effectiveFrom");
+        var open = db.where("FeeRate", "feeTypeId", values.get("feeTypeId")).stream()
+                .filter(r -> Objects.equals(values.get("vehicleType"), r.get("vehicleType")) && r.get("effectiveTo") == null)
+                .findFirst().orElse(null);
+        if (open == null || from.isBefore(date(open, "effectiveFrom"))) return null;
+        String openId = text(open, "id");
+        var usedBy = db.where("InvoiceLine", "rateId", openId);
+        if (from.equals(date(open, "effectiveFrom"))) {
+            rule(usedBy.isEmpty(), "Giá áp dụng từ ngày này đã được dùng để lập phiếu thu; hãy chọn ngày áp dụng muộn hơn.");
+            var merged = new LinkedHashMap<>(open);
+            merged.putAll(values);
+            validateRate(merged, openId);
+            var changes = new LinkedHashMap<String, Object>();
+            changes.put("unitPrice", values.get("unitPrice"));
+            if (values.containsKey("effectiveTo")) changes.put("effectiveTo", values.get("effectiveTo"));
+            return db.update("FeeRate", openId, changes);
+        }
+        for (var line : usedBy) {
+            var period = db.get("BillingPeriod", db.get("Invoice", line.get("invoiceId")).get("periodId"));
+            rule(date(period, "snapshotDate").isBefore(from), "Giá cũ đã được dùng cho đợt thu chốt ngày " + text(period, "snapshotDate") + "; ngày áp dụng giá mới phải sau ngày đó.");
+        }
+        db.update("FeeRate", openId, map("effectiveTo", from.toString()));
+        return null;
+    }
+
+    /** Drops the lines priced from fee rates so the next generation recomputes them at the new snapshot date. */
+    private void clearGeneratedLines(String periodId) {
+        for (var invoice : db.where("Invoice", "periodId", periodId)) {
+            if (!"DRAFT".equals(invoice.get("status"))) continue;
+            boolean removed = false;
+            for (var line : db.where("InvoiceLine", "invoiceId", invoice.get("id"))) {
+                if (line.get("rateId") == null || !db.where("MaintenanceAllocation", "invoiceLineId", line.get("id")).isEmpty()) continue;
+                db.delete("InvoiceLine", line.get("id"));
+                removed = true;
+            }
+            if (db.where("InvoiceLine", "invoiceId", invoice.get("id")).isEmpty()) db.delete("Invoice", invoice.get("id"));
+            else if (removed) db.update("Invoice", invoice.get("id"), map("version", next(invoice)));
+        }
     }
 
     private void validatePeriod(Map<String, Object> p) {

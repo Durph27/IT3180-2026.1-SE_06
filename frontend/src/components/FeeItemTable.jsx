@@ -35,7 +35,6 @@ export default function FeeItemTable({ category, items, total }) {
             <thead>
               <tr>
                 <th scope="col">Khoản thu</th>
-                <th scope="col">Bảng kê</th>
                 <th scope="col" className={MONEY}>Số tiền</th>
                 {mandatory && <th scope="col">Hạn nộp</th>}
                 <th scope="col">Trạng thái</th>
@@ -45,7 +44,6 @@ export default function FeeItemTable({ category, items, total }) {
               {visible.map((item) => (
                 <tr key={item.key}>
                   <th scope="row" className="row-header-th">{item.description}</th>
-                  <td data-label="Bảng kê">{item.invoiceNo ?? 'Đợt vận động'}</td>
                   <td data-label="Số tiền" className={MONEY}>{formatMoney(item.amount)}</td>
                   {mandatory && <td data-label="Hạn nộp">{formatDate(item.dueDate)}</td>}
                   <td data-label="Trạng thái">

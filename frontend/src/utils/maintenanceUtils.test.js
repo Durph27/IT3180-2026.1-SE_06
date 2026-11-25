@@ -328,3 +328,35 @@ test('buildFundReconciliationReport reconciles opening + posted collections - ex
   assert.equal(skewed.summary.isBalanced, false)
   assert.notEqual(skewed.summary.balanceDiscrepancyCents, 0n)
 })
+
+test('maintenance goes to this month while its bills are unsent, otherwise the next open month', async () => {
+  const { defaultMaintenanceMonth, maintenanceMonthOptions } = await import('./maintenanceUtils.js')
+  assert.equal(defaultMaintenanceMonth([], '2026-12-05'), '2026-12')
+  const sentDecember = [{ id: 'd', code: 'KY-2026-12', status: 'ISSUED', startDate: '2026-12-01' }]
+  assert.equal(defaultMaintenanceMonth(sentDecember, '2026-12-05'), '2027-01')
+  const draftDecember = [{ id: 'd', code: 'KY-2026-12', status: 'DRAFT', startDate: '2026-12-01' }]
+  assert.equal(defaultMaintenanceMonth(draftDecember, '2026-12-05'), '2026-12')
+  assert.deepEqual(maintenanceMonthOptions(sentDecember, '2026-12-05').map((o) => [o.month, o.available]), [['2026-12', false], ['2027-01', true], ['2027-02', true]])
+})
+
+test('a round reports how many apartments have paid and what share of the money is in', async () => {
+  const { summarizeRoundCollection } = await import('./maintenanceUtils.js')
+  assert.deepEqual(summarizeRoundCollection({ paidCount: 3, partialCount: 1, unpaidCount: 6, collectedCents: 5000n, totalCostCents: 20000n }), { paidCount: 3, total: 10, percent: 25 })
+  assert.equal(summarizeRoundCollection({ paidCount: 0, collectedCents: null, totalCostCents: 20000n }).percent, null)
+})
+
+test('apartment filter treats partly paid as still owing and hides cancelled bills', async () => {
+  const { filterRoundAllocations } = await import('./maintenanceUtils.js')
+  const rows = [
+    { id: 'a', apartmentLabel: 'B1-0101', householdCode: 'HO-1', status: { code: 'PAID' } },
+    { id: 'b', apartmentLabel: 'B1-0102', householdCode: 'HO-2', status: { code: 'PARTIALLY_PAID' } },
+    { id: 'c', apartmentLabel: 'B2-0101', householdCode: 'HO-3', status: { code: 'UNPAID' } },
+    { id: 'd', apartmentLabel: 'B2-0102', householdCode: 'HO-4', status: { code: 'CANCELLED' } },
+  ]
+  const ids = (options) => filterRoundAllocations(rows, options).map((row) => row.id)
+  assert.deepEqual(ids({}), ['b', 'c'])
+  assert.deepEqual(ids({ status: 'PAID' }), ['a'])
+  assert.deepEqual(ids({ status: 'ALL' }), ['a', 'b', 'c', 'd'])
+  assert.deepEqual(ids({ status: 'ALL', search: 'b2' }), ['c', 'd'])
+  assert.deepEqual(ids({ search: 'ho-3' }), ['c'])
+})

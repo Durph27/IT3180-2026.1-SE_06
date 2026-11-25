@@ -19,7 +19,11 @@ const { AuthContext } = await server.ssrLoadModule('/src/context/AuthContext.js'
 const { default: Navbar } = await server.ssrLoadModule('/src/components/Navbar.jsx')
 const { default: MaintenancePage } = await server.ssrLoadModule('/src/pages/MaintenancePage.jsx')
 const { default: MaintenanceFundCreateModal } = await server.ssrLoadModule('/src/components/MaintenanceFundCreateModal.jsx')
-const { default: MaintenanceRoundCreateModal } = await server.ssrLoadModule('/src/components/MaintenanceRoundCreateModal.jsx')
+const { default: CollectMaintenanceModal } = await server.ssrLoadModule('/src/components/maintenance/CollectMaintenanceModal.jsx')
+const { default: RoundList } = await server.ssrLoadModule('/src/components/maintenance/RoundList.jsx')
+const { default: ExpenseList } = await server.ssrLoadModule('/src/components/maintenance/ExpenseList.jsx')
+const { default: RoundApartmentsDialog } = await server.ssrLoadModule('/src/components/maintenance/RoundApartmentsDialog.jsx')
+const { default: FundSummary } = await server.ssrLoadModule('/src/components/maintenance/FundSummary.jsx')
 const { default: MaintenanceExpenseRecordModal } = await server.ssrLoadModule('/src/components/MaintenanceExpenseRecordModal.jsx')
 const { default: MaintenanceReconciliationReport } = await server.ssrLoadModule('/src/components/MaintenanceReconciliationReport.jsx')
 
@@ -49,176 +53,127 @@ test('Navbar renders Quỹ bảo trì only for authorized staff roles', () => {
   }
 })
 
-test('MaintenancePage: ACCOUNTANT acts, MANAGER only views, others are blocked', () => {
-  const managerHtml = render(auth('MANAGER'), MaintenancePage, { onBack() {} })
-  assert.match(managerHtml, /Danh sách quỹ bảo trì/)
-  for (const action of [/Tạo quỹ bảo trì/, /Tạo đợt thu/]) assert.doesNotMatch(managerHtml, action)
+test('MaintenancePage is one view without tabs; only staff with maintenance access get in', () => {
+  for (const role of ['ACCOUNTANT', 'MANAGER']) {
+    const html = render(auth(role), MaintenancePage, { onBack() {} })
+    assert.match(html, /Quỹ bảo trì/)
+    assert.doesNotMatch(html, /role="tablist"/)
+    assert.doesNotMatch(html, /Báo cáo đối chiếu số dư/)
+  }
   for (const role of ['ADMIN', 'RESIDENT', 'AUTHORITY']) {
     assert.match(render(auth(role), MaintenancePage, { onBack() {} }), /Bạn không có quyền truy cập/, role)
   }
-
-  const accountantHtml = render(auth('ACCOUNTANT'), MaintenancePage, { onBack() {} })
-  assert.match(accountantHtml, /Quỹ bảo trì &amp; Đối chiếu số dư/)
-  assert.match(accountantHtml, /Danh sách quỹ bảo trì/)
-  assert.match(accountantHtml, /Báo cáo đối chiếu số dư/)
-  assert.match(accountantHtml, /Đợt thu bảo trì/)
-  assert.match(accountantHtml, /Tạo quỹ bảo trì/)
-  assert.match(accountantHtml, /Tạo đợt thu/)
-
-  const readOnlyHtml = render(
-    auth('ACCOUNTANT', { permissions: ['maintenance-fund.read'] }),
-    MaintenancePage,
-    { onBack() {} },
-  )
-  assert.doesNotMatch(readOnlyHtml, /Tạo quỹ bảo trì/)
-  assert.doesNotMatch(readOnlyHtml, /Tạo đợt thu/)
-  assert.doesNotMatch(readOnlyHtml, /Đợt thu bảo trì/)
 })
 
-test('MaintenanceFundCreateModal renders fields only when open', () => {
+test('creating a fund asks for name, opening balance and date; the code is derived', () => {
   assert.equal(renderToStaticMarkup(h(MaintenanceFundCreateModal, { isOpen: false, onClose() {} })), '')
   const html = renderToStaticMarkup(h(MaintenanceFundCreateModal, { isOpen: true, onClose() {} }))
-  assert.match(html, /Tạo quỹ bảo trì mới/)
-  assert.match(html, /Mã quỹ/)
   assert.match(html, /Tên quỹ bảo trì/)
   assert.match(html, /Số dư đầu kỳ/)
   assert.match(html, /Ngày mở quỹ/)
+  // The fund code is generated from the name and never shown.
+  assert.doesNotMatch(html, /Mã quỹ|fund-code/)
 })
 
 test('MaintenanceExpenseRecordModal displays fund balance and input fields', () => {
-  const fund = {
-    id: 'f1',
-    code: 'QBT-2026',
-    name: 'Quỹ bảo trì BlueMoon',
-    openingDate: '2026-11-12',
-    balance: '250000.00',
-  }
+  const fund = { id: 'f1', code: 'QBT-2026', name: 'Quỹ bảo trì BlueMoon', openingDate: '2026-11-12', balance: '250000.00' }
   const html = renderToStaticMarkup(h(MaintenanceExpenseRecordModal, { isOpen: true, fund, onClose() {} }))
   assert.match(html, /Ghi nhận khoản chi quỹ bảo trì/)
-  assert.match(html, /QBT-2026/)
   assert.match(html, /250\.000 ₫/)
   assert.match(html, /Số tiền chi/)
   assert.match(html, /Thời điểm chi/)
   assert.match(html, /Nội dung chi/)
 })
 
-test('MaintenanceRoundCreateModal filters DRAFT periods, PER_APARTMENT fee types, and active occupancies', () => {
-  const html = render(
-    auth('ACCOUNTANT'),
-    MaintenanceRoundCreateModal,
-    {
-      isOpen: true,
-      onClose() {},
-      funds: [{ id: 'f1', code: 'QBT-2026', name: 'Quỹ A', openingDate: '2026-11-12', balance: '100000.00' }],
-      defaultFundId: 'f1',
-      initialPeriods: [
-        { id: 'p-draft', code: 'KY-2027-02', status: 'DRAFT', startDate: '2027-02-01', snapshotDate: '2027-02-28', dueDate: '2027-03-10' },
-        { id: 'p-issued', code: 'KY-2027-01', status: 'ISSUED', startDate: '2027-01-01', snapshotDate: '2027-01-31', dueDate: '2027-02-10' },
-      ],
-      initialFeeTypes: [
-        { id: 'ft-ok', code: 'PHI_BT', name: 'Phí bảo trì', basis: 'PER_APARTMENT', mandatory: true, active: true },
-        { id: 'ft-m2', code: 'PHI_2', name: 'Phí theo m2', basis: 'PER_M2', mandatory: true, active: true },
-        { id: 'ft-opt', code: 'PHI_TN', name: 'Tự nguyện', basis: 'PER_APARTMENT', mandatory: false, active: true },
-      ],
-      initialOccupancies: [
-        { id: 'occ1', apartmentId: 'apt1', householdId: 'hh1', validFrom: '2026-11-01', validTo: null },
-      ],
-      initialApartments: [{ id: 'apt1', buildingId: 'b1', code: 'A101', areaM2: '75.50' }],
-      initialHouseholds: [{ id: 'hh1', code: 'HGD-001' }],
-      initialBuildings: [{ id: 'b1', code: 'T1' }],
-    },
-  )
-
-  assert.match(html, /Tạo đợt thu quỹ bảo trì/)
-  assert.match(html, /KY-2027-02/)
-  assert.doesNotMatch(html, /KY-2027-01/)
-  assert.match(html, /PHI_BT/)
-  assert.doesNotMatch(html, /PHI_2/)
-  assert.doesNotMatch(html, /PHI_TN/)
-  assert.match(html, /T1-A101/)
-  assert.match(html, /HGD-001/)
-  assert.match(html, /75\.50 m²/)
-  assert.match(html, /Chia đều theo cư trú tham gia/)
-  assert.match(html, /Phân bổ theo diện tích \(m²\)/)
+const collectProps = (overrides = {}) => ({
+  fund: { id: 'f1', code: 'QBT', name: 'Quỹ A', openingDate: '2020-01-01', balance: '0.00' },
+  periods: [],
+  feeTypes: [],
+  occupancies: [
+    { id: 'occ1', apartmentId: 'apt1', householdId: 'hh1', validFrom: '2020-01-01', validTo: null },
+    { id: 'occ2', apartmentId: 'apt2', householdId: 'hh2', validFrom: '2020-01-01', validTo: null },
+    { id: 'occ3', apartmentId: 'apt3', householdId: 'hh3', validFrom: '2020-01-01', validTo: '2020-06-01' },
+  ],
+  apartments: [{ id: 'apt1', buildingId: 'b1', code: 'B1-0101', areaM2: '75.00' }, { id: 'apt2', buildingId: 'b1', code: 'B1-0102', areaM2: '60.00' }, { id: 'apt3', buildingId: 'b1', code: 'B1-0103', areaM2: '60.00' }],
+  households: [],
+  buildings: [{ id: 'b1', code: 'B1' }],
+  onClose() {},
+  onCollected() {},
+  ...overrides,
 })
 
-test('MaintenanceRoundCreateModal displays guidance when no DRAFT periods or eligible fee types exist', () => {
-  const html = render(
-    auth('ACCOUNTANT'),
-    MaintenanceRoundCreateModal,
-    {
-      isOpen: true,
-      onClose() {},
-      funds: [{ id: 'f1', code: 'QBT-2026', name: 'Quỹ A', openingDate: '2026-11-12', balance: '0.00' }],
-      initialPeriods: [{ id: 'p1', code: 'KY-1', status: 'ISSUED', startDate: '2026-11-01', snapshotDate: '2026-11-30', dueDate: '2026-12-10' }],
-      initialFeeTypes: [{ id: 'ft1', code: 'PHI_2', name: 'Theo m2', basis: 'PER_M2', mandatory: true, active: true }],
-      initialOccupancies: [],
-      initialApartments: [],
-      initialHouseholds: [],
-      initialBuildings: [],
-    },
-  )
-
-  assert.match(html, /Chưa có kỳ thu nào ở trạng thái/)
-  assert.match(html, /Chưa có loại phí nào thỏa điều kiện/)
+test('collecting maintenance needs no billing period or fee type, and defaults to every occupied apartment', () => {
+  const html = render(auth('ACCOUNTANT'), CollectMaintenanceModal, collectProps())
+  assert.match(html, /Thu bảo trì · Quỹ A/)
+  for (const label of ['Nội dung', 'Tổng tiền', 'Thu vào tháng', 'Đều mỗi căn', 'Theo m²']) assert.match(html, new RegExp(label))
+  assert.match(html, /tất cả căn đang ở \(2\)/)
+  assert.match(html, /Chỉ một số căn/)
+  assert.doesNotMatch(html, /Loại phí/)
+  assert.doesNotMatch(html, /kỳ thu nháp|DRAFT|PER_APARTMENT/)
 })
 
-test('MaintenanceReconciliationReport renders ledger statement and guards expense action', () => {
-  const report = buildFundReconciliationReport({
-    fund: {
-      id: 'f1',
-      code: 'QBT-2026',
-      name: 'Quỹ Bảo Trì Tòa A',
-      openingBalance: '100000.00',
-      openingDate: '2026-11-12',
-      collectedAmount: '200000.00',
-      expenseAmount: '50000.00',
-      balance: '250000.00',
-    },
-    rounds: [
-      {
-        id: 'r1',
-        fundId: 'f1',
-        periodId: 'p1',
-        feeTypeId: 'ft1',
-        description: 'Sửa chữa sảnh tầng 1',
-        allocationBasis: 'EQUAL',
-        totalCost: '200000.00',
-        snapshotDate: '2026-11-30',
-        createdAt: '2026-11-15T10:00:00Z',
-        allocations: [
-          { id: 'al1', roundId: 'r1', occupancyId: 'occ1', invoiceLineId: 'il1', weight: '1.000', amount: '200000.00' },
-        ],
-      },
-    ],
-    payments: [
-      { id: 'pay1', status: 'POSTED', allocations: [{ invoiceLineId: 'il1', amount: '200000.00' }] },
-    ],
-    expenses: [
-      { id: 'e1', fundId: 'f1', amount: '50000.00', spentAt: '2026-11-20T09:00:00Z', description: 'Bảo trì máy bơm', recordedBy: 'u1' },
-    ],
-    canReadPayments: true,
-  })
+test('months whose bills are already sent cannot receive a maintenance round', () => {
+  const now = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).slice(0, 7)
+  const periods = [{ id: 'p', code: `KY-${now}`, status: 'ISSUED', startDate: `${now}-01`, endDate: `${now}-28`, snapshotDate: `${now}-02` }]
+  const html = render(auth('ACCOUNTANT'), CollectMaintenanceModal, collectProps({ periods }))
+  assert.match(html, /<option[^>]*disabled=""[^>]*>[^<]*\(đã gửi phiếu\)/)
+})
 
-  const accountantHtml = render(auth('ACCOUNTANT'), MaintenanceReconciliationReport, {
-    report,
-    canWriteRounds: true,
-    canRecordExpense: true,
-  })
-  assert.match(accountantHtml, /Bảng đối chiếu số dư quỹ bảo trì/)
-  assert.match(accountantHtml, /Khớp sổ quỹ/)
-  assert.match(accountantHtml, /Sửa chữa sảnh tầng 1/)
-  assert.match(accountantHtml, /100\.000 ₫/)
-  assert.match(accountantHtml, /200\.000 ₫/)
-  assert.match(accountantHtml, /50\.000 ₫/)
-  assert.match(accountantHtml, /250\.000 ₫/)
-  assert.match(accountantHtml, /Bảo trì máy bơm/)
-  assert.match(accountantHtml, /Ghi nhận khoản chi/)
+const sampleReport = () => buildFundReconciliationReport({
+  fund: { id: 'f1', code: 'QBT-2026', name: 'Quỹ Bảo Trì Tòa A', openingBalance: '100000.00', openingDate: '2026-11-12', collectedAmount: '200000.00', expenseAmount: '50000.00', balance: '250000.00' },
+  rounds: [{
+    id: 'r1', fundId: 'f1', periodId: 'p1', feeTypeId: 'ft1', description: 'Sửa chữa sảnh tầng 1', allocationBasis: 'EQUAL',
+    totalCost: '200000.00', snapshotDate: '2026-11-30', createdAt: '2026-11-15T10:00:00Z',
+    allocations: [{ id: 'al1', roundId: 'r1', occupancyId: 'occ1', invoiceLineId: 'il1', weight: '1.000', amount: '200000.00' }],
+  }],
+  payments: [{ id: 'pay1', status: 'POSTED', allocations: [{ invoiceLineId: 'il1', amount: '200000.00' }] }],
+  expenses: [{ id: 'e1', fundId: 'f1', amount: '50000.00', spentAt: '2026-11-20T09:00:00Z', description: 'Bảo trì máy bơm', recordedBy: 'u1' }],
+  canReadPayments: true,
+})
 
-  const managerReadOnlyHtml = render(auth('MANAGER'), MaintenanceReconciliationReport, {
-    report,
-    canWriteRounds: false,
-    canRecordExpense: false,
-  })
-  assert.doesNotMatch(managerReadOnlyHtml, /Ghi nhận khoản chi/)
+test('fund summary shows balance, collected share and spending, with the books check as a chip', () => {
+  const report = sampleReport()
+  const html = render(auth('ACCOUNTANT'), FundSummary, { fund: report.fund, summary: report.summary, funds: [report.fund], expenseCount: 1, onSelectFund() {}, onOpenReconciliation() {} })
+  assert.match(html, /Số dư/)
+  assert.match(html, /250\.000 ₫/)
+  assert.match(html, /100% của 200\.000 ₫ đã phân bổ/)
+  assert.match(html, /50\.000 ₫/)
+  assert.match(html, /Khớp sổ quỹ/)
+  assert.doesNotMatch(html, /Tạo quỹ mới/)
+  const withCreate = render(auth('ACCOUNTANT'), FundSummary, { fund: report.fund, summary: report.summary, funds: [report.fund], expenseCount: 1, onSelectFund() {}, onCreateFund() {}, onOpenReconciliation() {} })
+  assert.match(withCreate, /\+ Tạo quỹ mới…/)
+})
+
+test('rounds and expenses are separate, compact lists', () => {
+  const report = sampleReport()
+  const rounds = render(auth('ACCOUNTANT'), RoundList, { rounds: report.roundRows, onShowApartments() {} })
+  assert.match(rounds, /Sửa chữa sảnh tầng 1/)
+  assert.match(rounds, /tháng 11\/2026/)
+  assert.match(rounds, /100% · 1\/1 căn đã nộp/)
+  assert.doesNotMatch(rounds, /Trọng số|Bảo trì máy bơm/)
+  const expenses = render(auth('ACCOUNTANT'), ExpenseList, { expenses: report.expenseRows })
+  assert.match(expenses, /Bảo trì máy bơm/)
+  assert.doesNotMatch(expenses, /Sửa chữa sảnh tầng 1/)
+})
+
+test('the apartments dialog opens on those still owing with four columns', () => {
+  const round = {
+    description: 'Tu sửa thang máy', snapshotDate: '2026-12-01',
+    allocations: [
+      { id: 'a', apartmentLabel: 'B1-0101', householdCode: 'HO-1', allocatedCents: 8400n, collectedCents: 8400n, status: { code: 'PAID', label: 'Đã thu đủ' } },
+      { id: 'b', apartmentLabel: 'B1-0102', householdCode: 'HO-2', allocatedCents: 8300n, collectedCents: 0n, status: { code: 'UNPAID', label: 'Chưa thu' } },
+    ],
+  }
+  const html = render(auth('ACCOUNTANT'), RoundApartmentsDialog, { round, onClose() {} })
+  assert.match(html, /Chưa nộp \(1\)/)
+  assert.match(html, /B1-0102/)
+  assert.doesNotMatch(html, /B1-0101/)
+  assert.equal((html.match(/<th scope="col"/g) ?? []).length, 4)
+})
+
+test('the reconciliation table shows every line and flags no discrepancy when balanced', () => {
+  const html = render(auth('ACCOUNTANT'), MaintenanceReconciliationReport, { report: sampleReport() })
+  assert.match(html, /Bảng đối chiếu số dư quỹ bảo trì/)
+  assert.match(html, /250\.000 ₫/)
+  assert.doesNotMatch(html, /Phát hiện chênh lệch/)
 })

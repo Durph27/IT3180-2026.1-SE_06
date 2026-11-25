@@ -27,7 +27,7 @@ export default function OutstandingPeriods({ summary, selectedId, onSelect, show
                   <DueStatusText due={due} />
                 </span>
                 <span className="text-lg font-extrabold tracking-tight text-slate-900">{formatMoney(amount)}</span>
-                <span className="text-xs wrap-anywhere text-slate-500">{period.code}{showInvoiceCount && ` · ${invoiceCount} bảng kê`}</span>
+                {showInvoiceCount && <span className="text-xs text-slate-500">{invoiceCount} phiếu báo phí</span>}
               </button>
             </li>
           )

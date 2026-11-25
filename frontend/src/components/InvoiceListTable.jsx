@@ -72,10 +72,10 @@ export default function InvoiceListTable({
       <div className="flex flex-wrap items-center justify-between gap-4 border-0 border-b border-solid border-slate-200 px-6 py-4">
         <div>
           <h3 id="invoices-table-heading" className="text-base font-bold text-slate-900">
-            Bảng kê phát sinh phí
+            Phiếu báo phí phát sinh phí
           </h3>
           <p className="text-xs text-slate-500">
-            Hiển thị {filteredInvoices.length} trên tổng số {invoices.length} bảng kê
+            Hiển thị {filteredInvoices.length} trên tổng số {invoices.length} phiếu báo phí
           </p>
         </div>
 
@@ -83,13 +83,13 @@ export default function InvoiceListTable({
           <input
             type="search"
             className="form-control min-h-10 text-sm"
-            placeholder="Tìm theo mã bảng kê, phòng, hộ…"
+            placeholder="Tìm theo phòng, hộ…"
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value)
               setPage(0)
             }}
-            aria-label="Tìm kiếm bảng kê"
+            aria-label="Tìm kiếm phiếu báo phí"
           />
 
           <select
@@ -115,7 +115,6 @@ export default function InvoiceListTable({
         <table className="modern-table">
           <thead>
             <tr>
-              <th scope="col">Mã bảng kê</th>
               <th scope="col">Căn hộ / Phòng</th>
               <th scope="col">Hộ gia đình</th>
               <th scope="col">Ngày lập</th>
@@ -129,16 +128,16 @@ export default function InvoiceListTable({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={9} className="empty-table-cell">
+                <td colSpan={8} className="empty-table-cell">
                   <div className="table-loading-box">
                     <div className="loading-spinner-ring" />
-                    <p>Đang tải danh sách bảng kê…</p>
+                    <p>Đang tải danh sách phiếu báo phí…</p>
                   </div>
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={9} className="empty-table-cell">
+                <td colSpan={8} className="empty-table-cell">
                   <div className="empty-state-box">
                     <p className="text-rose-700">{error}</p>
                     {onRefresh && (
@@ -151,14 +150,14 @@ export default function InvoiceListTable({
               </tr>
             ) : displayedInvoices.length === 0 ? (
               <tr>
-                <td colSpan={9} className="empty-table-cell">
+                <td colSpan={8} className="empty-table-cell">
                   <div className="empty-state-box">
                     <ReceiptIcon size={32} className="text-slate-400" />
-                    <p className="font-semibold text-slate-800">Không tìm thấy bảng kê nào</p>
+                    <p className="font-semibold text-slate-800">Không tìm thấy phiếu báo phí nào</p>
                     <p className="text-sm text-slate-500">
                       {invoices.length === 0
-                        ? 'Kỳ thu này chưa có bảng kê phát sinh. Bấm "Tính phí toàn tòa nhà" để lập bảng kê.'
-                        : 'Không có bảng kê nào khớp với bộ lọc tìm kiếm.'}
+                        ? 'Kỳ thu này chưa có phiếu báo phí phát sinh. Bấm "Tính phí toàn tòa nhà" để lập phiếu báo phí.'
+                        : 'Không có phiếu báo phí nào khớp với bộ lọc tìm kiếm.'}
                     </p>
                   </div>
                 </td>
@@ -201,7 +200,7 @@ export default function InvoiceListTable({
         page={currentPage}
         totalPages={totalPages}
         totalElements={filteredInvoices.length}
-        unit="bảng kê"
+        unit="phiếu báo phí"
         disabled={loading}
         onPageChange={setPage}
       />
@@ -229,8 +228,8 @@ function InvoiceRowGroup({
     ['ISSUED', 'PARTIALLY_PAID'].includes(invoice.status) &&
     toCents(invoice.outstandingAmount) > 0n
   const canModifyLines = invoice.status === 'DRAFT' && canWriteInvoice
+  // Callers pass onCancelInvoice only to users allowed to cancel.
   const canCancel =
-    canWriteInvoice &&
     Boolean(onCancelInvoice) &&
     ['DRAFT', 'ISSUED'].includes(invoice.status) &&
     toCents(invoice.paidAmount) === 0n
@@ -238,9 +237,6 @@ function InvoiceRowGroup({
   return (
     <>
       <tr className={`cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50' : ''}`} onClick={onToggle}>
-        <td data-label="Mã bảng kê" className="font-mono font-bold text-slate-900">
-          {invoice.invoiceNo}
-        </td>
         <td data-label="Căn hộ / Phòng" className="font-semibold text-slate-800">
           {aptLabel}
         </td>
@@ -269,8 +265,8 @@ function InvoiceRowGroup({
                 type="button"
                 className="btn btn-primary btn-sm px-2 py-0.5 text-xs font-semibold"
                 onClick={() => onRecordPayment(invoice, hhInfo)}
-                title={`Thu phí cho bảng kê ${invoice.invoiceNo}`}
-                aria-label={`Thu phí cho bảng kê ${invoice.invoiceNo}`}
+                title={`Thu phí ${aptLabel}`}
+                aria-label={`Thu phí ${aptLabel}`}
               >
                 Thu phí
               </button>
@@ -280,8 +276,8 @@ function InvoiceRowGroup({
                 type="button"
                 className="btn btn-sm px-2 py-0.5 text-xs text-rose-700 hover:bg-rose-50 border border-rose-200"
                 onClick={() => onCancelInvoice(invoice)}
-                title={`Hủy bảng kê ${invoice.invoiceNo}`}
-                aria-label={`Hủy bảng kê ${invoice.invoiceNo}`}
+                title={`Hủy phiếu báo phí ${aptLabel}`}
+                aria-label={`Hủy phiếu báo phí ${aptLabel}`}
               >
                 Hủy
               </button>
@@ -291,7 +287,7 @@ function InvoiceRowGroup({
               className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200"
               onClick={onToggle}
               aria-expanded={isExpanded}
-              aria-label={`${isExpanded ? 'Thu gọn' : 'Xem'} ${lines.length} dòng phí của ${invoice.invoiceNo}`}
+              aria-label={`${isExpanded ? 'Thu gọn' : 'Xem'} ${lines.length} dòng phí của ${aptLabel}`}
             >
               <span>{lines.length} mục</span>
               <ChevronDownIcon size={14} className={`transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} />
@@ -302,12 +298,12 @@ function InvoiceRowGroup({
 
       {isExpanded && (
         <tr className="bg-slate-50">
-          <td colSpan={9} className="p-0!">
+          <td colSpan={8} className="p-0!">
             <div className="border-0 border-y border-dashed border-slate-300 bg-slate-50/80 px-6 py-4">
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Chi tiết các khoản phí — {invoice.invoiceNo} ({lines.length} khoản)
+                    Chi tiết các khoản phí — {aptLabel} ({lines.length} khoản)
                   </h4>
                   {canModifyLines && onAddLine && (
                     <button
@@ -326,7 +322,7 @@ function InvoiceRowGroup({
               </div>
 
               {lines.length === 0 ? (
-                <p className="text-xs text-slate-500 italic">Bảng kê chưa có dòng phí nào.</p>
+                <p className="text-xs text-slate-500 italic">Phiếu báo phí chưa có dòng phí nào.</p>
               ) : (
                 <div className="overflow-x-auto rounded border border-solid border-slate-200 bg-white">
                   <table className="min-w-full text-left text-xs">

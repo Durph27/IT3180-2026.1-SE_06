@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { formatMoney, toCents, formatDate } from '../utils/billingUtils'
 import { XIcon, AlertTriangleIcon } from './Icons'
 
@@ -5,9 +6,12 @@ export default function CancelInvoiceModal({
   isOpen,
   invoice,
   isCancelling = false,
+  placeLabel = '',
   onConfirm,
   onClose,
 }) {
+  // The backend requires a reason (1-1000 characters) and keeps it with the cancellation.
+  const [reason, setReason] = useState('')
   if (!isOpen || !invoice) return null
 
   const isPaid = toCents(invoice.paidAmount) > 0n
@@ -26,7 +30,7 @@ export default function CancelInvoiceModal({
               <AlertTriangleIcon size={18} />
             </span>
             <h3 id="cancel-invoice-title" className="text-lg font-bold text-slate-900">
-              Xác nhận hủy bảng kê
+              Xác nhận hủy phiếu báo phí
             </h3>
           </div>
           <button
@@ -42,21 +46,17 @@ export default function CancelInvoiceModal({
 
         <div className="space-y-4 px-6 py-5 text-sm text-slate-600">
           <p>
-            Bạn có chắc chắn muốn hủy bảng kê số <strong className="font-mono text-slate-900">{invoice.invoiceNo}</strong>?
+            Bạn có chắc chắn muốn hủy phiếu báo phí{placeLabel ? <> của <strong className="text-slate-900">{placeLabel}</strong></> : ''}?
           </p>
 
           {/* Invoice Summary Box */}
           <div className="rounded-lg border border-solid border-slate-200 bg-slate-50 p-4 text-xs space-y-2">
             <div className="flex justify-between">
-              <span className="text-slate-500">Mã bảng kê:</span>
-              <strong className="font-mono text-slate-800">{invoice.invoiceNo}</strong>
-            </div>
-            <div className="flex justify-between">
               <span className="text-slate-500">Ngày lập:</span>
               <span className="text-slate-800">{formatDate(invoice.issuedAt)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Tổng tiền bảng kê:</span>
+              <span className="text-slate-500">Tổng tiền phiếu báo phí:</span>
               <strong className="text-slate-900 font-bold">{formatMoney(toCents(invoice.totalAmount))}</strong>
             </div>
             <div className="flex justify-between">
@@ -72,9 +72,9 @@ export default function CancelInvoiceModal({
           {/* Warning or Error notice */}
           {isPaid ? (
             <div className="rounded-md border border-solid border-rose-300 bg-rose-50 p-3 text-xs text-rose-800">
-              <p className="font-bold">Không thể hủy bảng kê này:</p>
+              <p className="font-bold">Không thể hủy phiếu báo phí này:</p>
               <p className="mt-1">
-                Bảng kê đã phát sinh thanh toán ({formatMoney(toCents(invoice.paidAmount))}). Theo quy định kế toán, chỉ có thể hủy bảng kê chưa có giao dịch thu tiền.
+                Phiếu báo phí đã phát sinh thanh toán ({formatMoney(toCents(invoice.paidAmount))}). Theo quy định kế toán, chỉ có thể hủy phiếu báo phí chưa có giao dịch thu tiền.
               </p>
             </div>
           ) : (
@@ -82,8 +82,24 @@ export default function CancelInvoiceModal({
               <p className="font-bold flex items-center gap-1.5">
                 <AlertTriangleIcon size={14} className="shrink-0" /> Cảnh báo nghiệp vụ:
               </p>
-              <p>• Bảng kê sẽ chuyển sang trạng thái <strong>ĐÃ HỦY (CANCELLED)</strong> và không thể khôi phục.</p>
+              <p>• Phiếu báo phí sẽ chuyển sang trạng thái <strong>ĐÃ HỦY (CANCELLED)</strong> và không thể khôi phục.</p>
               <p>• Số tiền phải thu sẽ được loại bỏ khỏi tổng công nợ tòa nhà và đối chiếu kế toán.</p>
+            </div>
+          )}
+
+          {!isPaid && (
+            <div className="form-group mb-0!">
+              <label htmlFor="cancel-invoice-reason">Lý do hủy</label>
+              <textarea
+                id="cancel-invoice-reason"
+                className="form-control"
+                rows={2}
+                maxLength={1000}
+                placeholder="Ví dụ: Lập nhầm cho căn đã chuyển đi"
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                disabled={isCancelling}
+              />
             </div>
           )}
         </div>
@@ -101,8 +117,8 @@ export default function CancelInvoiceModal({
             <button
               type="button"
               className="btn btn-primary bg-rose-700 hover:bg-rose-800 text-white border-rose-700"
-              onClick={onConfirm}
-              disabled={isCancelling}
+              onClick={() => onConfirm(reason.trim())}
+              disabled={isCancelling || !reason.trim()}
             >
               {isCancelling ? (
                 <>
@@ -110,7 +126,7 @@ export default function CancelInvoiceModal({
                   <span>Đang hủy…</span>
                 </>
               ) : (
-                <span>Xác nhận hủy bảng kê</span>
+                <span>Xác nhận hủy phiếu báo phí</span>
               )}
             </button>
           )}

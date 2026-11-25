@@ -10,7 +10,6 @@ import RegisterForm from './components/RegisterForm'
 import ChangePasswordModal from './components/ChangePasswordModal'
 import UserManagement from './components/UserManagement'
 import ApartmentManagement from './components/ApartmentManagement'
-import FeeManagement from './components/FeeManagement'
 import ErrorBoundary from './components/ErrorBoundary'
 import ResidentManagement from './components/ResidentManagement'
 import ResidenceChangeManagement from './components/ResidenceChangeManagement'
@@ -30,10 +29,10 @@ const APP_TITLE = 'BlueMoon — Quản lý thu phí'
 const PAGE_TITLES = {
   [ROUTES.overview]: 'Tổng quan',
   [ROUTES.apartments]: 'Căn hộ',
-  [ROUTES.fees]: 'Biểu phí',
+  [ROUTES.fees]: 'Khoản thu',
   [ROUTES.residents]: 'Nhân khẩu',
   [ROUTES.billing]: 'Khoản thu',
-  [ROUTES.payments]: 'Thu phí & Sổ quỹ',
+  [ROUTES.payments]: 'Sổ thu tiền',
   [ROUTES.family]: 'Hộ gia đình',
   [ROUTES.residenceChanges]: 'Tạm trú, tạm vắng',
   [ROUTES.maintenanceFunds]: 'Quỹ bảo trì',
@@ -138,7 +137,8 @@ function Workspace({ onLogout }) {
               <Route path={ROUTES.register} element={<ReturnAfterLogin />} />
               <Route path={ROUTES.overview} element={<HomePage />} />
               <Route path={ROUTES.apartments} element={<ApartmentManagement />} />
-              <Route path={ROUTES.fees} element={<FeeManagement />} />
+              {/* The price list became a tab of the billing page; keep old links working. */}
+              <Route path={ROUTES.fees} element={<Navigate to={`${ROUTES.billing}?tab=bang-phi`} replace />} />
               <Route path={ROUTES.users} element={<UserManagement onBack={goToOverview} />} />
               <Route path={ROUTES.residents} element={<ResidentManagement />} />
               <Route path={ROUTES.family} element={<FamilyPage onBack={goToOverview} />} />

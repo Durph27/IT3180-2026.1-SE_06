@@ -45,7 +45,7 @@ export function BillingProgressCard({
           </h3>
           <p className="mt-0.5 text-xs text-slate-500">
             {currentPeriod
-              ? `Kỳ ${currentPeriod.code} (${periodMonthLabel(currentPeriod)}) · Hạn nộp ${formatDate(currentPeriod.dueDate)}`
+              ? `${periodMonthLabel(currentPeriod)} · Hạn nộp ${formatDate(currentPeriod.dueDate)}`
               : loading
                 ? 'Đang tải thông tin kỳ thu…'
                 : 'Chưa có kỳ thu phí nào được khởi tạo.'}
@@ -57,7 +57,7 @@ export function BillingProgressCard({
       {!currentPeriod && !loading && (
         <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
           <p className="text-sm font-semibold text-slate-700">Chưa có kỳ thu để tổng hợp số liệu</p>
-          <p className="mt-1 text-xs text-slate-500">Tạo kỳ thu mới và lập bảng kê tại phân hệ Khoản thu.</p>
+          <p className="mt-1 text-xs text-slate-500">Bấm “Lập phiếu báo phí” ở trang Khoản thu để bắt đầu thu phí tháng này.</p>
           <Link to={ROUTES.billing} className="btn btn-primary btn-sm mt-3 no-underline">
             Mở Khoản thu
           </Link>
@@ -71,8 +71,8 @@ export function BillingProgressCard({
               <AlertTriangleIcon size={16} className="mt-0.5 shrink-0" />
               <span>
                 {activeInvoiceCount === 0
-                  ? 'Kỳ thu đang ở trạng thái Bản nháp và chưa có bảng kê phát sinh.'
-                  : `Kỳ thu đang ở Bản nháp với ${activeInvoiceCount} bảng kê chờ phát hành cho cư dân.`}
+                  ? 'Tháng này đang soạn và chưa có phiếu báo phí.'
+                  : `Tháng này đang soạn: ${activeInvoiceCount} phiếu báo phí chờ gửi cho cư dân.`}
               </span>
             </div>
           )}
@@ -81,7 +81,7 @@ export function BillingProgressCard({
             <div className="flex items-start gap-2.5 rounded-xl border border-solid border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-900">
               <AlertTriangleIcon size={16} className="mt-0.5 shrink-0" />
               <span>
-                Phát hiện {reconciliation.discrepantCount} bảng kê lệch đối chiếu dòng phí. Kiểm tra tại tab Đối chiếu kế toán.
+                Phát hiện {reconciliation.discrepantCount} phiếu báo phí lệch đối chiếu dòng phí. Kiểm tra ở phần Đối chiếu kế toán trong trang Khoản thu.
               </span>
             </div>
           )}
@@ -89,7 +89,7 @@ export function BillingProgressCard({
           <div>
             <div className="mb-1.5 flex items-center justify-between text-xs">
               <label id={labelId} className="font-semibold text-slate-700">
-                Tỷ lệ hoàn thành thu phí ({reconciliation.paidCount}/{activeInvoiceCount} bảng kê)
+                Tỷ lệ hoàn thành thu phí ({reconciliation.paidCount}/{activeInvoiceCount} phiếu báo phí)
               </label>
               <span className="font-bold text-slate-900 tabular-nums">{collectionPercent}%</span>
             </div>
@@ -125,7 +125,7 @@ export function BillingProgressCard({
 
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <Link to={ROUTES.billing} className="btn btn-secondary btn-sm no-underline">
-              {canGenerate && currentPeriod.status === 'DRAFT' ? 'Lập / Phát hành bảng kê' : 'Xem bảng kê kỳ thu'}
+              {canGenerate && currentPeriod.status === 'DRAFT' ? 'Gửi phiếu báo phí' : 'Xem phiếu báo phí'}
             </Link>
             {canRecordPayment && (
               <Link to={ROUTES.payments} className="btn btn-primary btn-sm no-underline">
@@ -214,7 +214,7 @@ export function RecentPaymentsCard({ paymentSummary, maintenanceSummary, loading
       <div className="flex items-start justify-between gap-3 border-0 border-b border-solid border-slate-100 pb-3.5">
         <div>
           <h3 id="overview-payments-title" className="text-base font-bold text-slate-900">
-            Sổ quỹ thu tiền & Phiếu thu gần đây
+            Phiếu thu gần đây
           </h3>
           <p className="mt-0.5 text-xs text-slate-500">
             Tiền mặt: <strong className="text-slate-700 tabular-nums">{formatMoney(cashTotal || 0n)}</strong> · Chuyển khoản:{' '}
@@ -222,7 +222,7 @@ export function RecentPaymentsCard({ paymentSummary, maintenanceSummary, loading
           </p>
         </div>
         <Link to={ROUTES.payments} className="text-xs font-semibold text-(--primary) no-underline hover:underline">
-          Mở Sổ quỹ →
+          Mở Sổ thu tiền →
         </Link>
       </div>
 
@@ -365,7 +365,7 @@ export function ResidentHouseholdOverview({ residentSummary, loading = false, ca
                 {outstandingPeriods.map((entry) => (
                   <li key={entry.period.id} className="flex items-center justify-between gap-2 text-xs">
                     <span>
-                      <strong className="text-slate-900">{entry.period.code}</strong>
+                      <strong className="text-slate-900">{periodMonthLabel(entry.period)}</strong>
                       <span className="block text-slate-500">Hạn: {formatDate(entry.period.dueDate)}</span>
                     </span>
                     <strong className="font-bold text-amber-800 tabular-nums">{formatMoney(entry.amount)}</strong>

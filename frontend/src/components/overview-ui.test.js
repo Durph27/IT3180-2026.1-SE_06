@@ -221,7 +221,7 @@ test('MANAGER dashboard shows operational KPIs, read-only billing progress, and 
   assert.match(text, /40%/)
   assert.match(text, /Hồ sơ cư trú chờ xử lý/)
   assert.match(text, /PAY-202611-01/)
-  assert.ok(!text.includes('Lập / Phát hành bảng kê'))
+  assert.ok(!text.includes('Gửi phiếu báo phí'))
   assert.ok(!text.includes('Ghi nhận thu tiền'))
   assert.ok(!text.includes('Trạng thái hạ tầng hệ thống'))
   assert.ok(!text.includes('Phạm vi nghiệp vụ được cấp quyền'))

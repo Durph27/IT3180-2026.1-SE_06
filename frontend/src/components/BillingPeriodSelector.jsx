@@ -1,10 +1,10 @@
 import { periodMonthLabel } from '../utils/billingUtils'
 
-const STATUS_LABELS = { DRAFT: 'Bản nháp', ISSUED: 'Đã phát hành', CLOSED: 'Đã đóng' }
+const STATUS_LABELS = { DRAFT: 'Đang soạn', ISSUED: 'Đang thu', CLOSED: 'Đã khóa sổ' }
 const STATUS_STYLES = { DRAFT: 'bg-slate-200 text-slate-700', ISSUED: 'bg-emerald-50 text-emerald-800', CLOSED: 'bg-slate-700 text-white' }
 
 function periodLabel(period) {
-  return `${periodMonthLabel(period)} (${period.code}) - ${STATUS_LABELS[period.status] ?? period.status}`
+  return `${periodMonthLabel(period)} - ${STATUS_LABELS[period.status] ?? period.status}`
 }
 
 export default function BillingPeriodSelector({ periods, value, onChange, disabled = false }) {

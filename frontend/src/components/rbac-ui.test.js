@@ -84,7 +84,7 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
     }
     if (role === 'MANAGER') {
       assert.match(dashboard, /Nhân khẩu &amp; Lưu trú/)
-      assert.match(dashboard, /Khoản thu &amp; Bảng kê/)
+      assert.match(dashboard, /Khoản thu/)
       assert.match(dashboard, /Quỹ bảo trì/)
       assert.match(navbar, /Nhân khẩu/)
       assert.match(navbar, /Khoản thu/)
@@ -101,7 +101,7 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
       }
     }
     if (role === 'ACCOUNTANT') {
-      assert.match(dashboard, /Thu phí &amp; Sổ quỹ/)
+      assert.match(dashboard, /Sổ thu tiền/)
       assert.match(dashboard, /Quỹ bảo trì/)
       assert.match(navbar, /Khoản thu/)
       for (const hidden of ['Nhân khẩu', 'Tạm trú', 'Quản lý tài khoản', 'Được duyệt', 'Được nộp đơn']) {
@@ -114,7 +114,7 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
       assert.match(dashboard, /Lịch sử nộp tiền/)
       assert.match(dashboard, /Tạm trú, tạm vắng/)
       assert.match(dashboard, /Hộ gia đình/)
-      for (const hidden of ['Toàn chung cư', 'toàn chung cư', 'Quỹ bảo trì', 'Quản lý tài khoản', 'Được duyệt', 'Được lập bảng kê']) {
+      for (const hidden of ['Toàn chung cư', 'toàn chung cư', 'Quỹ bảo trì', 'Quản lý tài khoản', 'Được duyệt', 'Được lập bảng kê', 'Được lập phiếu báo phí']) {
         assert.ok(!dashboard.includes(hidden), hidden)
       }
     }

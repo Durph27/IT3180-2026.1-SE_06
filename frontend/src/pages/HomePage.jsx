@@ -308,19 +308,19 @@ export default function HomePage() {
       links.push({
         key: 'billing',
         to: ROUTES.billing,
-        title: ownHousehold ? 'Khoản thu của hộ' : 'Khoản thu & Bảng kê',
+        title: ownHousehold ? 'Khoản thu của hộ' : 'Khoản thu',
         description: ownHousehold
-          ? 'Xem bảng kê và trạng thái công nợ từng kỳ.'
+          ? 'Xem phiếu báo phí và công nợ từng tháng.'
           : canGenerateInvoices
-            ? 'Lập kỳ thu, phát hành bảng kê và đối chiếu.'
-            : 'Theo dõi bảng kê thu phí từng kỳ thu.',
+            ? 'Lập và gửi phiếu báo phí hằng tháng, quản lý bảng phí.'
+            : 'Theo dõi phiếu báo phí từng tháng.',
       })
     }
     if (canViewPayments) {
       links.push({
         key: 'payments',
         to: ROUTES.payments,
-        title: ownHousehold ? 'Lịch sử nộp tiền' : 'Thu phí & Sổ quỹ',
+        title: ownHousehold ? 'Lịch sử nộp tiền' : 'Sổ thu tiền',
         description: ownHousehold
           ? 'Xem biên lai điện tử các lần nộp tiền.'
           : canRecordPayment
@@ -331,11 +331,11 @@ export default function HomePage() {
     if (canViewFees) {
       links.push({
         key: 'fees',
-        to: ROUTES.fees,
-        title: 'Biểu phí dịch vụ',
+        to: `${ROUTES.billing}?tab=bang-phi`,
+        title: 'Bảng phí',
         description: hasPermission('fee-type.write') || hasPermission('fee-rate.write')
-          ? 'Cấu hình loại khoản thu và đơn giá định kỳ.'
-          : 'Xem danh mục loại phí và đơn giá áp dụng.',
+          ? 'Thêm khoản phí và đổi giá.'
+          : 'Xem các khoản phí và giá đang áp dụng.',
       })
     }
     if (canViewMaintenance) {

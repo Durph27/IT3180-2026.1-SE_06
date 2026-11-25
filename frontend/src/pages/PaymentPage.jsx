@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { useLocation } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import {
   getAllPaymentsApi,
   voidPaymentApi,
@@ -10,6 +10,7 @@ import {
 import { getAllApartmentsApi } from '../api/apartments'
 import { getAllHouseholdsApi, getActiveOccupanciesApi } from '../api/households'
 import { apiErrorMessage } from '../api/errors'
+import { ROUTES } from '../routes'
 import { useAuth } from '../hooks/useAuth'
 import PageHeader from '../components/PageHeader'
 import StatCard from '../components/StatCard'
@@ -339,10 +340,10 @@ function PaymentContent({ householdId, buildingWide = false }) {
   return (
     <div className="user-management-container">
       <PageHeader
-        title="Thu phí & Sổ quỹ"
+        title="Sổ thu tiền"
         description={
           buildingWide
-            ? 'Nhật ký thu tiền mặt, chuyển khoản, xuất biên lai điện tử và quản lý quỹ tòa nhà.'
+            ? <>Ghi nhận tiền mặt, chuyển khoản và biên lai. Số phải thu theo tháng xem ở <Link to={ROUTES.billing} className="font-semibold underline">Khoản thu</Link>.</>
             : 'Lịch sử nộp phí và biên lai điện tử của hộ gia đình.'
         }
         actions={headerActions}

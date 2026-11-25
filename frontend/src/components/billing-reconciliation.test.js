@@ -19,8 +19,6 @@ const { AuthContext } = await server.ssrLoadModule('/src/context/AuthContext.js'
 const { default: BillingPage } = await server.ssrLoadModule('/src/pages/BillingPage.jsx')
 const { default: InvoiceListTable } = await server.ssrLoadModule('/src/components/InvoiceListTable.jsx')
 const { default: AccountingReconciliation } = await server.ssrLoadModule('/src/components/AccountingReconciliation.jsx')
-const { default: IssuePeriodModal } = await server.ssrLoadModule('/src/components/IssuePeriodModal.jsx')
-const { default: CreateBillingPeriodModal } = await server.ssrLoadModule('/src/components/CreateBillingPeriodModal.jsx')
 
 function auth(role, overrides = {}) {
   const value = {
@@ -63,7 +61,7 @@ test('AccountingReconciliation displays 100% matched status and correct totals',
   assert.match(html, /150\.000 ₫/)
   assert.match(html, /Không chênh lệch \(0 ₫\)/)
   assert.match(html, /Cân đối chính xác/)
-  assert.doesNotMatch(html, /Danh sách bảng kê có chênh lệch/)
+  assert.doesNotMatch(html, /Danh sách phiếu báo phí có chênh lệch/)
 })
 
 test('AccountingReconciliation warns when discrepancy is detected and lists problem invoices', () => {
@@ -85,10 +83,11 @@ test('AccountingReconciliation warns when discrepancy is detected and lists prob
 
   assert.match(html, /Cảnh báo: Phát hiện chênh lệch đối chiếu kế toán/)
   assert.match(html, /50\.000 ₫/)
-  assert.match(html, /Danh sách bảng kê có chênh lệch cần kiểm tra/)
-  assert.match(html, /INV-ERR-01/)
+  assert.match(html, /Danh sách phiếu báo phí có chênh lệch cần kiểm tra/)
+  // Invoice numbers are internal ids; rows are named by apartment.
+  assert.doesNotMatch(html, /INV-ERR-01/)
   assert.match(html, /Phòng 1204/)
-  assert.match(html, /Tổng dòng phí.*không khớp tổng bảng kê/)
+  assert.match(html, /Tổng dòng phí.*không khớp tổng phiếu báo phí/)
 })
 
 test('AccountingReconciliation loading and error states do not claim matched', () => {
@@ -121,8 +120,8 @@ test('InvoiceListTable renders invoices with room, household, amounts and lines'
   const householdMap = { 'occ-1': { code: 'H501' } }
 
   const html = renderToStaticMarkup(h(InvoiceListTable, { invoices, apartmentMap, householdMap }))
-  assert.match(html, /Bảng kê phát sinh phí/)
-  assert.match(html, /INV-2026-001/)
+  assert.match(html, /Phiếu báo phí phát sinh phí/)
+  assert.doesNotMatch(html, /INV-2026-001/)
   assert.match(html, /Phòng P501/)
   assert.match(html, /Hộ H501/)
   assert.match(html, /10\/11\/2026/)
@@ -130,7 +129,7 @@ test('InvoiceListTable renders invoices with room, household, amounts and lines'
   assert.match(html, /Đã phát hành/)
   assert.match(html, /1 mục/)
   // Responsive data-label check for mobile rendering
-  assert.match(html, /data-label="Mã bảng kê"/)
+  assert.doesNotMatch(html, /data-label="Mã phiếu báo phí"/)
   assert.match(html, /data-label="Căn hộ \/ Phòng"/)
   assert.match(html, /data-label="Tổng tiền"/)
   assert.match(html, /whitespace-nowrap/)
@@ -138,24 +137,8 @@ test('InvoiceListTable renders invoices with room, household, amounts and lines'
 
 test('InvoiceListTable displays empty state when no invoices exist', () => {
   const html = renderToStaticMarkup(h(InvoiceListTable, { invoices: [] }))
-  assert.match(html, /Không tìm thấy bảng kê nào/)
-  assert.match(html, /Kỳ thu này chưa có bảng kê phát sinh/)
-})
-
-test('IssuePeriodModal shows period summary and disables submit when issuing', () => {
-  const period = { code: 'KY-11-2026', startDate: '2026-11-01', endDate: '2026-11-30' }
-  const rec = { isMatched: true, totalInvoices: 50, totalInvoiceAmount: 2500000000n }
-  const html = renderToStaticMarkup(h(IssuePeriodModal, { isOpen: true, period, reconciliation: rec, isIssuing: false, onConfirm() {}, onClose() {} }))
-
-  assert.match(html, /Phát hành kỳ thu KY-11-2026/)
-  assert.match(html, /50 bảng kê/)
-  assert.match(html, /25\.000\.000 ₫/)
-  assert.match(html, /Khớp 100%/)
-  assert.match(html, /Xác nhận phát hành/)
-
-  const busyHtml = renderToStaticMarkup(h(IssuePeriodModal, { isOpen: true, period, reconciliation: rec, isIssuing: true, onConfirm() {}, onClose() {} }))
-  assert.match(busyHtml, /Đang phát hành…/)
-  assert.match(busyHtml, /disabled/)
+  assert.match(html, /Không tìm thấy phiếu báo phí nào/)
+  assert.match(html, /Kỳ thu này chưa có phiếu báo phí phát sinh/)
 })
 
 test('BillingPage permissions: Resident and unauthorized roles cannot trigger batch operations', () => {
@@ -171,12 +154,10 @@ test('BillingPage permissions: Resident and unauthorized roles cannot trigger ba
   assert.match(authorityHtml, /Bạn không có quyền truy cập/)
   assert.doesNotMatch(authorityHtml, /Tính phí toàn tòa nhà/)
 
-  // ACCOUNTANT view has permissions for batch operations
+  // ACCOUNTANT gets the staff page; its single "Lập phiếu thu" button appears once data loads.
   const accountantHtml = render(auth('ACCOUNTANT'), BillingPage, { onBack() {} })
-  assert.match(accountantHtml, /toàn chung cư/)
-  // Action button appears for accountant
-  assert.match(accountantHtml, /Tạo kỳ thu mới/)
-  assert.match(accountantHtml, /Làm mới/)
+  assert.match(accountantHtml, /Lập phiếu báo phí hằng tháng/)
+  assert.match(accountantHtml, /Đợt thu/)
 })
 
 test('Batch generation execution timing under realistic conditions is under 2 seconds', async () => {
@@ -232,15 +213,3 @@ test('Double-click prevention: simulated concurrent clicks only invoke batch act
 
   assert.equal(callCount, 1, 'Only one batch request should be initiated')
 })
-
-test('CreateBillingPeriodModal renders form fields and quick month picker', () => {
-  const html = renderToStaticMarkup(h(CreateBillingPeriodModal, { isOpen: true, onClose() {} }))
-  assert.match(html, /Tạo kỳ thu phí mới/)
-  assert.match(html, /Chọn nhanh theo tháng/)
-  assert.match(html, /Mã kỳ thu/)
-  assert.match(html, /Ngày bắt đầu/)
-  assert.match(html, /Ngày kết thúc/)
-  assert.match(html, /Ngày chốt số liệu/)
-  assert.match(html, /Hạn nộp thanh toán/)
-})
-

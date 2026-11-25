@@ -63,8 +63,8 @@ export default function AccountingReconciliation({
             <div>
               <h4 className="font-bold text-base text-emerald-900">Số liệu đối chiếu khớp 100%</h4>
               <p className="mt-1 text-sm text-emerald-800">
-                Tổng tiền theo bảng kê ({formatMoney(totalInvoiceAmount)}) khớp hoàn toàn với tổng tiền chi tiết các dòng phí ({formatMoney(totalLineAmount)}) và cân đối công nợ đã thu ({formatMoney(totalPaid)}) / còn nợ ({formatMoney(totalOutstanding)}).
-                Toàn bộ {validCount} bảng kê đều hợp lệ.
+                Tổng tiền theo phiếu báo phí ({formatMoney(totalInvoiceAmount)}) khớp hoàn toàn với tổng tiền chi tiết các dòng phí ({formatMoney(totalLineAmount)}) và cân đối công nợ đã thu ({formatMoney(totalPaid)}) / còn nợ ({formatMoney(totalOutstanding)}).
+                Toàn bộ {validCount} phiếu báo phí đều hợp lệ.
               </p>
             </div>
           </div>
@@ -79,12 +79,12 @@ export default function AccountingReconciliation({
             <AlertTriangleIcon size={24} className="mt-0.5 text-rose-600 shrink-0" />
             <div>
               <h4 className="font-bold text-base text-rose-900">
-                Cảnh báo: Phát hiện chênh lệch đối chiếu kế toán ({discrepantCount} bảng kê có vấn đề)
+                Cảnh báo: Phát hiện chênh lệch đối chiếu kế toán ({discrepantCount} phiếu báo phí có vấn đề)
               </h4>
               <p className="mt-1 text-sm text-rose-800">
-                Chênh lệch giữa bảng kê và dòng phí: <strong>{formatMoney(lineDifference)}</strong>.
+                Chênh lệch giữa phiếu báo phí và dòng phí: <strong>{formatMoney(lineDifference)}</strong>.
                 Chênh lệch cân đối thanh toán: <strong>{formatMoney(balanceDifference)}</strong>.
-                Kế toán cần kiểm tra và giải quyết các bảng kê bên dưới trước khi phát hành kỳ thu.
+                Kế toán cần kiểm tra và giải quyết các phiếu báo phí bên dưới trước khi phát hành kỳ thu.
               </p>
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function AccountingReconciliation({
             Bảng tổng hợp đối chiếu số liệu kỳ thu
           </h3>
           <p className="text-xs text-slate-500">
-            So sánh tổng hợp số tiền bảng kê, tổng các dòng phí chi tiết và số dư thanh toán
+            So sánh tổng hợp số tiền phiếu báo phí, tổng các dòng phí chi tiết và số dư thanh toán
           </p>
         </div>
 
@@ -115,18 +115,18 @@ export default function AccountingReconciliation({
             <tbody>
               <tr>
                 <th scope="row" className="font-semibold text-slate-800">
-                  (1) Tổng tiền theo các bảng kê
+                  (1) Tổng tiền theo các phiếu báo phí
                 </th>
                 <td className="text-right! font-bold text-slate-900 whitespace-nowrap">
                   {formatMoney(totalInvoiceAmount)}
                 </td>
                 <td>
                   <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
-                    Căn cứ chính ({totalInvoices} bảng kê)
+                    Căn cứ chính ({totalInvoices} phiếu báo phí)
                   </span>
                 </td>
                 <td className="text-xs text-slate-600">
-                  Tổng trường totalAmount của toàn bộ bảng kê trong kỳ
+                  Tổng trường totalAmount của toàn bộ phiếu báo phí trong kỳ
                 </td>
               </tr>
 
@@ -149,13 +149,13 @@ export default function AccountingReconciliation({
                   )}
                 </td>
                 <td className="text-xs text-slate-600">
-                  Tổng số tiền tính từ từng dòng phí (InvoiceLine) của các bảng kê
+                  Tổng số tiền tính từ từng dòng phí (InvoiceLine) của các phiếu báo phí
                 </td>
               </tr>
 
               <tr className="bg-slate-50/50">
                 <th scope="row" className="font-semibold text-slate-800">
-                  (3) Chênh lệch bảng kê và dòng phí (1 - 2)
+                  (3) Chênh lệch phiếu báo phí và dòng phí (1 - 2)
                 </th>
                 <td className={`text-right! font-bold whitespace-nowrap ${isLineMatched ? 'text-emerald-700' : 'text-rose-700'}`}>
                   {formatMoney(lineDifference)}
@@ -216,7 +216,7 @@ export default function AccountingReconciliation({
 
               <tr>
                 <th scope="row" className="font-semibold text-slate-800">
-                  (6) Số lượng bảng kê hợp lệ
+                  (6) Số lượng phiếu báo phí hợp lệ
                 </th>
                 <td className="text-right! font-bold text-emerald-700">
                   {validCount} / {totalInvoices}
@@ -227,13 +227,13 @@ export default function AccountingReconciliation({
                   </span>
                 </td>
                 <td className="text-xs text-slate-600">
-                  Bảng kê có tổng tiền khớp đúng 100% với các dòng phí và cân đối thanh toán
+                  Phiếu báo phí có tổng tiền khớp đúng 100% với các dòng phí và cân đối thanh toán
                 </td>
               </tr>
 
               <tr>
                 <th scope="row" className="font-semibold text-slate-800">
-                  (7) Số lượng bảng kê có vấn đề
+                  (7) Số lượng phiếu báo phí có vấn đề
                 </th>
                 <td className={`text-right! font-bold ${discrepantCount === 0 ? 'text-slate-700' : 'text-rose-700'}`}>
                   {discrepantCount}
@@ -241,7 +241,7 @@ export default function AccountingReconciliation({
                 <td>
                   {discrepantCount === 0 ? (
                     <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                      0 bảng kê
+                      0 phiếu báo phí
                     </span>
                   ) : (
                     <span className="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-800">
@@ -250,7 +250,7 @@ export default function AccountingReconciliation({
                   )}
                 </td>
                 <td className="text-xs text-slate-600">
-                  Bảng kê bị lệch chi tiết dòng phí hoặc số dư thanh toán không hợp lệ
+                  Phiếu báo phí bị lệch chi tiết dòng phí hoặc số dư thanh toán không hợp lệ
                 </td>
               </tr>
             </tbody>
@@ -263,10 +263,10 @@ export default function AccountingReconciliation({
         <section className="table-card" aria-labelledby="discrepant-invoices-heading">
           <div className="border-0 border-b border-solid border-rose-200 bg-rose-50/50 px-6 py-4">
             <h3 id="discrepant-invoices-heading" className="text-base font-bold text-rose-900">
-              Danh sách bảng kê có chênh lệch cần kiểm tra ({discrepancies.length} bảng kê)
+              Danh sách phiếu báo phí có chênh lệch cần kiểm tra ({discrepancies.length} phiếu báo phí)
             </h3>
             <p className="text-xs text-rose-700">
-              Chi tiết các bảng kê phát hiện không khớp giữa tổng tiền bảng kê, dòng phí hoặc số dư
+              Chi tiết các phiếu báo phí phát hiện không khớp giữa tổng tiền phiếu báo phí, dòng phí hoặc số dư
             </p>
           </div>
 
@@ -274,9 +274,8 @@ export default function AccountingReconciliation({
             <table className="modern-table">
               <thead>
                 <tr>
-                  <th scope="col">Mã bảng kê</th>
                   <th scope="col">Căn hộ / Hộ</th>
-                  <th scope="col" className="text-right!">Tổng bảng kê</th>
+                  <th scope="col" className="text-right!">Tổng phiếu báo phí</th>
                   <th scope="col" className="text-right!">Tổng dòng phí</th>
                   <th scope="col" className="text-right!">Lệch dòng phí</th>
                   <th scope="col" className="text-right!">Đã thu</th>
@@ -293,13 +292,10 @@ export default function AccountingReconciliation({
 
                   return (
                     <tr key={d.invoiceId} className="bg-rose-50/30">
-                      <th scope="row" className="font-mono font-bold text-rose-900">
-                        {d.invoiceNo}
-                      </th>
-                      <td>
+                      <th scope="row" className="font-normal">
                         <span className="font-semibold text-slate-800">{placeLabel}</span>
                         {hhLabel && <span className="block text-xs text-slate-500">{hhLabel}</span>}
-                      </td>
+                      </th>
                       <td className="text-right! font-bold text-slate-900 whitespace-nowrap">
                         {formatMoney(d.totalAmount)}
                       </td>
@@ -334,7 +330,7 @@ export default function AccountingReconciliation({
           • Toàn bộ số liệu tiền tệ được xử lý dưới dạng số nguyên (BigInt cents) tương đương Decimal, tuyệt đối không dùng số thực dấu phẩy động (floating-point) nhằm ngăn chặn hoàn toàn sai số làm tròn lũy kế.
         </p>
         <p className="mt-1">
-          • Trạng thái “Khớp 100%” chỉ được công nhận khi đồng thời thỏa mãn: (1) Tổng tiền bảng kê bằng tổng các dòng phí chi tiết, (2) Tổng tiền bằng tổng đã thu cộng còn nợ, và (3) 100% bảng kê không có số tiền âm bất thường.
+          • Trạng thái “Khớp 100%” chỉ được công nhận khi đồng thời thỏa mãn: (1) Tổng tiền phiếu báo phí bằng tổng các dòng phí chi tiết, (2) Tổng tiền bằng tổng đã thu cộng còn nợ, và (3) 100% phiếu báo phí không có số tiền âm bất thường.
         </p>
       </div>
     </div>

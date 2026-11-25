@@ -96,7 +96,7 @@ function MaintenanceExpenseRecordDialog({ onClose, onSuccess, fund }) {
           </div>
           <div>
             <h2 id={titleId} className="dialog-title">Ghi nhận khoản chi quỹ bảo trì</h2>
-            <p className="dialog-subtitle">Hạch toán chi phí từ quỹ {fund.code} — {fund.name}</p>
+            <p className="dialog-subtitle">Chi từ {fund.name}</p>
           </div>
         </div>
         <button type="button" className="dialog-close-btn" onClick={onClose} disabled={submitting} aria-label="Đóng">
@@ -107,7 +107,7 @@ function MaintenanceExpenseRecordDialog({ onClose, onSuccess, fund }) {
       <div className="dialog-body">
         <div className="rate-context">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span><strong>Quỹ:</strong> {fund.code} ({fund.name})</span>
+            <span><strong>Quỹ:</strong> {fund.name}</span>
             <span><strong>Ngày mở quỹ:</strong> {formatShortDate(fund.openingDate)}</span>
           </div>
           <div className="mt-1">

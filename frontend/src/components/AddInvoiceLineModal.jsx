@@ -3,6 +3,7 @@ import { addInvoiceLineApi } from '../api/billing'
 import { getFeeRatesApi } from '../api/fees'
 import { apiErrorMessage } from '../api/errors'
 import { formatMoney, calculateLineAmount } from '../utils/billingUtils'
+import { BASIS_SIMPLE } from '../utils/feeValidation'
 import { numberToVietnameseWords } from '../utils/paymentUtils'
 import { XIcon, AlertTriangleIcon, PlusIcon } from './Icons'
 
@@ -150,7 +151,7 @@ export default function AddInvoiceLineModal({
       const newLine = await addInvoiceLineApi(invoice.id, payload, { version: invoice.version })
       onSuccess?.(newLine)
     } catch (err) {
-      setError(apiErrorMessage(err, 'Không thể thêm dòng phí vào bảng kê. Vui lòng kiểm tra lại.'))
+      setError(apiErrorMessage(err, 'Không thể thêm dòng phí vào phiếu báo phí. Vui lòng kiểm tra lại.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -171,11 +172,9 @@ export default function AddInvoiceLineModal({
             </span>
             <div>
               <h3 id="add-line-modal-title" className="text-base font-bold text-slate-900">
-                Thêm khoản phí vào bảng kê
+                Thêm khoản phí vào phiếu báo phí
               </h3>
-              <p className="text-xs text-slate-500">
-                Bảng kê: <strong className="font-mono text-slate-800">{invoice.invoiceNo}</strong>
-              </p>
+              {apartment?.code && <p className="text-xs text-slate-500">Căn <strong className="text-slate-800">{apartment.code}</strong></p>}
             </div>
           </div>
           <button
@@ -214,7 +213,7 @@ export default function AddInvoiceLineModal({
                 <option value="">-- Chọn loại phí --</option>
                 {activeFeeTypes.map((ft) => (
                   <option key={ft.id} value={ft.id}>
-                    {ft.name} ({ft.code} — {ft.basis})
+                    {ft.name} ({BASIS_SIMPLE[ft.basis]?.label ?? ft.basis})
                   </option>
                 ))}
               </select>
@@ -346,7 +345,7 @@ export default function AddInvoiceLineModal({
                   <span>Đang thêm…</span>
                 </>
               ) : (
-                <span>Thêm vào bảng kê</span>
+                <span>Thêm vào phiếu báo phí</span>
               )}
             </button>
           </div>

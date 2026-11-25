@@ -62,12 +62,12 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | GET | `/fee-types/{id}` | Chi tiết FeeType | — | 200 FeeType | `fee-type.read` |
 | PATCH | `/fee-types/{id}` | Cập nhật FeeType | FeeTypeUpdate | 200 FeeType | `fee-type.write` |
 | GET | `/fee-types/{id}/rates` | Danh sách FeeRate | — | 200 FeeRatePage | `fee-rate.read` |
-| POST | `/fee-types/{id}/rates` | Thêm biểu phí | FeeRateCreate | 201 FeeRate | `fee-rate.write` |
+| POST | `/fee-types/{id}/rates` | Thêm biểu phí; tự kết thúc biểu phí đang mở cùng loại xe, sửa tại chỗ nếu trùng ngày bắt đầu và chưa dùng | FeeRateCreate | 201 FeeRate | `fee-rate.write` |
 | PATCH | `/fee-rates/{id}` | Kết thúc hiệu lực biểu phí | FeeRateUpdate | 200 FeeRate | `fee-rate.write` |
 | GET | `/billing-periods` | Danh sách BillingPeriod | — | 200 BillingPeriodPage | `billing-period.read` |
 | POST | `/billing-periods` | Tạo BillingPeriod | BillingPeriodCreate | 201 BillingPeriod | `billing-period.write` |
 | GET | `/billing-periods/{id}` | Chi tiết BillingPeriod | — | 200 BillingPeriod | `billing-period.read` |
-| PATCH | `/billing-periods/{id}` | Cập nhật BillingPeriod | BillingPeriodUpdate | 200 BillingPeriod | `billing-period.write` |
+| PATCH | `/billing-periods/{id}` | Cập nhật BillingPeriod DRAFT; khi đã có bảng kê chỉ đổi dueDate/snapshotDate | BillingPeriodUpdate | 200 BillingPeriod | `billing-period.write` |
 | POST | `/billing-periods/{id}/generate-invoices` | Lập bảng kê nháp theo ngày chốt | — | 200 BillingGenerationResult | `invoice.generate` |
 | POST | `/billing-periods/{id}/issue` | Phát hành kỳ thu và bảng kê | — | 200 BillingPeriod | `billing-period.issue` |
 | POST | `/billing-periods/{id}/close` | Khóa kỳ thu | — | 200 BillingPeriod | `billing-period.close` |
