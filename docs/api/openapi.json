@@ -14856,6 +14856,35 @@
                   "note": {
                     "type": "string",
                     "maxLength": 500
+                  },
+                  "resident": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "fullName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "identityNo": {
+                        "type": "string",
+                        "pattern": "^[0-9]{12}$"
+                      },
+                      "birthDate": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "phone": {
+                        "type": "string",
+                        "pattern": "^[0-9]{10}$"
+                      }
+                    },
+                    "required": [
+                      "fullName",
+                      "identityNo",
+                      "birthDate",
+                      "phone"
+                    ]
                   }
                 },
                 "required": [
@@ -14865,8 +14894,44 @@
               }
             },
             "required": [
-              "residentId",
               "effectiveTo"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "residentId"
+                ],
+                "not": {
+                  "properties": {
+                    "details": {
+                      "required": [
+                        "resident"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "details"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "details": {
+                    "required": [
+                      "resident",
+                      "permanentAddress"
+                    ]
+                  }
+                },
+                "required": [
+                  "details"
+                ],
+                "not": {
+                  "required": [
+                    "residentId"
+                  ]
+                }
+              }
             ]
           }
         ]

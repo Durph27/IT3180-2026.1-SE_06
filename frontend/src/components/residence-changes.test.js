@@ -121,7 +121,7 @@ async function setInput(selector, value) {
   })
 }
 
-test('TemporaryResidenceModal renders existing-resident search without new-person or UUID form fields', async () => {
+test('TemporaryResidenceModal defaults to direct entry for a new person', async () => {
   mockApi(() => makeResponse({}, {}))
   await mount(
     h(AuthContext.Provider, { value: makeAuth() },
@@ -135,10 +135,13 @@ test('TemporaryResidenceModal renders existing-resident search without new-perso
     )
   )
 
-  assert.equal(document.querySelector('input[name="fullName"]'), null, 'No new-resident fullName field')
+  assert.ok(document.querySelector('input[name="fullName"]'))
+  assert.ok(document.querySelector('input[name="identityNo"]'))
+  assert.ok(document.querySelector('input[name="birthDate"]'))
+  assert.ok(document.querySelector('input[name="phone"]'))
   assert.equal(document.querySelector('input[name="residentType"]'), null, 'No residentType radio toggle')
-  assert.equal(document.querySelector('input[name="residentId"]').getAttribute('type'), 'hidden')
-  assert.ok(document.querySelector('#resident-search-term'), 'Search input for existing residents exists')
+  assert.equal(document.querySelector('input[name="residentId"]'), null)
+  assert.equal(document.querySelector('#resident-search-term'), null)
   assert.equal(document.querySelector('input[name="effectiveFrom"]').getAttribute('required'), '')
   assert.equal(document.querySelector('input[name="effectiveTo"]').getAttribute('required'), '')
 })
@@ -169,8 +172,35 @@ test('TemporaryResidenceModal safely handles partial/empty effectiveFrom and inv
   })
 
   assert.equal(requests.length, 0)
-  assert.match(document.body.textContent, /chọn nhân khẩu đã có hồ sơ/)
+  assert.match(document.body.textContent, /CCCD phải gồm đúng 12 chữ số/)
   assert.match(document.body.textContent, /sau ngày bắt đầu/)
+})
+
+test('TemporaryResidenceModal submits a new guest in one request and preserves input on retry', async () => {
+  let fail = true
+  mockApi((config) => {
+    assert.equal(config.url, '/residence-changes')
+    return makeResponse(config, fail ? { message: 'Lỗi kết nối' } : { id: 'created', status: 'PENDING' }, fail ? 500 : 201)
+  })
+  await mount(h(AuthContext.Provider, { value: makeAuth({ role: 'RESIDENT', permissions: ['residence-change.write'], householdIds: ['hh-1'] }) },
+    h(TemporaryResidenceModal, { initialHouseholdId: 'hh-1', households: [{ id: 'hh-1', code: 'H101' }],
+      onClose: () => closedCount++, onSuccess: (msg) => savedMessages.push(msg) })))
+  for (const [name, value] of Object.entries({ fullName: 'Nguyễn Văn Khách', identityNo: '001234567890', birthDate: '1995-03-20', phone: '0901234567', permanentAddress: 'Hà Nội', effectiveFrom: '2026-11-26', effectiveTo: '2026-12-26' })) {
+    await setInput(`input[name="${name}"]`, value)
+  }
+  const submit = async () => act(async () => document.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })))
+  await submit()
+  assert.equal(closedCount, 0)
+  assert.equal(document.querySelector('input[name="fullName"]').value, 'Nguyễn Văn Khách')
+  fail = false
+  await submit()
+  assert.equal(closedCount, 1)
+  assert.equal(savedMessages.length, 1)
+  assert.equal(requests.length, 2)
+  const payload = getRequestData(requests[1])
+  assert.equal(Object.hasOwn(payload, 'residentId'), false)
+  assert.deepEqual(payload.details.resident, { fullName: 'Nguyễn Văn Khách', identityNo: '001234567890', birthDate: '1995-03-20', phone: '0901234567' })
+  assert.equal(payload.details.permanentAddress, 'Hà Nội')
 })
 
 test('TemporaryResidenceModal searches existing resident, supports duration presets, and submits clean payload', async () => {
@@ -201,6 +231,7 @@ test('TemporaryResidenceModal searches existing resident, supports duration pres
     )
   )
 
+  await setInput('#temporary-person-mode', 'existing')
   await setInput('#resident-search-term', 'Lê Văn')
   const searchBtn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent.includes('Tìm kiếm'))
   await act(async () => searchBtn.click())
@@ -556,7 +587,8 @@ test('TemporaryResidenceModal guides RESIDENT role when searching existing resid
   )
 
   assert.match(document.body.textContent, /Phòng A101 · Hộ H101/)
-  assert.match(document.body.textContent, /liên hệ Ban quản lý để lập hồ sơ nhân khẩu trước/)
+  assert.ok(document.querySelector('input[name="fullName"]'))
+  assert.ok(!document.body.textContent.includes('liên hệ Ban quản lý để lập hồ sơ nhân khẩu trước'))
 })
 
 test('TemporaryResidenceModal auto-syncs householdId and allows selecting different households', async () => {

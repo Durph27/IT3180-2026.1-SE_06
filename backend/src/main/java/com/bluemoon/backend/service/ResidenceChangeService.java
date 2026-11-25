@@ -24,8 +24,30 @@ public class ResidenceChangeService implements FeatureHandler {
         if (path.startsWith("/residence-changes")) {
             if (id == null) {
                 views.get("Household", b.get("householdId"), actor);
-                validateChange(b, null);
                 var values = new LinkedHashMap<>(b);
+                var details = new LinkedHashMap<>(object(b.get("details")));
+                if ("TEMPORARY_RESIDENCE".equals(b.get("changeType")) && details.containsKey("resident")) {
+                    residence.openHousehold(b.get("householdId"));
+                    var person = new LinkedHashMap<>(object(details.remove("resident")));
+                    rule(!date(person, "birthDate").isAfter(today()), "Ngày sinh không được trong tương lai.");
+                    rule(!text(details, "permanentAddress").isBlank(), "Vui lòng nhập địa chỉ thường trú.");
+                    var existing = db.where("Resident", "identityNo", person.get("identityNo"));
+                    Map<String, Object> resident;
+                    if (existing.isEmpty()) {
+                        person.put("gender", "UNSPECIFIED");
+                        resident = db.insert("Resident", person);
+                        // Server-only marker: requesters may read the guest profile they just created.
+                        details.put("registeredNewResident", true);
+                    } else {
+                        resident = existing.getFirst();
+                        rule(Objects.equals(person.get("fullName"), resident.get("fullName"))
+                                && Objects.equals(person.get("birthDate"), resident.get("birthDate")),
+                                "CCCD đã có hồ sơ với họ tên hoặc ngày sinh khác. Vui lòng kiểm tra lại.");
+                    }
+                    values.put("residentId", resident.get("id"));
+                    values.put("details", details);
+                }
+                validateChange(values, null);
                 values.put("requestedBy", actor.id());
                 values.put("approvedBy", null);
                 values.put("status", "PENDING");
