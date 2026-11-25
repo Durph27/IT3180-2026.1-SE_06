@@ -79,6 +79,21 @@ test('draft, cancelled and other period invoices are excluded', () => {
   assert.equal(classify([invoice('i1', 'DRAFT', lines), invoice('i2', 'CANCELLED', lines), invoice('i3', 'ISSUED', lines, '1.00', 'p2')]).length, 0)
 })
 
+test('draft invoices can be previewed when includeDraft is enabled without due status', () => {
+  const lines = [line('a', 'service', '100.00')]
+  const items = classifyFeeItems({
+    invoices: [invoice('i1', 'DRAFT', lines), invoice('i2', 'CANCELLED', lines)],
+    feeTypes,
+    campaigns: [],
+    period,
+    today,
+    includeDraft: true,
+  })
+  assert.equal(items.length, 1)
+  assert.equal(items[0].amount, 10000n)
+  assert.equal(items[0].due, null)
+})
+
 test('paid invoices show every line as paid', () => {
   const items = classify([invoice('i1', 'PAID', [line('a', 'service', '100.00'), line('b', 'optional', '50.00')], '0.00')])
   assert.deepEqual(items.map((item) => item.due.status), [DUE_STATUS.PAID, DUE_STATUS.PAID])

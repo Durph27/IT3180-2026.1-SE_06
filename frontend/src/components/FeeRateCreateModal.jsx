@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useId } from 'react'
 import { createFeeRateApi } from '../api/fees'
+import { todayInVietnam } from '../residents/validation'
 import {
   validateFeeRate,
   normalizeUnitPrice,
@@ -31,7 +32,7 @@ export default function FeeRateCreateModal({
   const basisMeta = BASIS_OPTIONS.find((b) => b.value === feeType?.basis)
 
   const [unitPrice, setUnitPrice] = useState('')
-  const [effectiveFrom, setEffectiveFrom] = useState(() => new Date().toISOString().slice(0, 10))
+  const [effectiveFrom, setEffectiveFrom] = useState(() => todayInVietnam())
   const [effectiveTo, setEffectiveTo] = useState('')
   const [vehicleType, setVehicleType] = useState(isVehicle ? 'MOTORBIKE' : '')
 

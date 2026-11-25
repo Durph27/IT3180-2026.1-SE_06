@@ -40,7 +40,8 @@ class FeeCalculationTests {
 
     @BeforeEach void cleanDatabase() {
         db.jdbc().execute("SET REFERENTIAL_INTEGRITY FALSE");
-        for (String table : List.of("invoice_line", "invoice", "fee_rate", "fee_type",
+        for (String table : List.of("maintenance_allocation", "maintenance_round", "maintenance_fund",
+                "invoice_line", "invoice", "fee_rate", "fee_type", "vehicle",
                 "household_member", "household_apartment", "household", "apartment",
                 "building", "resident", "billing_period", "residence_change",
                 "command_result", "audit_log")) {
@@ -370,5 +371,115 @@ class FeeCalculationTests {
         // Calling generate-invoices on ISSUED period returns 409
         var replyIssued = call("POST", "/billing-periods/" + id(period) + "/generate-invoices", null, admin, unique());
         assertThat(replyIssued.status()).isEqualTo(409);
+    }
+
+    @Test void testFeeCalculationPerApartmentAndPerVehicleAndMaintenanceCoexistence() throws Exception {
+        var building = create("/buildings", map("code", unique(), "name", "BlueMoon Tower V", "address", "Hà Nội"));
+        var aptEarly = create("/apartments", map("buildingId", id(building), "code", unique(), "floorNo", 1, "areaM2", "50.00"));
+        var aptLate = create("/apartments", map("buildingId", id(building), "code", unique(), "floorNo", 2, "areaM2", "70.00"));
+
+        var household = create("/households", map("code", unique()));
+        var occEarly = create("/occupancies", map("householdId", id(household), "apartmentId", id(aptEarly), "validFrom", today().minusMonths(2).toString()));
+        var occLate = create("/occupancies", map("householdId", id(household), "apartmentId", id(aptLate), "validFrom", today().minusMonths(1).toString()));
+
+        // Active vehicles + 1 expired vehicle
+        var motorbike = db.insert("Vehicle", map(
+                "householdId", id(household), "plateNo", "29A1-12345",
+                "vehicleType", "MOTORBIKE", "registeredFrom", start(), "registeredTo", null));
+        var car = db.insert("Vehicle", map(
+                "householdId", id(household), "plateNo", "30A-99999",
+                "vehicleType", "CAR", "registeredFrom", start(), "registeredTo", null));
+        db.insert("Vehicle", map(
+                "householdId", id(household), "plateNo", "29B1-00000",
+                "vehicleType", "MOTORBIKE", "registeredFrom", today().minusMonths(2).toString(), "registeredTo", today().minusDays(1).toString()));
+
+        // PER_APARTMENT fee (8,500 / apartment)
+        var feeApt = create("/fee-types", map("code", "QL_" + unique(), "name", "Phí quản lý cố định", "basis", "PER_APARTMENT", "mandatory", true, "active", true));
+        create("/fee-types/" + id(feeApt) + "/rates", map("unitPrice", "8500.00", "effectiveFrom", start()));
+
+        // PER_VEHICLE fee (Motorbike 70,000, Car 1,200,000)
+        var feeVehicle = create("/fee-types", map("code", "XE_" + unique(), "name", "Phí gửi xe", "basis", "PER_VEHICLE", "mandatory", true, "active", true));
+        create("/fee-types/" + id(feeVehicle) + "/rates", map("vehicleType", "MOTORBIKE", "unitPrice", "70000.00", "effectiveFrom", start()));
+        create("/fee-types/" + id(feeVehicle) + "/rates", map("vehicleType", "CAR", "unitPrice", "1200000.00", "effectiveFrom", start()));
+
+        var period = create("/billing-periods", map(
+                "code", unique(),
+                "startDate", start(),
+                "endDate", today().toString(),
+                "snapshotDate", today().toString(),
+                "dueDate", today().plusDays(7).toString()
+        ));
+
+        // Create a MaintenanceRound using the same PER_APARTMENT feeTypeId before generate-invoices
+        var fund = create("/maintenance-funds", map("code", unique(), "name", "Quỹ bảo trì", "openingBalance", "0.00", "openingDate", start()));
+        var roundReply = call("POST", "/maintenance-rounds", map(
+                "fundId", id(fund), "periodId", id(period), "feeTypeId", id(feeApt),
+                "description", "Bảo trì cửa", "allocationBasis", "EQUAL", "totalCost", "100000.00",
+                "occupancyIds", List.of(id(occEarly), id(occLate))
+        ), admin, unique());
+        assertThat(roundReply.status()).as(roundReply.body().toString()).isEqualTo(201);
+
+        var reply = call("POST", "/billing-periods/" + id(period) + "/generate-invoices", null, admin, unique());
+        assertThat(reply.status()).as(reply.body().toString()).isEqualTo(200);
+
+        var invoices = objects(reply.body().get("invoices"));
+        var invEarly = invoices.stream().filter(i -> id(occEarly).equals(i.get("occupancyId"))).findFirst().orElseThrow();
+        var invLate = invoices.stream().filter(i -> id(occLate).equals(i.get("occupancyId"))).findFirst().orElseThrow();
+
+        // Early occupancy: 50,000 (maintenance) + 8,500 (PER_APARTMENT) + 70,000 (motorbike) + 1,200,000 (car) = 1,328,500.00
+        assertThat(invEarly.get("totalAmount")).isEqualTo("1328500.00");
+        var earlyLines = objects(invEarly.get("lines"));
+        assertThat(earlyLines.stream().filter(l -> id(feeApt).equals(l.get("feeTypeId")) && l.get("rateId") != null))
+                .hasSize(1)
+                .allSatisfy(l -> assertThat(l.get("amount")).isEqualTo("8500.00"));
+        assertThat(earlyLines.stream().filter(l -> id(feeVehicle).equals(l.get("feeTypeId"))))
+                .hasSize(2)
+                .extracting(l -> l.get("vehicleId"))
+                .containsExactlyInAnyOrder(id(motorbike), id(car));
+
+        // Late occupancy: 50,000 (maintenance) + 8,500 (PER_APARTMENT) = 58,500.00 (no PER_VEHICLE)
+        assertThat(invLate.get("totalAmount")).isEqualTo("58500.00");
+        var lateLines = objects(invLate.get("lines"));
+        assertThat(lateLines.stream().filter(l -> id(feeVehicle).equals(l.get("feeTypeId")))).isEmpty();
+
+        // Idempotent rerun must not duplicate PER_APARTMENT or PER_VEHICLE lines
+        var rerun = call("POST", "/billing-periods/" + id(period) + "/generate-invoices", null, admin, unique());
+        assertThat(rerun.status()).isEqualTo(200);
+        var rerunInvoices = objects(rerun.body().get("invoices"));
+        var rerunEarly = rerunInvoices.stream().filter(i -> id(occEarly).equals(i.get("occupancyId"))).findFirst().orElseThrow();
+        assertThat(rerunEarly.get("totalAmount")).isEqualTo("1328500.00");
+        assertThat(objects(rerunEarly.get("lines"))).hasSize(4);
+    }
+
+    @Test void testOccupancyWithZeroApplicableLinesDoesNotBlockPeriodIssue() throws Exception {
+        var building = create("/buildings", map("code", unique(), "name", "BlueMoon Tower Z", "address", "Hà Nội"));
+        var aptWithMember = create("/apartments", map("buildingId", id(building), "code", unique(), "floorNo", 1, "areaM2", "50.00"));
+        var aptEmpty = create("/apartments", map("buildingId", id(building), "code", unique(), "floorNo", 2, "areaM2", "60.00"));
+
+        var h1 = create("/households", map("code", unique()));
+        create("/occupancies", map("householdId", id(h1), "apartmentId", id(aptWithMember), "validFrom", start()));
+        member(id(h1), id(resident()), true, start(), null);
+
+        var h2 = create("/households", map("code", unique()));
+        create("/occupancies", map("householdId", id(h2), "apartmentId", id(aptEmpty), "validFrom", start()));
+
+        // Only PER_PERSON is active; h2 has 0 members -> h2 must not get an empty invoice blocking issue()
+        var feePerson = create("/fee-types", map("code", "PSZ_" + unique(), "name", "Phí vệ sinh", "basis", "PER_PERSON", "mandatory", true, "active", true));
+        create("/fee-types/" + id(feePerson) + "/rates", map("unitPrice", "36000.00", "effectiveFrom", start()));
+
+        var period = create("/billing-periods", map(
+                "code", unique(),
+                "startDate", start(),
+                "endDate", today().toString(),
+                "snapshotDate", today().toString(),
+                "dueDate", today().plusDays(7).toString()
+        ));
+
+        var gen = call("POST", "/billing-periods/" + id(period) + "/generate-invoices", null, admin, unique());
+        assertThat(gen.status()).isEqualTo(200);
+        assertThat(gen.body().get("createdCount")).isEqualTo(1);
+
+        var issue = call("POST", "/billing-periods/" + id(period) + "/issue", null, admin, unique());
+        assertThat(issue.status()).as(issue.body().toString()).isEqualTo(200);
     }
 }

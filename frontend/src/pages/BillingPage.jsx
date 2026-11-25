@@ -131,7 +131,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
 
   const outstanding = useMemo(() => (catalog && openInvoices ? summarizeOutstandingPeriods({ invoices: openInvoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : null), [catalog, openInvoices])
   const invoices = useMemo(() => (loaded.key === invoiceKey ? loaded.invoices : []), [loaded, invoiceKey])
-  const items = useMemo(() => (catalog && selectedPeriod ? classifyFeeItems({ invoices, feeTypes: catalog.feeTypes, campaigns: catalog.campaigns, period: selectedPeriod }) : []), [catalog, invoices, selectedPeriod])
+  const items = useMemo(() => (catalog && selectedPeriod ? classifyFeeItems({ invoices, feeTypes: catalog.feeTypes, campaigns: catalog.campaigns, period: selectedPeriod, includeDraft: isStaff && selectedPeriod.status === 'DRAFT' }) : []), [catalog, invoices, selectedPeriod, isStaff])
   const alerts = useMemo(() => (catalog ? collectDueAlerts({ invoices, feeTypes: catalog.feeTypes, periods: catalog.periods }) : []), [catalog, invoices])
   const totals = summarizeTotals(items)
   const mandatoryItems = items.filter((item) => item.category === FEE_CATEGORY.MANDATORY)
@@ -155,7 +155,11 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
     try {
       const res = await generateInvoicesApi(selectedPeriod.id)
       const { createdCount = 0, existingCount = 0 } = res.data ?? {}
-      setActionSuccess(`Lập bảng kê nháp thành công! Đã tạo mới ${createdCount} bảng kê, ${existingCount} bảng kê đã tồn tại.`)
+      if (createdCount === 0 && existingCount === 0) {
+        setActionError('Không tạo được bảng kê nào. Hãy kiểm tra xem biểu phí còn hiệu lực tại ngày chốt của kỳ và hộ gia đình đã có căn hộ/nhân khẩu phù hợp chưa.')
+      } else {
+        setActionSuccess(`Lập bảng kê nháp thành công! Đã tạo mới ${createdCount} bảng kê, ${existingCount} bảng kê đã tồn tại.`)
+      }
       setVersion((v) => v + 1)
     } catch (err) {
       setActionError(apiErrorMessage(err, 'Không thể lập bảng kê nháp. Vui lòng kiểm tra lại biểu phí.'))
