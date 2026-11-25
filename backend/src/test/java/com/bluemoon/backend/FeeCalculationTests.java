@@ -482,4 +482,87 @@ class FeeCalculationTests {
         var issue = call("POST", "/billing-periods/" + id(period) + "/issue", null, admin, unique());
         assertThat(issue.status()).as(issue.body().toString()).isEqualTo(200);
     }
+
+    List<Map<String, Object>> rates(String feeTypeId) throws Exception {
+        var reply = call("GET", "/fee-types/" + feeTypeId + "/rates?size=100", null, admin, null);
+        assertThat(reply.status()).as(reply.body().toString()).isEqualTo(200);
+        return objects(reply.body().get("content"));
+    }
+
+    @Test void testNewRateEndsTheOpenRateInsteadOfOverlapping() throws Exception {
+        var fee = create("/fee-types", map("code", "CHG_" + unique(), "name", "Phí quản lý", "basis", "PER_M2", "mandatory", true, "active", true));
+        var first = create("/fee-types/" + id(fee) + "/rates", map("unitPrice", "7000.00", "effectiveFrom", start()));
+        create("/fee-types/" + id(fee) + "/rates", map("unitPrice", "8000.00", "effectiveFrom", today().toString()));
+
+        var all = rates(id(fee));
+        assertThat(all).hasSize(2);
+        var ended = all.stream().filter(r -> id(first).equals(r.get("id"))).findFirst().orElseThrow();
+        assertThat(ended.get("effectiveTo")).isEqualTo(today().toString());
+        assertThat(all.stream().filter(r -> r.get("effectiveTo") == null).map(r -> r.get("unitPrice")).toList()).containsExactly("8000.00");
+
+        // A start before the open rate is still an overlap, not a silent rewrite of history.
+        var earlier = call("POST", "/fee-types/" + id(fee) + "/rates", map("unitPrice", "9000.00", "effectiveFrom", today().minusMonths(2).toString()), admin, null);
+        assertThat(earlier.status()).isEqualTo(422);
+    }
+
+    @Test void testSameDayPriceIsCorrectedInPlaceWhileUnused() throws Exception {
+        var fee = create("/fee-types", map("code", "FIX_" + unique(), "name", "Phí dịch vụ", "basis", "PER_APARTMENT", "mandatory", true, "active", true));
+        var rate = create("/fee-types/" + id(fee) + "/rates", map("unitPrice", "100000.00", "effectiveFrom", today().toString()));
+        var corrected = call("POST", "/fee-types/" + id(fee) + "/rates", map("unitPrice", "120000.00", "effectiveFrom", today().toString()), admin, null);
+        assertThat(corrected.status()).as(corrected.body().toString()).isEqualTo(201);
+        assertThat(corrected.body().get("id")).isEqualTo(id(rate));
+
+        var all = rates(id(fee));
+        assertThat(all).hasSize(1);
+        assertThat(all.getFirst().get("unitPrice")).isEqualTo("120000.00");
+    }
+
+    @Test void testPriceUsedByAPeriodCannotBeReplacedBeforeItsSnapshot() throws Exception {
+        var building = create("/buildings", map("code", unique(), "name", "Tower P", "address", "Hà Nội"));
+        var apartment = create("/apartments", map("buildingId", id(building), "code", unique(), "floorNo", 1, "areaM2", "50.00"));
+        var household = create("/households", map("code", unique()));
+        create("/occupancies", map("householdId", id(household), "apartmentId", id(apartment), "validFrom", start()));
+        var fee = create("/fee-types", map("code", "USE_" + unique(), "name", "Phí quản lý", "basis", "PER_M2", "mandatory", true, "active", true));
+        create("/fee-types/" + id(fee) + "/rates", map("unitPrice", "7000.00", "effectiveFrom", start()));
+        var period = create("/billing-periods", map("code", unique(), "startDate", start(), "endDate", today().toString(),
+                "snapshotDate", today().toString(), "dueDate", today().plusDays(7).toString()));
+        assertThat(call("POST", "/billing-periods/" + id(period) + "/generate-invoices", null, admin, unique()).status()).isEqualTo(200);
+
+        var tooEarly = call("POST", "/fee-types/" + id(fee) + "/rates", map("unitPrice", "8000.00", "effectiveFrom", today().toString()), admin, null);
+        assertThat(tooEarly.status()).isEqualTo(422);
+        assertThat(rates(id(fee))).hasSize(1);
+
+        var nextDay = call("POST", "/fee-types/" + id(fee) + "/rates", map("unitPrice", "8000.00", "effectiveFrom", today().plusDays(1).toString()), admin, null);
+        assertThat(nextDay.status()).as(nextDay.body().toString()).isEqualTo(201);
+    }
+
+    @Test void testDraftPeriodWithInvoicesAcceptsOnlyDueAndSnapshotChanges() throws Exception {
+        var building = create("/buildings", map("code", unique(), "name", "Tower S", "address", "Hà Nội"));
+        var apartment = create("/apartments", map("buildingId", id(building), "code", unique(), "floorNo", 1, "areaM2", "50.00"));
+        var household = create("/households", map("code", unique()));
+        create("/occupancies", map("householdId", id(household), "apartmentId", id(apartment), "validFrom", start()));
+        member(id(household), id(resident()), true, start(), null);
+        var fee = create("/fee-types", map("code", "PPL_" + unique(), "name", "Phí vệ sinh", "basis", "PER_PERSON", "mandatory", true, "active", true));
+        create("/fee-types/" + id(fee) + "/rates", map("unitPrice", "10000.00", "effectiveFrom", start()));
+        var period = create("/billing-periods", map("code", unique(), "startDate", start(), "endDate", today().toString(),
+                "snapshotDate", today().minusDays(1).toString(), "dueDate", today().plusDays(7).toString()));
+        assertThat(call("POST", "/billing-periods/" + id(period) + "/generate-invoices", null, admin, unique()).status()).isEqualTo(200);
+
+        // Someone moves in after the first snapshot.
+        member(id(household), id(resident()), false, today().toString(), null);
+
+        assertThat(call("PATCH", "/billing-periods/" + id(period), map("startDate", today().minusMonths(2).toString()), admin, null).status()).isEqualTo(409);
+        var due = call("PATCH", "/billing-periods/" + id(period), map("dueDate", today().plusDays(10).toString()), admin, null);
+        assertThat(due.status()).as(due.body().toString()).isEqualTo(200);
+        var moved = call("PATCH", "/billing-periods/" + id(period), map("snapshotDate", today().toString()), admin, null);
+        assertThat(moved.status()).as(moved.body().toString()).isEqualTo(200);
+
+        var regenerated = call("POST", "/billing-periods/" + id(period) + "/generate-invoices", null, admin, unique());
+        assertThat(regenerated.status()).isEqualTo(200);
+        var invoices = objects(regenerated.body().get("invoices"));
+        assertThat(invoices).hasSize(1);
+        var lines = objects(invoices.getFirst().get("lines"));
+        assertThat(lines).hasSize(1);
+        assertThat(lines.getFirst().get("quantity")).isEqualTo("2.000");
+    }
 }

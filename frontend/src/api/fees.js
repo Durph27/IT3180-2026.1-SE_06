@@ -82,3 +82,36 @@ export async function updateFeeRateApi(rateId, { effectiveTo }) {
   const response = await api.patch(`/fee-rates/${rateId}`, payload)
   return response.data
 }
+
+export async function getAllFeeRatesApi(feeTypeId, { signal } = {}) {
+  const rows = []
+  let page = 0
+  let totalPages = 1
+  do {
+    const data = await getFeeRatesApi(feeTypeId, { page, size: 100, sort: 'effectiveFrom,desc' }, { signal })
+    rows.push(...(data.content ?? []))
+    totalPages = data.totalPages ?? 1
+    page += 1
+  } while (page < totalPages)
+  return rows
+}
+
+export async function getAllFeeTypesApi({ signal } = {}) {
+  const rows = []
+  let page = 0
+  let totalPages = 1
+  do {
+    const data = await getFeeTypesApi({ page, size: 100, sort: 'code,asc' }, { signal })
+    rows.push(...(data.content ?? []))
+    totalPages = data.totalPages ?? 1
+    page += 1
+  } while (page < totalPages)
+  return rows
+}
+
+// Loads every fee with all of its prices, so the table can show the current price and its history.
+export async function getFeeCatalogApi({ signal } = {}) {
+  const feeTypes = await getAllFeeTypesApi({ signal })
+  const rates = await Promise.all(feeTypes.map((fee) => getAllFeeRatesApi(fee.id, { signal })))
+  return { feeTypes, ratesByFeeType: Object.fromEntries(feeTypes.map((fee, index) => [fee.id, rates[index]])) }
+}

@@ -174,3 +174,129 @@ export function defaultPeriod(periods) {
   const newestFirst = [...periods].sort((a, b) => b.startDate.localeCompare(a.startDate))
   return newestFirst.find((period) => period.status === 'ISSUED') ?? newestFirst[0] ?? null
 }
+
+// ---- Simplified monthly billing -------------------------------------------------------------
+// Accountants pick a month; the four period dates the backend needs are derived here.
+
+export const PERIOD_STATUS_LABEL = Object.freeze({ DRAFT: 'Đang soạn', ISSUED: 'Đã gửi cư dân', CLOSED: 'Đã khóa sổ' })
+
+export function periodStatusLabel(status) {
+  return PERIOD_STATUS_LABEL[status] ?? status ?? '—'
+}
+
+const pad2 = (value) => String(value).padStart(2, '0')
+
+export function addMonths(yyyyMm, count) {
+  const [year, month] = yyyyMm.split('-').map(Number)
+  const index = year * 12 + (month - 1) + count
+  return `${Math.floor(index / 12)}-${pad2((index % 12) + 1)}`
+}
+
+export function monthLabel(yyyyMm) {
+  const [year, month] = yyyyMm.split('-')
+  return `${month}/${year}`
+}
+
+export function periodCodeForMonth(yyyyMm) {
+  return `KY-${yyyyMm}`
+}
+
+// The snapshot is the day the bills are computed, kept inside the month, so a bill never claims
+// to count people or vehicles on a date whose data did not exist yet. The due date is the 10th
+// of the next month because the backend requires dueDate >= endDate.
+export function periodDefaultsForMonth(yyyyMm, today = todayInVietnam()) {
+  const [year, month] = yyyyMm.split('-').map(Number)
+  const startDate = `${yyyyMm}-01`
+  const endDate = `${yyyyMm}-${pad2(new Date(Date.UTC(year, month, 0)).getUTCDate())}`
+  const snapshotDate = today < startDate ? startDate : today > endDate ? endDate : today
+  return { code: periodCodeForMonth(yyyyMm), startDate, endDate, snapshotDate, dueDate: `${addMonths(yyyyMm, 1)}-10` }
+}
+
+export function periodMonth(period) {
+  return period.startDate.slice(0, 7)
+}
+
+export function findPeriodForMonth(periods, yyyyMm) {
+  return periods.find((period) => period.code === periodCodeForMonth(yyyyMm))
+    ?? periods.find((period) => periodMonth(period) === yyyyMm)
+    ?? null
+}
+
+export function previousPeriod(periods, period) {
+  return [...periods]
+    .filter((other) => other.id !== period.id && other.status !== 'DRAFT' && other.startDate < period.startDate)
+    .sort((a, b) => b.startDate.localeCompare(a.startDate))[0] ?? null
+}
+
+const liveInvoices = (invoices) => invoices.filter((invoice) => invoice.status !== 'CANCELLED')
+
+export function summarizeInvoices(invoices) {
+  const live = liveInvoices(invoices)
+  const sum = (field) => live.reduce((total, invoice) => total + toCents(invoice[field]), 0n)
+  const total = sum('totalAmount')
+  const paid = sum('paidAmount')
+  return {
+    count: live.length,
+    paidCount: live.filter((invoice) => invoice.status === 'PAID').length,
+    total,
+    paid,
+    outstanding: sum('outstandingAmount'),
+    percentPaid: total > 0n ? Number((paid * 100n) / total) : 0,
+  }
+}
+
+// One row per household; a household renting two apartments gets one row with both codes.
+export function summarizeByHousehold(invoices, { occupancies = [], apartments = [], households = [] } = {}) {
+  const occupancyById = new Map(occupancies.map((row) => [row.id, row]))
+  const apartmentById = new Map(apartments.map((row) => [row.id, row]))
+  const householdById = new Map(households.map((row) => [row.id, row]))
+  const rows = new Map()
+  for (const invoice of liveInvoices(invoices)) {
+    const occupancy = occupancyById.get(invoice.occupancyId)
+    const key = occupancy?.householdId ?? invoice.occupancyId
+    const row = rows.get(key) ?? {
+      key,
+      householdCode: householdById.get(occupancy?.householdId)?.code ?? null,
+      apartmentCodes: [],
+      total: 0n,
+      paid: 0n,
+      outstanding: 0n,
+    }
+    const apartmentCode = apartmentById.get(occupancy?.apartmentId)?.code
+    if (apartmentCode && !row.apartmentCodes.includes(apartmentCode)) row.apartmentCodes.push(apartmentCode)
+    row.total += toCents(invoice.totalAmount)
+    row.paid += toCents(invoice.paidAmount)
+    row.outstanding += toCents(invoice.outstandingAmount)
+    rows.set(key, row)
+  }
+  return [...rows.values()]
+    .map((row) => ({ ...row, settled: row.outstanding <= 0n }))
+    .sort((a, b) => Number(a.settled) - Number(b.settled) || String(a.apartmentCodes[0] ?? '').localeCompare(String(b.apartmentCodes[0] ?? '')))
+}
+
+export function rateActiveAt(rate, date) {
+  return rate.effectiveFrom <= date && (!rate.effectiveTo || rate.effectiveTo > date)
+}
+
+// Fee bases the backend generates on its own; ACTUAL (utility pass-through) needs imported bills.
+export const GENERATED_BASES = Object.freeze(['PER_M2', 'PER_APARTMENT', 'PER_PERSON', 'PER_VEHICLE'])
+
+const activeOn = (row, date, from = 'validFrom', to = 'validTo') => row[from] <= date && (!row[to] || row[to] > date)
+
+export function generationWarnings({ feeTypes = [], ratesByFeeType = {}, invoices = [], occupancies = [], snapshotDate }) {
+  const feesWithoutPrice = feeTypes.filter((fee) => fee.active && GENERATED_BASES.includes(fee.basis)
+    && !(ratesByFeeType[fee.id] ?? []).some((rate) => rateActiveAt(rate, snapshotDate)))
+  const billed = new Set(liveInvoices(invoices).map((invoice) => invoice.occupancyId))
+  const unbilledOccupancies = occupancies.filter((row) => activeOn(row, snapshotDate) && !billed.has(row.id))
+  return { feesWithoutPrice, unbilledOccupancies }
+}
+
+export function formatDay(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}/.test(value)) return '—'
+  const [year, month, day] = value.slice(0, 10).split('-')
+  return `${day}/${month}/${year}`
+}
+
+export function formatPrice(unitPrice) {
+  return formatMoney(toCents(unitPrice))
+}

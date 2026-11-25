@@ -28,6 +28,12 @@ export function createBillingPeriodApi(payload) {
   return api.post('/billing-periods', payload)
 }
 
+// Once invoices exist the backend accepts only dueDate and snapshotDate; moving the snapshot
+// clears the rate-priced lines so the next generation recomputes them.
+export function updateBillingPeriodApi(periodId, changes) {
+  return api.patch(`/billing-periods/${periodId}`, changes)
+}
+
 export function generateInvoicesApi(periodId, idempotencyKey = generateIdempotencyKey('gen-inv')) {
   return api.post(`/billing-periods/${periodId}/generate-invoices`, {}, {
     headers: {

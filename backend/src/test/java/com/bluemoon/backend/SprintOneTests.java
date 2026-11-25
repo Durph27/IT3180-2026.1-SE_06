@@ -241,7 +241,11 @@ class SprintOneTests {
         var fee=fee(true);String ratePath="/fee-types/"+id(fee)+"/rates";
         create(ratePath,map("unitPrice","0.00","effectiveFrom",start(),"effectiveTo",today().toString()));
         create(ratePath,map("unitPrice","10.00","effectiveFrom",today().toString()));
-        assertThat(call("POST",ratePath,map("unitPrice","20.00","effectiveFrom",today().toString()),admin,null).status()).isEqualTo(422);
+        // Re-entering an unused price on its own start day corrects it in place instead of overlapping.
+        var corrected=call("POST",ratePath,map("unitPrice","20.00","effectiveFrom",today().toString()),admin,null);
+        assertThat(corrected.status()).isEqualTo(201);assertThat(corrected.body().get("unitPrice")).isEqualTo("20.00");
+        assertThat(db.where("FeeRate","feeTypeId",id(fee))).hasSize(2);
+        assertThat(call("POST",ratePath,map("unitPrice","30.00","effectiveFrom",start()),admin,null).status()).isEqualTo(422);
         var bill=draft();var line=map("feeTypeId",id(fee),"description","Test","quantity","1.000","unitPrice","10.00");
         line(bill.invoice(),0,line,409);line(bill.invoice(),1,line,201);
         var hugeVersion=HttpRequest.newBuilder(URI.create("http://localhost:"+port+"/api/invoices/"+bill.invoice()+"/lines"))

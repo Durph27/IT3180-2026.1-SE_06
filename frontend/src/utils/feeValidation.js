@@ -151,3 +151,41 @@ export function validateFeeType({ code, name, basis, mandatory, active }, isEdit
     },
   }
 }
+
+// Plain-language basis descriptions for the simplified fee form.
+export const BASIS_SIMPLE = Object.freeze({
+  PER_M2: { label: 'Theo m²', unit: 'đ/m²', example: 'Căn 75 m² × 7.000 đ = 525.000 đ' },
+  PER_APARTMENT: { label: 'Theo căn', unit: 'đ/căn', example: 'Mỗi căn 100.000 đ' },
+  PER_PERSON: { label: 'Theo người', unit: 'đ/người', example: 'Hộ 4 người × 20.000 đ = 80.000 đ' },
+  PER_VEHICLE: { label: 'Theo xe', unit: 'đ/xe', example: 'Mỗi xe máy 70.000 đ, mỗi ô tô 1.200.000 đ' },
+  ACTUAL: { label: 'Thu hộ', unit: 'đ/hóa đơn', example: 'Theo hóa đơn điện, nước thực tế' },
+})
+
+export const SIMPLE_BASIS_CHOICES = Object.freeze(['PER_M2', 'PER_APARTMENT', 'PER_PERSON', 'PER_VEHICLE'])
+
+const FEE_CODE_MAX = 30
+
+// "Phí quản lý" → "PHI_QUAN_LY"; a suffix keeps it unique, as fee codes are unique in the backend.
+export function feeCodeFromName(name, existingCodes = []) {
+  const base = String(name ?? '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[đĐ]/g, 'D')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, FEE_CODE_MAX - 3)
+    .replace(/_+$/, '') || 'PHI'
+  const taken = new Set(existingCodes.map((code) => String(code).toUpperCase()))
+  if (!taken.has(base)) return base
+  for (let suffix = 2; ; suffix += 1) {
+    const candidate = `${base}_${suffix}`
+    if (!taken.has(candidate)) return candidate
+  }
+}
+
+// Accepts "7000", "7.000" or "7,000" (Vietnamese thousands separators) and returns "7000.00" or null.
+export function parseVndInput(value) {
+  const digits = String(value ?? '').trim().replace(/[.,\s]/g, '').replace(/đ|₫/gi, '')
+  if (!/^[1-9][0-9]{0,15}$/.test(digits)) return null
+  return `${digits}.00`
+}
