@@ -2,6 +2,19 @@ import { api } from './client'
 import { apiErrorMessage } from './errors'
 import { todayInVietnam } from '../residents/validation'
 
+async function fetchAll(path, params = {}, signal) {
+  const rows = []
+  let page = 0
+  let totalPages = 1
+  do {
+    const { data } = await api.get(path, { params: { ...params, page, size: 100 }, signal })
+    rows.push(...(data.content ?? []))
+    totalPages = data.totalPages ?? 1
+    page += 1
+  } while (page < totalPages)
+  return rows
+}
+
 export async function createResidentApi(values) {
   return (await api.post('/residents', values)).data
 }
@@ -20,12 +33,24 @@ export async function getHouseholdMembersApi(householdId, page = 0, signal) {
   })).data
 }
 
+export function getAllHouseholdMembersHistoryApi(householdId, signal) {
+  return fetchAll(`/households/${encodeURIComponent(householdId)}/members`, {}, signal)
+}
+
 export async function getResidentApi(id, signal) {
   return (await api.get(`/residents/${encodeURIComponent(id)}`, { signal })).data
 }
 
+export function getAllResidentsApi(signal) {
+  return fetchAll('/residents', { sort: 'fullName,asc' }, signal)
+}
+
 export async function getHouseholdsApi(page = 0, signal) {
   return (await api.get('/households', { params: { page, size: 20 }, signal })).data
+}
+
+export function getAllOccupanciesHistoryApi(signal) {
+  return fetchAll('/occupancies', {}, signal)
 }
 
 export async function searchResidentsApi({ q = '', householdId = '', page = 0, size = 50, signal } = {}) {

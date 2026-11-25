@@ -142,8 +142,8 @@ export default function BillingPeriodCreateModal({ isOpen, onClose, onSuccess })
         snapshotDate,
         dueDate,
       }
-      const response = await createBillingPeriodApi(payload)
-      onSuccess?.(response.data)
+      const created = await createBillingPeriodApi(payload)
+      onSuccess?.(created)
       onClose?.()
     } catch (err) {
       setServerError(apiErrorMessage(err, 'Không thể tạo kỳ thu mới. Vui lòng thử lại.'))

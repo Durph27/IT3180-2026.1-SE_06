@@ -17,6 +17,7 @@ import ResidenceChangeManagement from './components/ResidenceChangeManagement'
 import HomePage from './pages/HomePage'
 import FamilyPage from './pages/FamilyPage'
 import BillingPage from './pages/BillingPage'
+import PaymentPage from './pages/PaymentPage'
 import MaintenancePage from './pages/MaintenancePage'
 import RoleGuard from './components/RoleGuard'
 import ForbiddenView from './components/ForbiddenView'
@@ -32,6 +33,7 @@ const PAGE_TITLES = {
   [ROUTES.fees]: 'Biểu phí',
   [ROUTES.residents]: 'Nhân khẩu',
   [ROUTES.billing]: 'Khoản thu',
+  [ROUTES.payments]: 'Thu phí & Sổ quỹ',
   [ROUTES.family]: 'Hộ gia đình',
   [ROUTES.residenceChanges]: 'Tạm trú, tạm vắng',
   [ROUTES.maintenanceFunds]: 'Quỹ bảo trì',
@@ -142,6 +144,7 @@ function Workspace({ onLogout }) {
               <Route path={ROUTES.family} element={<FamilyPage onBack={goToOverview} />} />
               <Route path={ROUTES.residenceChanges} element={<ResidenceChangeManagement onBack={goToOverview} />} />
               <Route path={ROUTES.billing} element={<BillingPage onBack={goToOverview} />} />
+              <Route path={ROUTES.payments} element={<PaymentPage onBack={goToOverview} />} />
               <Route path={ROUTES.maintenanceFunds} element={<MaintenancePage onBack={goToOverview} />} />
               <Route path="*" element={<NotFoundView />} />
             </Routes>
