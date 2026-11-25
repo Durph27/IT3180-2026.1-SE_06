@@ -1,0 +1,395 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="26.0.0">
+  <diagram id="C01" name="AS-IMPLEMENTED — tổng thể">
+    <mxGraphModel page="1" pageWidth="1300" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="fe" value="«component»&#10;React Web UI" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="160" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="client" value="«component»&#10;Axios API client" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="470" y="160" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="be" value="«component»&#10;Spring Boot REST API" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="160" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="store" value="«component»&#10;JDBC persistence" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="450" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="«component»&#10;PostgreSQL schema" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="750" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-0" edge="1" parent="1" source="fe" target="client" value="gọi API" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-1" edge="1" parent="1" source="client" target="be" value="REST /api • Bearer" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-2" edge="1" parent="1" source="be" target="store" value="transaction + JdbcTemplate" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-3" edge="1" parent="1" source="store" target="db" value="PostgreSQL JDBC" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="C02" name="AS-IMPLEMENTED — frontend">
+    <mxGraphModel page="1" pageWidth="1300" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="routes" value="«component»&#10;Router và Workspace" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="60" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="pages" value="«component»&#10;Màn hình cư trú và thu phí" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="470" y="60" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="auth" value="«component»&#10;AuthProvider và UI policy" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="370" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="features" value="«component»&#10;Forms, dialogs, validation" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="60" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="apis" value="«component»&#10;Feature API modules" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="470" y="370" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="client" value="«component»&#10;Axios client + token/interceptors" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="370" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="rest" value="«component»&#10;Spring REST API" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="720" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-0" edge="1" parent="1" source="routes" target="pages" value="chọn route" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-1" edge="1" parent="1" source="routes" target="auth" value="session context" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-2" edge="1" parent="1" source="pages" target="features" value="render forms" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-3" edge="1" parent="1" source="pages" target="apis" value="feature calls" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-4" edge="1" parent="1" source="auth" target="client" value="auth API" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="620" />
+              <mxPoint x="1050" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dep-5" edge="1" parent="1" source="apis" target="client" value="import api" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-6" edge="1" parent="1" source="client" target="rest" value="JSON + Bearer" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="C03" name="AS-IMPLEMENTED — backend">
+    <mxGraphModel page="1" pageWidth="1300" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="security" value="«component»&#10;Security filter + Identity" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="70" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="controllers" value="«component»&#10;REST controllers" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="70" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dispatch" value="«component»&#10;SprintApi • Contract&#10;transaction/idempotency/audit" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="350" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="handlers" value="«component»&#10;FeatureHandler adapters&#10;Account / Residence / Billing&#10;Payment / Maintenance" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="640" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="«component»&#10;DomainStore / ResourceViews" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="640" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-0" edge="1" parent="1" source="controllers" target="dispatch" value="execute route" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-1" edge="1" parent="1" source="dispatch" target="security" value="reload identity/permission" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-2" edge="1" parent="1" source="dispatch" target="handlers" value="dispatch mutation" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-3" edge="1" parent="1" source="dispatch" target="db" value="GET list/get and audit" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-4" edge="1" parent="1" source="handlers" target="db" value="services use persistence" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="C04" name="AS-IMPLEMENTED — cư trú và tài khoản">
+    <mxGraphModel page="1" pageWidth="1300" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="registration" value="«component»&#10;RegistrationService" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="100" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="residence" value="«component»&#10;ResidenceService&#10;ResidenceChangeService" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="490" y="100" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="identity" value="«component»&#10;Identity / Account / RBAC" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="430" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="views" value="«component»&#10;DomainStore / ResourceViews" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="490" y="430" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-0" edge="1" parent="1" source="registration" target="residence" value="link resident + member" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-1" edge="1" parent="1" source="registration" target="identity" value="hash password" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-2" edge="1" parent="1" source="residence" target="views" value="ownership + temporal records" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-3" edge="1" parent="1" source="identity" target="views" value="users/roles/sessions" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="C05" name="AS-IMPLEMENTED — tài chính">
+    <mxGraphModel page="1" pageWidth="1300" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="billing" value="«component»&#10;BillingService" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="100" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="maintenance" value="«component»&#10;MaintenanceService" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="100" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="payment" value="«component»&#10;PaymentService / Handler" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="450" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="pdf" value="«component»&#10;ReceiptPdf / PDFBox" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="450" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="views" value="«component»&#10;DomainStore / ResourceViews" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="450" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-0" edge="1" parent="1" source="billing" target="views" value="fee/rate/period/invoice" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-1" edge="1" parent="1" source="maintenance" target="views" value="fund/allocation/expense" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-2" edge="1" parent="1" source="payment" target="views" value="payment/receipt/balance" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="730" />
+              <mxPoint x="1050" y="730" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dep-3" edge="1" parent="1" source="payment" target="pdf" value="render snapshot PDF" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="C06" name="TO-BE — tổng thể logic (ĐỀ XUẤT)">
+    <mxGraphModel page="1" pageWidth="1300" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ui" value="«component»&#10;Web UI • đầy đủ mục tiêu&#10;cư dân và quản lý" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="60" y="120" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="«component»&#10;REST API • phạm vi đích" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="500" y="120" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="domain" value="«component»&#10;Nghiệp vụ cư trú / tài chính&#10;dịch vụ / quản trị" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="500" y="430" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="data" value="«component»&#10;Persistence và PostgreSQL" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="500" y="740" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-0" edge="1" parent="1" source="ui" target="api" value="yêu cầu chức năng" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-1" edge="1" parent="1" source="api" target="domain" value="hợp đồng đích chưa chốt" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-2" edge="1" parent="1" source="domain" target="data" value="lưu trữ theo trách nhiệm" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="proposal-note" value="TO-BE — ĐỀ XUẤT phân rã logic; chưa có ADR phê duyệt kiến trúc/interface.&#10;Không biểu thị thành phần đã triển khai." vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;text;strokeColor=none;fillColor=none;">
+          <mxGeometry x="50" y="900" width="1150" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="C07" name="TO-BE — frontend logic (ĐỀ XUẤT)">
+    <mxGraphModel page="1" pageWidth="1300" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="shell" value="«component»&#10;Routing / session / API client" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="70" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="res" value="«component»&#10;Cư trú và báo cáo nhân khẩu" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="70" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="fin" value="«component»&#10;Thu tiền, biên lai, quỹ, xe và thu hộ" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="350" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="services" value="«component»&#10;Thông báo và phản ánh" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="650" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" value="«component»&#10;RBAC, nhật ký và vận hành" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="350" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-0" edge="1" parent="1" source="shell" target="res" value="route đích" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-1" edge="1" parent="1" source="shell" target="fin" value="route đích" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-2" edge="1" parent="1" source="shell" target="services" value="route đích" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-3" edge="1" parent="1" source="shell" target="admin" value="route đích" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="proposal-note" value="TO-BE — ĐỀ XUẤT phân rã logic; chưa có ADR phê duyệt kiến trúc/interface.&#10;Không biểu thị thành phần đã triển khai." vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;text;strokeColor=none;fillColor=none;">
+          <mxGeometry x="50" y="900" width="1150" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="C08" name="TO-BE — backend logic (ĐỀ XUẤT)">
+    <mxGraphModel page="1" pageWidth="1300" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="api" value="«component»&#10;REST + security boundary" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="70" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="existing" value="«component»&#10;Nghiệp vụ đã có • hoàn thiện end-to-end" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="70" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="utilities" value="«component»&#10;Xe / hóa đơn dịch vụ / đối soát" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="350" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="services" value="«component»&#10;Thông báo / nhắc phí / phản ánh" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="650" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="reports" value="«component»&#10;Báo cáo / truy vấn audit" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="70" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="persist" value="«component»&#10;Persistence contracts" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="900" y="650" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-0" edge="1" parent="1" source="api" target="existing" value="hợp đồng hiện có" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-1" edge="1" parent="1" source="api" target="utilities" value="hợp đồng đích" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-2" edge="1" parent="1" source="api" target="services" value="hợp đồng đích" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-3" edge="1" parent="1" source="api" target="reports" value="hợp đồng đích" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="25" />
+              <mxPoint x="1050" y="25" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dep-4" edge="1" parent="1" source="utilities" target="persist" value="dữ liệu v2.0" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-5" edge="1" parent="1" source="services" target="persist" value="schema cần thiết kế" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-6" edge="1" parent="1" source="reports" target="persist" value="query/export" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="proposal-note" value="TO-BE — ĐỀ XUẤT phân rã logic; chưa có ADR phê duyệt kiến trúc/interface.&#10;Không biểu thị thành phần đã triển khai." vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;text;strokeColor=none;fillColor=none;">
+          <mxGeometry x="50" y="900" width="1150" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="C09" name="AS-IMPLEMENTED — hợp đồng interface">
+    <mxGraphModel page="1" pageWidth="1200" pageHeight="650" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="consumer" value="«component»&#10;Axios client" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="200" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="provider" value="«component»&#10;Spring REST controllers" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="850" y="200" width="300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="required" value="REST cần dùng" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=requiredInterface;flipH=1;verticalLabelPosition=bottom;labelWidth=120;">
+          <mxGeometry x="440" y="240" width="25" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="provided" value="REST cung cấp" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;ellipse;verticalLabelPosition=bottom;labelWidth=120;">
+          <mxGeometry x="700" y="240" width="25" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="requires" edge="1" parent="1" source="consumer" target="required" value="" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="provides" edge="1" parent="1" source="provider" target="provided" value="" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assembly" edge="1" parent="1" source="required" target="provided" value="assembly: /api • JSON" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="Provided/required interface là hợp đồng phần mềm, không là TCP port. Backend kiểm permission ở server.&#10;Catalog OpenAPI có endpoint chưa implement; assembly chỉ biểu thị những binding thực sự có." vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;text;strokeColor=none;fillColor=none;">
+          <mxGeometry x="50" y="450" width="1100" height="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="C10" name="AS-IMPLEMENTED — health-check và công cụ vận hành">
+    <mxGraphModel page="1" pageWidth="1300" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ui" value="«component»&#10;Kiểm tra kết nối trên web" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="100" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="probe" value="«component»&#10;Health HTTP / database probe" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="100" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="«component»&#10;PostgreSQL connection" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="910" y="100" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="backup" value="«component»&#10;backup_restore.py" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="50" y="480" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="pgtools" value="«component»&#10;PostgreSQL client tools&#10;required runtime dependency" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=component;">
+          <mxGeometry x="480" y="480" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-0" edge="1" parent="1" source="ui" target="probe" value="GET /api/health" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-1" edge="1" parent="1" source="probe" target="db" value="JdbcTemplate SELECT 1" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-2" edge="1" parent="1" source="backup" target="pgtools" value="subprocess pg_dump/restore/psql" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-3" edge="1" parent="1" source="pgtools" target="db" value="kết nối theo DB_HOST/PORT" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

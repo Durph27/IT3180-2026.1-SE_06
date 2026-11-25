@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="26.0.0">
+  <diagram id="D01" name="AS-IMPLEMENTED — cấu hình phát triển local">
+    <mxGraphModel page="1" pageWidth="1400" pageHeight="1000" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="workstation" value="«device»&#10;Máy phát triển (vai trò cấu hình)" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;verticalAlign=top;spacingTop=30;container=1;">
+          <mxGeometry x="30" y="60" width="1340" height="850" as="geometry" />
+        </mxCell>
+        <mxCell id="browser" value="«executionEnvironment»&#10;Trình duyệt&#10;React bundle" vertex="1" parent="workstation" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="35" y="100" width="300" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="vite" value="«executionEnvironment»&#10;Node.js / Vite dev server&#10;HTTP localhost:5173" vertex="1" parent="workstation" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="450" y="100" width="360" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="jvm" value="«executionEnvironment»&#10;JVM Java 21 / Spring Boot&#10;HTTP :8080 mặc định" vertex="1" parent="workstation" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="450" y="430" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="pg" value="«executionEnvironment»&#10;PostgreSQL&#10;localhost:5432 mặc định" vertex="1" parent="workstation" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="940" y="430" width="340" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="jar" value="«artifact»&#10;Backend application classes/JAR" vertex="1" parent="workstation" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=note;">
+          <mxGeometry x="465" y="635" width="330" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="frontend-artifact" value="«artifact»&#10;React HTML / JS / CSS bundle" vertex="1" parent="workstation" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=note;">
+          <mxGeometry x="35" y="430" width="300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="browser-vite" edge="1" parent="1" source="browser" target="vite" value="HTTP :5173" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vite-back" edge="1" parent="1" source="vite" target="jvm" value="proxy /api → HTTP :8080" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jdbc" edge="1" parent="1" source="jvm" target="pg" value="PostgreSQL JDBC :5432" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="deploy-jar" edge="1" parent="1" source="jar" target="jvm" value="«deploy»" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="deploy-frontend" edge="1" parent="1" source="frontend-artifact" target="browser" value="«deploy»" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="Cấu hình mặc định được xác minh từ file; không chứng minh các process đang chạy.&#10;DB_HOST/DB_PORT/SERVER_PORT/BACKEND_URL có thể ghi đè; không đọc hoặc xuất secrets .env." vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;text;strokeColor=none;fillColor=none;">
+          <mxGeometry x="50" y="920" width="1300" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="D02" name="AS-IMPLEMENTED — môi trường CI khai báo">
+    <mxGraphModel page="1" pageWidth="1400" pageHeight="950" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="runner" value="«node»&#10;GitHub Actions • ubuntu-latest&#10;Job backend" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;verticalAlign=top;spacingTop=30;container=1;">
+          <mxGeometry x="30" y="70" width="850" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="java" value="«executionEnvironment»&#10;Temurin JDK 21 + Maven wrapper" vertex="1" parent="runner" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="50" y="100" width="340" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="container" value="«executionEnvironment»&#10;CI service container&#10;postgres:16-alpine" vertex="1" parent="runner" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="450" y="100" width="340" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="test" value="«artifact»&#10;Tests / Spring Boot application" vertex="1" parent="runner" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=note;">
+          <mxGeometry x="60" y="390" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="jar" value="«artifact»&#10;Spring Boot JAR sau package" vertex="1" parent="runner" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=note;">
+          <mxGeometry x="450" y="390" width="330" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="fejob" value="«node»&#10;Job frontend độc lập&#10;Node.js 22 • npm ci/test/build&#10;React dist/" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="980" y="170" width="350" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="ci-jdbc" edge="1" parent="1" source="java" target="container" value="JDBC localhost:5432&#10;port mapping 5432:5432" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="test-deploy" edge="1" parent="1" source="test" target="java" value="«deploy»" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="Chỉ mô tả workflow khai báo, không chứng nhận một CI run đã thành công.&#10;Container PostgreSQL chỉ có bằng chứng trong CI; không suy ra Docker production. Không có bước CD/deploy trong workflow." vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;text;strokeColor=none;fillColor=none;">
+          <mxGeometry x="50" y="820" width="1280" height="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="D03" name="TO-BE — triển khai web logic theo Charter (ĐỀ XUẤT)">
+    <mxGraphModel page="1" pageWidth="1400" pageHeight="950" grid="1" gridSize="10" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="client" value="«device»&#10;Máy người dùng&#10;«executionEnvironment» Trình duyệt" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="30" y="100" width="330" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="web" value="«executionEnvironment»&#10;Vai trò phục vụ React tĩnh&#10;Công nghệ/host chưa chốt" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="510" y="100" width="370" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="backend" value="«executionEnvironment»&#10;Spring Boot / JVM&#10;Host và port production chưa chốt" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="510" y="450" width="370" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="«executionEnvironment»&#10;PostgreSQL tập trung&#10;Host và port production chưa chốt" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;shape=cube;size=15;">
+          <mxGeometry x="1000" y="450" width="350" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="https" edge="1" parent="1" source="client" target="web" value="HTTPS theo Charter" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api" edge="1" parent="1" source="web" target="backend" value="API routing chưa chốt" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-path" edge="1" parent="1" source="backend" target="db" value="JDBC; cấu hình production chưa chốt" style="html=1;rounded=1;orthogonalLoop=1;jettySize=auto;endArrow=open;strokeColor=#222222;fontColor=#222222;fontSize=12;labelBackgroundColor=#ffffff;endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="ĐỀ XUẤT LOGIC, không là hạ tầng đang triển khai. Có thể đồng trú hoặc tách host; chưa chọn cloud, web server, domain, IP, TLS terminator, LB hay container.&#10;API routing là trách nhiệm đích cần quyết định (proxy hay browser gọi trực tiếp), không khẳng định web server đang proxy." vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#222222;strokeColor=#222222;strokeWidth=1.2;fillColor=#FFFCCC;shadow=0;text;strokeColor=none;fillColor=none;">
+          <mxGeometry x="40" y="760" width="1300" height="110" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
