@@ -8,6 +8,7 @@ export default function ResidentTable({
   onEdit,
   onViewHistory,
   showResidenceMeta = false,
+  caption,
 }) {
   const { hasPermission, hasRole } = useAuth()
   const buildingWide = ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUTHORITY'].some(hasRole)
@@ -35,9 +36,9 @@ export default function ResidentTable({
     <div className="resident-table-scroll">
       <table className="resident-table">
         <caption>
-          {showResidenceMeta
+          {caption || (showResidenceMeta
             ? 'Danh sách rà soát nhân khẩu & trạng thái lưu trú'
-            : 'Danh sách nhân khẩu của hộ đang chọn'}
+            : 'Danh sách nhân khẩu của hộ đang chọn')}
         </caption>
         <thead>
           <tr>

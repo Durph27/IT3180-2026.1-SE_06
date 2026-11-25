@@ -4,11 +4,10 @@ import {
   getAllHouseholdMembersHistoryApi,
   getAllOccupanciesHistoryApi,
   getAllResidentsApi,
-  getHouseholdsApi,
   getHouseholdMembersApi,
   getResidentApi,
 } from '../api/residents'
-import { getAllHouseholdsApi } from '../api/households'
+import { getActiveOccupanciesApi, getAllHouseholdsApi } from '../api/households'
 import { getAllApartmentsApi, getAllBuildingsApi } from '../api/apartments'
 import { getAllResidenceChangesApi } from '../api/residenceChanges'
 import { apiErrorMessage } from '../api/errors'
@@ -25,6 +24,7 @@ import {
 import ResidentTable from './ResidentTable'
 import ResidentFormModal from './ResidentFormModal'
 import ResidentTimelineModal from './ResidentTimelineModal'
+import ResidentSearch from './ResidentSearch'
 import ForbiddenView from './ForbiddenView'
 import PageHeader from './PageHeader'
 import FilterBar, { FilterField } from './FilterBar'
@@ -52,13 +52,15 @@ export default function ResidentManagement() {
 
 function Management({ buildingWide }) {
   const { householdIds, hasPermission } = useAuth()
-  const [activeTab, setActiveTab] = useState('households') // 'households' | 'directory'
+  const [activeTab, setActiveTab] = useState('households')
   const [timelineTarget, setTimelineTarget] = useState(null) // { resident, householdId, preloaded }
 
   // --- Tab 1: Per-household management state (preserves household-scoped CRUD flow) ---
   const [householdResult, setHouseholdResult] = useState(null)
   const [selected, setSelected] = useState('')
-  const [householdPage, setHouseholdPage] = useState(0)
+  const [selectedBuilding, setSelectedBuilding] = useState('')
+  const [selectedFloor, setSelectedFloor] = useState('')
+  const [selectedApartment, setSelectedApartment] = useState('')
   const [householdRetry, setHouseholdRetry] = useState(0)
   const [result, setResult] = useState({ residents: [], totalPages: 0, householdId: '', page: -1 })
   const [page, setPage] = useState(0)
@@ -66,28 +68,57 @@ function Management({ buildingWide }) {
   const [notice, setNotice] = useState('')
   const [modal, setModal] = useState(null)
 
-  const householdRequestKey = `${householdPage}-${householdRetry}`
+  const householdRequestKey = `${householdRetry}`
   const householdCurrent = householdResult?.key === householdRequestKey
   const householdLoading = buildingWide && !householdCurrent
   const householdError = householdCurrent ? householdResult.error : ''
-  const householdPages = householdCurrent ? householdResult.totalPages : 0
-  const options = buildingWide
+  const canFilterLocation = buildingWide && hasPermission('building.read') &&
+    hasPermission('apartment.read') && hasPermission('occupancy.read')
+  const locationOccupancies = householdCurrent ? householdResult.occupancies || [] : []
+  const occupiedApartmentIds = new Set(locationOccupancies.map((o) => o.apartmentId))
+  const locationApartments = householdCurrent
+    ? (householdResult.apartments || []).filter((a) => occupiedApartmentIds.has(a.id)) : []
+  const occupiedBuildingIds = new Set(locationApartments.map((a) => a.buildingId))
+  const locationBuildings = householdCurrent
+    ? (householdResult.buildings || []).filter((b) => occupiedBuildingIds.has(b.id)) : []
+  const buildingApartments = locationApartments.filter((a) => a.buildingId === selectedBuilding)
+  const floors = [...new Set(buildingApartments.map((a) => a.floorNo))].sort((a, b) => a - b)
+  const floorApartments = buildingApartments.filter((a) => String(a.floorNo) === selectedFloor)
+  const matchingApartmentIds = new Set(locationApartments.filter((a) =>
+    (!selectedBuilding || a.buildingId === selectedBuilding) &&
+    (!selectedFloor || String(a.floorNo) === selectedFloor) &&
+    (!selectedApartment || a.id === selectedApartment)
+  ).map((a) => a.id))
+  const matchingHouseholdIds = new Set(locationOccupancies
+    .filter((o) => matchingApartmentIds.has(o.apartmentId)).map((o) => o.householdId))
+  const allOptions = buildingWide
     ? householdCurrent
       ? householdResult.content
       : []
     : householdIds.map((id) => ({ id, code: id }))
+  const options = canFilterLocation
+    ? allOptions.filter((h) => !h.closedAt && matchingHouseholdIds.has(h.id))
+    : allOptions
   const householdId = options.some((item) => item.id === selected) ? selected : options[0]?.id || ''
 
   useEffect(() => {
     if (!buildingWide) return undefined
     const controller = new AbortController()
-    getHouseholdsApi(householdPage, controller.signal)
-      .then((data) => {
+    const signal = controller.signal
+    Promise.all([
+      getAllHouseholdsApi(signal),
+      canFilterLocation ? getAllBuildingsApi({ signal }) : [],
+      canFilterLocation ? getAllApartmentsApi({ signal }) : [],
+      canFilterLocation ? getActiveOccupanciesApi(todayInVietnam(), signal) : [],
+    ])
+      .then(([data, buildings, apartments, occupancies]) => {
         if (!controller.signal.aborted) {
           setHouseholdResult({
             key: householdRequestKey,
-            content: data.content,
-            totalPages: data.totalPages,
+            content: data,
+            buildings,
+            apartments,
+            occupancies,
             error: '',
           })
         }
@@ -97,13 +128,12 @@ function Management({ buildingWide }) {
           setHouseholdResult({
             key: householdRequestKey,
             content: [],
-            totalPages: 0,
             error: apiErrorMessage(cause, 'Không tải được hộ gia đình. Vui lòng thử lại.'),
           })
         }
       })
     return () => controller.abort()
-  }, [buildingWide, householdPage, householdRequestKey])
+  }, [buildingWide, canFilterLocation, householdRequestKey])
 
   useEffect(() => {
     if (!householdId) return undefined
@@ -360,6 +390,15 @@ function Management({ buildingWide }) {
             >
               Theo hộ gia đình
             </button>
+            {[...(canReadIdentity ? [{ key: 'identity', label: 'Theo CCCD' }] : []), { key: 'name', label: 'Theo Họ và tên' }].map((tab) => (
+              <button key={tab.key} type="button" role="tab"
+                id={`tab-resident-${tab.key}`} aria-selected={activeTab === tab.key}
+                aria-controls={`panel-resident-${tab.key}`}
+                className={`border-0 border-b-2 border-solid px-4 py-2.5 text-sm font-semibold transition-colors cursor-pointer ${activeTab === tab.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900'}`}
+                onClick={() => setActiveTab(tab.key)}>
+                {tab.label}
+              </button>
+            ))}
             <button
               type="button"
               role="tab"
@@ -382,8 +421,47 @@ function Management({ buildingWide }) {
       {activeTab === 'households' && (
         <div id="panel-resident-households" role="tabpanel" aria-labelledby="tab-resident-households" className="flex flex-col gap-6">
           <FilterBar>
-            <div className="household-select-field">
-              <label htmlFor="resident-household">Hộ gia đình</label>
+            {canFilterLocation && (
+              <>
+                <FilterField id="resident-building" label="Tòa nhà">
+                  <select id="resident-building" className="form-control block min-h-11 w-full"
+                    disabled={householdLoading} value={selectedBuilding}
+                    onChange={(event) => {
+                      setSelectedBuilding(event.target.value)
+                      setSelectedFloor('')
+                      setSelectedApartment('')
+                      changeHousehold('')
+                    }}>
+                    <option value="">Tất cả tòa nhà</option>
+                    {locationBuildings.map((b) => <option key={b.id} value={b.id}>{b.code} — {b.name}</option>)}
+                  </select>
+                </FilterField>
+                <FilterField id="resident-floor" label="Tầng">
+                  <select id="resident-floor" className="form-control block min-h-11 w-full"
+                    disabled={householdLoading || !selectedBuilding} value={selectedFloor}
+                    onChange={(event) => {
+                      setSelectedFloor(event.target.value)
+                      setSelectedApartment('')
+                      changeHousehold('')
+                    }}>
+                    <option value="">{selectedBuilding ? 'Tất cả tầng' : 'Chọn tòa nhà trước'}</option>
+                    {floors.map((floor) => <option key={floor} value={String(floor)}>Tầng {floor}</option>)}
+                  </select>
+                </FilterField>
+                <FilterField id="resident-apartment" label="Căn hộ">
+                  <select id="resident-apartment" className="form-control block min-h-11 w-full"
+                    disabled={householdLoading || !selectedBuilding || !selectedFloor} value={selectedApartment}
+                    onChange={(event) => {
+                      setSelectedApartment(event.target.value)
+                      changeHousehold('')
+                    }}>
+                    <option value="">{selectedFloor ? 'Tất cả căn hộ' : 'Chọn tầng trước'}</option>
+                    {floorApartments.map((a) => <option key={a.id} value={a.id}>{a.code}</option>)}
+                  </select>
+                </FilterField>
+              </>
+            )}
+            <FilterField id="resident-household" label="Hộ gia đình">
               <select
                 id="resident-household"
                 className="form-control block min-h-11 w-full"
@@ -392,7 +470,7 @@ function Management({ buildingWide }) {
                 onChange={(event) => changeHousehold(event.target.value)}
               >
                 {!options.length && (
-                  <option value="">{householdLoading ? 'Đang tải…' : 'Chưa có hộ gia đình'}</option>
+                  <option value="">{householdLoading ? 'Đang tải…' : 'Không có hộ gia đình phù hợp'}</option>
                 )}
                 {options.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -401,36 +479,7 @@ function Management({ buildingWide }) {
                   </option>
                 ))}
               </select>
-            </div>
-            {buildingWide && householdPages > 1 && (
-              <nav className="household-pagination" aria-label="Phân trang hộ gia đình">
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  disabled={householdLoading || householdPage === 0}
-                  onClick={() => {
-                    changeHousehold('')
-                    setHouseholdPage(householdPage - 1)
-                  }}
-                >
-                  Hộ trước
-                </button>
-                <span>
-                  Trang hộ {householdPage + 1}/{householdPages}
-                </span>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  disabled={householdLoading || householdPage + 1 >= householdPages}
-                  onClick={() => {
-                    changeHousehold('')
-                    setHouseholdPage(householdPage + 1)
-                  }}
-                >
-                  Hộ tiếp
-                </button>
-              </nav>
-            )}
+            </FilterField>
           </FilterBar>
 
           {householdError && (
@@ -509,6 +558,13 @@ function Management({ buildingWide }) {
               )}
             </>
           )}
+        </div>
+      )}
+
+      {buildingWide && (activeTab === 'name' || (activeTab === 'identity' && canReadIdentity)) && (
+        <div id={`panel-resident-${activeTab}`} role="tabpanel" aria-labelledby={`tab-resident-${activeTab}`}>
+          <ResidentSearch key={activeTab} field={activeTab === 'identity' ? 'identityNo' : 'fullName'}
+            onViewHistory={(resident) => setTimelineTarget({ resident, householdId: '', preloaded: null })} />
         </div>
       )}
 

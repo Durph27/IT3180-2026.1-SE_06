@@ -250,6 +250,122 @@ test('management joins member and resident resources and paginates current membe
   await act(async () => [...document.querySelectorAll('button')].find((b) => b.textContent === 'Tiếp').click())
   assert.equal(requests.filter((r) => r.url.endsWith('/members')).at(-1).params.page, 1)
 })
+test('household selector includes later pages and can select a B2 household', async () => {
+  adapter((config) => {
+    if (config.url === '/households') {
+      const household = config.params.page === 0
+        ? { id: 'hh-b1', code: 'HK-B1-0102' }
+        : { id: 'hh-b2', code: 'HK-B2-2002' }
+      return response(config, { content: [household], totalPages: 2 })
+    }
+    if (config.url.endsWith('/members')) {
+      return response(config, { content: [{ id: 'member', residentId: config.url.includes('hh-b2') ? 'b2' : 'b1', relationship: 'CON' }], totalPages: 1 })
+    }
+    return response(config, { ...valid, fullName: config.url.endsWith('/b2') ? 'Cư dân B2' : 'Cư dân B1' })
+  })
+  await mount(Management)
+  const select = document.getElementById('resident-household')
+  assert.deepEqual(Array.from(select.options, (option) => option.textContent), ['HK-B1-0102', 'HK-B2-2002'])
+  assert.deepEqual(requests.filter((r) => r.url === '/households').map((r) => r.params.page), [0, 1])
+  await act(async () => {
+    select.value = 'hh-b2'
+    select.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+  assert.equal(select.value, 'hh-b2')
+  assert.match(document.body.textContent, /Cư dân B2/)
+  assert.ok(!document.body.textContent.includes('Cư dân B1'))
+})
+
+test('location filters cascade by building, floor and apartment using current occupancy', async () => {
+  grants.push('building.read', 'apartment.read', 'occupancy.read')
+  const households = ['h1', 'h2', 'h3', 'unoccupied'].map((id) => ({ id, code: id }))
+  const apartments = [
+    { id: 'a1', code: 'B1-0102', buildingId: 'b1', floorNo: 1 },
+    { id: 'a2', code: 'B2-0202', buildingId: 'b2', floorNo: 2 },
+    { id: 'a3', code: 'B2-0302', buildingId: 'b2', floorNo: 3 },
+    { id: 'empty', code: 'B2-0303', buildingId: 'b2', floorNo: 3 },
+  ]
+  adapter((config) => {
+    if (config.url === '/households') return response(config, { content: households, totalPages: 1 })
+    if (config.url === '/buildings') return response(config, { content: [{ id: 'b1', code: 'B1', name: 'Tòa B1' }, { id: 'b2', code: 'B2', name: 'Tòa B2' }], totalPages: 1 })
+    if (config.url === '/apartments') return response(config, { content: apartments, totalPages: 1 })
+    if (config.url === '/occupancies') return response(config, { content: households.slice(0, 3).map((h, i) => ({ householdId: h.id, apartmentId: `a${i + 1}` })), totalPages: 1 })
+    return response(config, { content: [], totalPages: 0 })
+  })
+  await mount(Management)
+  async function choose(id, value) {
+    await act(async () => {
+      const select = document.getElementById(id)
+      select.value = value
+      select.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+  }
+  const householdValues = () => Array.from(document.getElementById('resident-household').options, (o) => o.value)
+  assert.deepEqual(householdValues(), ['h1', 'h2', 'h3'])
+  assert.equal(document.getElementById('resident-floor').disabled, true)
+  assert.equal(document.getElementById('resident-apartment').disabled, true)
+  assert.equal(requests.find((r) => r.url === '/occupancies').params.at, todayInVietnam())
+  await choose('resident-building', 'b2')
+  assert.deepEqual(householdValues(), ['h2', 'h3'])
+  assert.deepEqual(Array.from(document.getElementById('resident-floor').options, (o) => o.value), ['', '2', '3'])
+  await choose('resident-floor', '3')
+  assert.deepEqual(householdValues(), ['h3'])
+  await choose('resident-apartment', 'a3')
+  assert.equal(document.getElementById('resident-household').value, 'h3')
+  assert.ok(requests.some((r) => r.url === '/households/h3/members'))
+  assert.ok(!Array.from(document.getElementById('resident-apartment').options, (o) => o.value).includes('empty'))
+  await choose('resident-building', 'b1')
+  assert.equal(document.getElementById('resident-floor').value, '')
+  assert.equal(document.getElementById('resident-apartment').value, '')
+  assert.deepEqual(householdValues(), ['h1'])
+  await choose('resident-building', '')
+  assert.deepEqual(householdValues(), ['h1', 'h2', 'h3'])
+})
+
+test('resident search tabs match only CCCD or name and include later resident pages', async () => {
+  adapter((config) => {
+    if (config.url === '/residents') return response(config, {
+      content: config.params.page === 0
+        ? [{ ...valid, id: 'r1', fullName: 'Nguyễn Văn An', identityNo: '001234567890' }]
+        : [{ ...valid, id: 'r2', fullName: 'Nguyễn Thị Bình', identityNo: '999888777666' }], totalPages: 2,
+    })
+    return response(config, { content: [], totalPages: 0 })
+  })
+  await mount(Management)
+  async function switchTab(label) {
+    await act(async () => [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent === label).click())
+  }
+  async function search(value) {
+    await act(async () => {
+      const input = document.getElementById('resident-search-value')
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, value)
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+  }
+  await switchTab('Theo CCCD')
+  await search('999888777666')
+  assert.match(document.body.textContent, /Nguyễn Thị Bình/)
+  assert.ok(!document.body.textContent.includes('Nguyễn Văn An'))
+  await search('Nguyễn')
+  assert.match(document.body.textContent, /Không tìm thấy nhân khẩu phù hợp/)
+  await switchTab('Theo Họ và tên')
+  await search(' NGUYEN  VAN AN ')
+  assert.match(document.body.textContent, /Nguyễn Văn An/)
+  assert.ok(!document.body.textContent.includes('Nguyễn Thị Bình'))
+  await search('Nguyễn Thị Bình')
+  assert.match(document.body.textContent, /Nguyễn Thị Bình/)
+  await search('999888777666')
+  assert.match(document.body.textContent, /Không tìm thấy nhân khẩu phù hợp/)
+})
+
+test('resident search hides CCCD mode without identity permission', async () => {
+  grants = grants.filter((p) => p !== 'resident.identity.read')
+  adapter((config) => response(config, { content: [], totalPages: 0 }))
+  await mount(Management)
+  assert.equal(document.getElementById('tab-resident-identity'), null)
+  assert.ok(document.getElementById('tab-resident-name'))
+})
+
 test('switching households ignores a delayed previous response', async () => {
   let release
   adapter(async (config) => {
