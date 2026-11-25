@@ -175,7 +175,7 @@ test('BillingPage permissions: Resident and unauthorized roles cannot trigger ba
   const accountantHtml = render(auth('ACCOUNTANT'), BillingPage, { onBack() {} })
   assert.match(accountantHtml, /toàn chung cư/)
   // Action button appears for accountant
-  assert.match(accountantHtml, /Tính phí toàn tòa nhà/)
+  assert.match(accountantHtml, /Tạo kỳ thu mới/)
   assert.match(accountantHtml, /Làm mới/)
 })
 
