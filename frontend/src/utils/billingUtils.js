@@ -398,8 +398,8 @@ export function reconcileInvoices(invoices = [], period = null, today = todayInV
 
     if (lineDiff !== 0n || balanceDiff !== 0n || invTotal < 0n || invPaid < 0n || invOutstanding < 0n) {
       const reasons = []
-      if (lineDiff !== 0n) reasons.push(`Tổng dòng phí (${formatMoney(lineSum)}) không khớp tổng bảng kê (${formatMoney(invTotal)})`)
-      if (balanceDiff !== 0n) reasons.push(`Đã thu (${formatMoney(invPaid)}) + Còn nợ (${formatMoney(invOutstanding)}) không khớp tổng bảng kê (${formatMoney(invTotal)})`)
+      if (lineDiff !== 0n) reasons.push(`Tổng dòng phí (${formatMoney(lineSum)}) không khớp tổng phiếu báo phí (${formatMoney(invTotal)})`)
+      if (balanceDiff !== 0n) reasons.push(`Đã thu (${formatMoney(invPaid)}) + Còn nợ (${formatMoney(invOutstanding)}) không khớp tổng phiếu báo phí (${formatMoney(invTotal)})`)
       if (invTotal < 0n || invPaid < 0n || invOutstanding < 0n) reasons.push('Số tiền âm không hợp lệ')
 
       discrepancies.push({

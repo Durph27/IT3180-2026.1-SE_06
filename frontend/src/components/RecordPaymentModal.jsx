@@ -361,7 +361,7 @@ export default function RecordPaymentModal({
                   <CheckCircleIcon size={24} className="mx-auto mb-1 text-emerald-600" />
                   <p className="font-semibold">Hộ gia đình này hiện không còn khoản nợ nào!</p>
                   <p className="text-slate-500 mt-0.5">
-                    Tất cả bảng kê đã phát hành đều đã được thanh toán đầy đủ, hoặc kỳ thu chưa được phát hành tại trang Khoản thu.
+                    Tất cả phiếu báo phí đã phát hành đều đã được thanh toán đầy đủ, hoặc kỳ thu chưa được phát hành tại trang Khoản thu.
                   </p>
                 </div>
               ) : (
@@ -369,7 +369,7 @@ export default function RecordPaymentModal({
                   <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
                     <thead className="bg-slate-50 font-bold text-slate-700">
                       <tr>
-                        <th className="px-3 py-2">Mã bảng kê</th>
+                        <th className="px-3 py-2">Mã phiếu báo phí</th>
                         <th className="px-3 py-2">Nội dung khoản thu</th>
                         <th className="px-3 py-2 text-right!">Còn nợ</th>
                         <th className="px-3 py-2 text-right! w-44">Số tiền thu (VND)</th>

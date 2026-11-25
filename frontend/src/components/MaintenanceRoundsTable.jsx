@@ -36,7 +36,7 @@ function AllocationBreakdownTable({ allocations = [], totalCostCents = 0n, canRe
         </span>
         {!canReadPayments && (
           <span className="text-xs text-slate-500">
-            Số tiền thu chi tiết từng dòng cần quyền <code>payment.read</code>; hiển thị theo trạng thái bảng kê.
+            Số tiền thu chi tiết từng dòng cần quyền <code>payment.read</code>; hiển thị theo trạng thái phiếu báo phí.
           </span>
         )}
       </div>
@@ -46,7 +46,7 @@ function AllocationBreakdownTable({ allocations = [], totalCostCents = 0n, canRe
             <tr>
               <th scope="col">Căn hộ</th>
               <th scope="col">Hộ gia đình</th>
-              <th scope="col">Mã bảng kê</th>
+              <th scope="col">Mã phiếu báo phí</th>
               <th scope="col">Trạng thái</th>
               <th scope="col" className="col-num">Trọng số</th>
               <th scope="col" className="col-num">Phân bổ</th>

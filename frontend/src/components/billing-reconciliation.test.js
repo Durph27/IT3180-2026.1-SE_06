@@ -61,7 +61,7 @@ test('AccountingReconciliation displays 100% matched status and correct totals',
   assert.match(html, /150\.000 ₫/)
   assert.match(html, /Không chênh lệch \(0 ₫\)/)
   assert.match(html, /Cân đối chính xác/)
-  assert.doesNotMatch(html, /Danh sách bảng kê có chênh lệch/)
+  assert.doesNotMatch(html, /Danh sách phiếu báo phí có chênh lệch/)
 })
 
 test('AccountingReconciliation warns when discrepancy is detected and lists problem invoices', () => {
@@ -83,10 +83,10 @@ test('AccountingReconciliation warns when discrepancy is detected and lists prob
 
   assert.match(html, /Cảnh báo: Phát hiện chênh lệch đối chiếu kế toán/)
   assert.match(html, /50\.000 ₫/)
-  assert.match(html, /Danh sách bảng kê có chênh lệch cần kiểm tra/)
+  assert.match(html, /Danh sách phiếu báo phí có chênh lệch cần kiểm tra/)
   assert.match(html, /INV-ERR-01/)
   assert.match(html, /Phòng 1204/)
-  assert.match(html, /Tổng dòng phí.*không khớp tổng bảng kê/)
+  assert.match(html, /Tổng dòng phí.*không khớp tổng phiếu báo phí/)
 })
 
 test('AccountingReconciliation loading and error states do not claim matched', () => {
@@ -119,7 +119,7 @@ test('InvoiceListTable renders invoices with room, household, amounts and lines'
   const householdMap = { 'occ-1': { code: 'H501' } }
 
   const html = renderToStaticMarkup(h(InvoiceListTable, { invoices, apartmentMap, householdMap }))
-  assert.match(html, /Bảng kê phát sinh phí/)
+  assert.match(html, /Phiếu báo phí phát sinh phí/)
   assert.match(html, /INV-2026-001/)
   assert.match(html, /Phòng P501/)
   assert.match(html, /Hộ H501/)
@@ -128,7 +128,7 @@ test('InvoiceListTable renders invoices with room, household, amounts and lines'
   assert.match(html, /Đã phát hành/)
   assert.match(html, /1 mục/)
   // Responsive data-label check for mobile rendering
-  assert.match(html, /data-label="Mã bảng kê"/)
+  assert.match(html, /data-label="Mã phiếu báo phí"/)
   assert.match(html, /data-label="Căn hộ \/ Phòng"/)
   assert.match(html, /data-label="Tổng tiền"/)
   assert.match(html, /whitespace-nowrap/)
@@ -136,8 +136,8 @@ test('InvoiceListTable renders invoices with room, household, amounts and lines'
 
 test('InvoiceListTable displays empty state when no invoices exist', () => {
   const html = renderToStaticMarkup(h(InvoiceListTable, { invoices: [] }))
-  assert.match(html, /Không tìm thấy bảng kê nào/)
-  assert.match(html, /Kỳ thu này chưa có bảng kê phát sinh/)
+  assert.match(html, /Không tìm thấy phiếu báo phí nào/)
+  assert.match(html, /Kỳ thu này chưa có phiếu báo phí phát sinh/)
 })
 
 test('BillingPage permissions: Resident and unauthorized roles cannot trigger batch operations', () => {
@@ -155,7 +155,7 @@ test('BillingPage permissions: Resident and unauthorized roles cannot trigger ba
 
   // ACCOUNTANT gets the staff page; its single "Lập phiếu thu" button appears once data loads.
   const accountantHtml = render(auth('ACCOUNTANT'), BillingPage, { onBack() {} })
-  assert.match(accountantHtml, /Lập phiếu thu hằng tháng/)
+  assert.match(accountantHtml, /Lập phiếu báo phí hằng tháng/)
   assert.match(accountantHtml, /Đợt thu/)
 })
 

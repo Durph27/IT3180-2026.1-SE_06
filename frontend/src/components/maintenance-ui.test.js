@@ -159,7 +159,8 @@ test('MaintenanceRoundCreateModal displays guidance when no DRAFT periods or eli
     },
   )
 
-  assert.match(html, /Chưa có kỳ thu nào ở trạng thái/)
+  assert.match(html, /chỉ gắn được vào phiếu báo phí <strong>chưa gửi<\/strong>/)
+  assert.match(html, /chọn Hủy để giữ bản nháp/)
   assert.match(html, /Chưa có loại phí nào thỏa điều kiện/)
 })
 

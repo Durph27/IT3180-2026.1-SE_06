@@ -1,6 +1,8 @@
 import { useId, useState } from 'react'
+import { Link } from 'react-router'
 import { issueBillingPeriodApi, updateBillingPeriodApi } from '../../api/billing'
 import { apiErrorMessage } from '../../api/errors'
+import { ROUTES } from '../../routes'
 import { useModalDialog } from '../../hooks/useModalDialog'
 import { formatDay, formatMoney, monthLabel, periodMonth } from '../../utils/billingUtils'
 import { AlertTriangleIcon } from '../Icons'
@@ -10,7 +12,7 @@ import { LINK } from './ui'
  * The single review step before bills reach residents: who is billed, how much, the due date,
  * and anything that would make a bill wrong. Cancelling keeps the draft hidden for next time.
  */
-export default function IssueConfirmDialog({ period, summary, previousSummary, warnings, apartmentCodeOf, onClose, onIssued, onOpenFees, onReviewBills }) {
+export default function IssueConfirmDialog({ period, summary, previousSummary, warnings, apartmentCodeOf, onClose, onIssued, onOpenFees, onReviewBills, maintenanceHint = false }) {
   const titleId = useId()
   const [dueDate, setDueDate] = useState(period.dueDate)
   const [editingDue, setEditingDue] = useState(false)
@@ -30,9 +32,9 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
     try {
       if (dueDate !== period.dueDate) await updateBillingPeriodApi(period.id, { dueDate })
       await issueBillingPeriodApi(period.id)
-      onIssued(`Đã gửi phiếu thu tháng ${month} cho ${summary.count} căn hộ. Hạn nộp ${formatDay(dueDate)}.`)
+      onIssued(`Đã gửi phiếu báo phí tháng ${month} cho ${summary.count} căn hộ. Hạn nộp ${formatDay(dueDate)}.`)
     } catch (err) {
-      setError(apiErrorMessage(err, 'Không gửi được phiếu thu. Vui lòng thử lại.'))
+      setError(apiErrorMessage(err, 'Không gửi được phiếu báo phí. Vui lòng thử lại.'))
       setSending(false)
     }
   }
@@ -41,7 +43,7 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
     <dialog ref={ref} className="native-modal-dialog account-edit-dialog" aria-labelledby={titleId}>
       <div className="modal-content">
         <div className="modal-header">
-          <h2 id={titleId}>Gửi phiếu thu tháng {month}?</h2>
+          <h2 id={titleId}>Gửi phiếu báo phí tháng {month}?</h2>
           <button type="button" className="modal-close" disabled={sending} onClick={onClose} aria-label="Đóng hộp thoại">&times;</button>
         </div>
         <div className="modal-body" aria-busy={sending}>
@@ -49,7 +51,7 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
 
           {summary.count === 0 ? (
             <p className="alert alert-info">
-              Chưa có phiếu thu nào được lập. Hãy kiểm tra bảng phí đã có giá và các căn hộ đã có hộ đang ở.
+              Chưa có phiếu báo phí nào được lập. Hãy kiểm tra bảng phí đã có giá và các căn hộ đã có hộ đang ở.
             </p>
           ) : (
             <div className="mb-4">
@@ -82,6 +84,13 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
             )}
           </div>
 
+          {maintenanceHint && (
+            <p className="m-0 mb-4 rounded-lg border border-solid border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+              Tháng này có thu phí bảo trì không? Tạo đợt thu bảo trì trước khi gửi, phí sẽ được cộng vào phiếu.{' '}
+              <Link to={`${ROUTES.maintenanceFunds}?tab=rounds`} className="font-semibold underline">Mở Quỹ bảo trì</Link>
+            </p>
+          )}
+
           {(feesWithoutPrice.length > 0 || unbilledOccupancies.length > 0) && (
             <ul className="m-0 mb-4 flex list-none flex-col gap-2 rounded-lg border border-solid border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
               {feesWithoutPrice.length > 0 && (
@@ -97,7 +106,7 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
                 <li className="flex gap-2">
                   <AlertTriangleIcon size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
                   <span>
-                    {unbilledOccupancies.length} căn hộ đang có người ở nhưng không có phiếu thu (không có khoản phí nào áp dụng).{' '}
+                    {unbilledOccupancies.length} căn hộ đang có người ở nhưng không có phiếu báo phí (không có khoản phí nào áp dụng).{' '}
                     <button type="button" className={LINK} aria-expanded={showUnbilled} onClick={() => setShowUnbilled((value) => !value)}>{showUnbilled ? 'Ẩn' : 'Xem'}</button>
                     {showUnbilled && <span className="mt-1 block">{unbilledOccupancies.map(apartmentCodeOf).join(', ')}</span>}
                   </span>

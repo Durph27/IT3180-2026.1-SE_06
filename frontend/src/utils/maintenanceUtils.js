@@ -357,8 +357,8 @@ export function validateMaintenanceExpenseForm(
 }
 
 function buildAllocationStatus({ invoiceStatus, allocatedCents, collectedCents, hasExactPayments }) {
-  if (invoiceStatus === 'CANCELLED') return { code: 'CANCELLED', label: 'Đã hủy bảng kê', tone: 'neutral' }
-  if (invoiceStatus === 'DRAFT') return { code: 'DRAFT', label: 'Bảng kê nháp', tone: 'warning' }
+  if (invoiceStatus === 'CANCELLED') return { code: 'CANCELLED', label: 'Đã hủy phiếu báo phí', tone: 'neutral' }
+  if (invoiceStatus === 'DRAFT') return { code: 'DRAFT', label: 'Phiếu báo phí nháp', tone: 'warning' }
   if (hasExactPayments) {
     if (collectedCents >= allocatedCents && allocatedCents > 0n) return { code: 'PAID', label: 'Đã thu đủ', tone: 'success' }
     if (collectedCents > 0n) return { code: 'PARTIALLY_PAID', label: 'Thu một phần', tone: 'info' }

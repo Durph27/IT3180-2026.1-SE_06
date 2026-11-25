@@ -56,7 +56,7 @@ function StaffBilling({ onBack }) {
   const select = (id) => setSearchParams({ tab: id })
   return (
     <div className="user-management-container">
-      <PageHeader title="Khoản thu" description="Lập phiếu thu hằng tháng, theo dõi thu tiền và quản lý bảng phí của chung cư." />
+      <PageHeader title="Khoản thu" description="Lập phiếu báo phí hằng tháng, theo dõi thu tiền và quản lý bảng phí của chung cư." />
       {tabs.length > 1 && (
         <div className="filter-buttons-group w-fit max-w-full flex-wrap" role="tablist" aria-label="Khoản thu">
           {tabs.map((tab) => (
@@ -124,7 +124,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
     getInvoicesApi({ householdId }, signal).then((invoices) => {
       if (!signal.aborted) setLoaded({ key: invoiceKey, invoices })
     }).catch((err) => {
-      if (!signal.aborted) setError(apiErrorMessage(err, 'Không thể tải bảng kê.'))
+      if (!signal.aborted) setError(apiErrorMessage(err, 'Không thể tải phiếu báo phí.'))
     })
     return () => controller.abort()
   }, [householdId, invoiceKey])
@@ -182,7 +182,7 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold }) {
       )}
 
       {loading && <p role="status">Đang tải khoản thu…</p>}
-      {catalog?.periods.length === 0 && <p className="alert alert-info">Chưa có phiếu thu nào được gửi.</p>}
+      {catalog?.periods.length === 0 && <p className="alert alert-info">Chưa có phiếu báo phí nào được gửi.</p>}
 
       {selectedPeriod && (
         <>

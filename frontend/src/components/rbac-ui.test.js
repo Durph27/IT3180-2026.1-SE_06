@@ -79,7 +79,7 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
     if (role === 'MANAGER') {
       assert.match(dashboard, /Căn hộ &amp; Cư trú/)
       assert.match(dashboard, /Thu phí &amp; Công nợ/)
-      for (const hidden of ['Được phát hành kỳ thu', 'Được lập bảng kê', 'Được ghi nhận chi phí']) assert.ok(!dashboard.includes(hidden), hidden)
+      for (const hidden of ['Được phát hành kỳ thu', 'Được lập phiếu báo phí', 'Được ghi nhận chi phí']) assert.ok(!dashboard.includes(hidden), hidden)
       assert.match(navbar, /Nhân khẩu/)
       assert.match(navbar, /Khoản thu/)
     }
@@ -101,7 +101,7 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
       assert.match(dashboard, /Khoản thu của hộ/)
       assert.match(dashboard, /Phản ánh/)
       assert.match(dashboard, /Được nộp đơn biến động/)
-      for (const hidden of ['Toàn chung cư', 'toàn chung cư', 'Quỹ bảo trì', 'Được duyệt', 'Được lập bảng kê']) assert.ok(!dashboard.includes(hidden), hidden)
+      for (const hidden of ['Toàn chung cư', 'toàn chung cư', 'Quỹ bảo trì', 'Được duyệt', 'Được lập phiếu báo phí']) assert.ok(!dashboard.includes(hidden), hidden)
     }
   })
 }

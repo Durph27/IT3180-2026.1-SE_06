@@ -29,7 +29,7 @@ export default function CancelInvoiceModal({
               <AlertTriangleIcon size={18} />
             </span>
             <h3 id="cancel-invoice-title" className="text-lg font-bold text-slate-900">
-              Xác nhận hủy bảng kê
+              Xác nhận hủy phiếu báo phí
             </h3>
           </div>
           <button
@@ -45,13 +45,13 @@ export default function CancelInvoiceModal({
 
         <div className="space-y-4 px-6 py-5 text-sm text-slate-600">
           <p>
-            Bạn có chắc chắn muốn hủy bảng kê số <strong className="font-mono text-slate-900">{invoice.invoiceNo}</strong>?
+            Bạn có chắc chắn muốn hủy phiếu báo phí số <strong className="font-mono text-slate-900">{invoice.invoiceNo}</strong>?
           </p>
 
           {/* Invoice Summary Box */}
           <div className="rounded-lg border border-solid border-slate-200 bg-slate-50 p-4 text-xs space-y-2">
             <div className="flex justify-between">
-              <span className="text-slate-500">Mã bảng kê:</span>
+              <span className="text-slate-500">Mã phiếu báo phí:</span>
               <strong className="font-mono text-slate-800">{invoice.invoiceNo}</strong>
             </div>
             <div className="flex justify-between">
@@ -59,7 +59,7 @@ export default function CancelInvoiceModal({
               <span className="text-slate-800">{formatDate(invoice.issuedAt)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Tổng tiền bảng kê:</span>
+              <span className="text-slate-500">Tổng tiền phiếu báo phí:</span>
               <strong className="text-slate-900 font-bold">{formatMoney(toCents(invoice.totalAmount))}</strong>
             </div>
             <div className="flex justify-between">
@@ -75,9 +75,9 @@ export default function CancelInvoiceModal({
           {/* Warning or Error notice */}
           {isPaid ? (
             <div className="rounded-md border border-solid border-rose-300 bg-rose-50 p-3 text-xs text-rose-800">
-              <p className="font-bold">Không thể hủy bảng kê này:</p>
+              <p className="font-bold">Không thể hủy phiếu báo phí này:</p>
               <p className="mt-1">
-                Bảng kê đã phát sinh thanh toán ({formatMoney(toCents(invoice.paidAmount))}). Theo quy định kế toán, chỉ có thể hủy bảng kê chưa có giao dịch thu tiền.
+                Phiếu báo phí đã phát sinh thanh toán ({formatMoney(toCents(invoice.paidAmount))}). Theo quy định kế toán, chỉ có thể hủy phiếu báo phí chưa có giao dịch thu tiền.
               </p>
             </div>
           ) : (
@@ -85,7 +85,7 @@ export default function CancelInvoiceModal({
               <p className="font-bold flex items-center gap-1.5">
                 <AlertTriangleIcon size={14} className="shrink-0" /> Cảnh báo nghiệp vụ:
               </p>
-              <p>• Bảng kê sẽ chuyển sang trạng thái <strong>ĐÃ HỦY (CANCELLED)</strong> và không thể khôi phục.</p>
+              <p>• Phiếu báo phí sẽ chuyển sang trạng thái <strong>ĐÃ HỦY (CANCELLED)</strong> và không thể khôi phục.</p>
               <p>• Số tiền phải thu sẽ được loại bỏ khỏi tổng công nợ tòa nhà và đối chiếu kế toán.</p>
             </div>
           )}
@@ -129,7 +129,7 @@ export default function CancelInvoiceModal({
                   <span>Đang hủy…</span>
                 </>
               ) : (
-                <span>Xác nhận hủy bảng kê</span>
+                <span>Xác nhận hủy phiếu báo phí</span>
               )}
             </button>
           )}

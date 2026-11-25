@@ -107,7 +107,7 @@ test('AddInvoiceLineModal renders with fee types, live preview and accessible fo
   )
 
   // Verifications
-  assert.match(html, /Thêm khoản phí vào bảng kê/)
+  assert.match(html, /Thêm khoản phí vào phiếu báo phí/)
   assert.match(html, /INV-202611-001/)
   assert.match(html, /Phí quản lý vận hành/)
   assert.match(html, /Phí gửi ô tô/)
@@ -149,12 +149,12 @@ test('CancelInvoiceModal displays warning and blocks cancellation if invoice is 
     })
   )
 
-  assert.match(html, /Xác nhận hủy bảng kê/)
+  assert.match(html, /Xác nhận hủy phiếu báo phí/)
   assert.match(html, /INV-202611-PAID/)
-  assert.match(html, /Không thể hủy bảng kê này/)
-  assert.match(html, /Bảng kê đã phát sinh thanh toán/)
+  assert.match(html, /Không thể hủy phiếu báo phí này/)
+  assert.match(html, /Phiếu báo phí đã phát sinh thanh toán/)
   // Confirm cancel button should be hidden
-  assert.doesNotMatch(html, /<span>Xác nhận hủy bảng kê<\/span>/)
+  assert.doesNotMatch(html, /<span>Xác nhận hủy phiếu báo phí<\/span>/)
 })
 
 test('CancelInvoiceModal allows cancellation when invoice has 0 paid amount', () => {
@@ -178,15 +178,15 @@ test('CancelInvoiceModal allows cancellation when invoice has 0 paid amount', ()
     })
   )
 
-  assert.match(html, /Xác nhận hủy bảng kê/)
+  assert.match(html, /Xác nhận hủy phiếu báo phí/)
   assert.match(html, /INV-202611-UNPAID/)
   assert.match(html, /Cảnh báo nghiệp vụ/)
-  assert.match(html, /Bảng kê sẽ chuyển sang trạng thái/)
+  assert.match(html, /Phiếu báo phí sẽ chuyển sang trạng thái/)
   // The backend requires a reason, so confirming stays disabled until one is typed.
   assert.match(html, /Lý do hủy/)
-  assert.match(html, /disabled=""[^>]*><span>Xác nhận hủy bảng kê<\/span>/)
+  assert.match(html, /disabled=""[^>]*><span>Xác nhận hủy phiếu báo phí<\/span>/)
   // Confirm cancel button must be present
-  assert.match(html, /<span>Xác nhận hủy bảng kê<\/span>/)
+  assert.match(html, /<span>Xác nhận hủy phiếu báo phí<\/span>/)
 })
 
 test('InvoiceListTable displays + Thêm khoản phí and delete buttons for DRAFT invoices with write permission', () => {
@@ -243,7 +243,7 @@ test('InvoiceListTable displays + Thêm khoản phí and delete buttons for DRAF
   assert.match(htmlWithWrite, /Hộ HH-101/)
   assert.match(htmlWithWrite, /Bản nháp/)
   // Hủy action button on table row
-  assert.match(htmlWithWrite, /Hủy bảng kê INV-DRAFT-01/)
+  assert.match(htmlWithWrite, /Hủy phiếu báo phí INV-DRAFT-01/)
   assert.match(htmlWithWrite, />Hủy<\/button>/)
 
   // When canWriteInvoice is false (e.g. read-only user)
@@ -262,5 +262,5 @@ test('InvoiceListTable displays + Thêm khoản phí and delete buttons for DRAF
   )
 
   // Should NOT show Hủy action button
-  assert.doesNotMatch(htmlReadOnly, /Hủy bảng kê INV-DRAFT-01/)
+  assert.doesNotMatch(htmlReadOnly, /Hủy phiếu báo phí INV-DRAFT-01/)
 })

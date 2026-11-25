@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import {
   cancelInvoiceApi,
   closeBillingPeriodApi,
@@ -13,8 +14,9 @@ import { getAllApartmentsApi } from '../../api/apartments'
 import { apiErrorMessage } from '../../api/errors'
 import { getFeeCatalogApi } from '../../api/fees'
 import { getAllHouseholdsApi } from '../../api/households'
-import { getAllOccupanciesApi } from '../../api/maintenance'
+import { getAllOccupanciesApi, getMaintenanceFundsApi, getMaintenanceRoundsApi } from '../../api/maintenance'
 import { useAuth } from '../../hooks/useAuth'
+import { ROUTES } from '../../routes'
 import { useModalDialog } from '../../hooks/useModalDialog'
 import { todayInVietnam } from '../../residents/validation.js'
 import {
@@ -97,6 +99,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
     occupancies: hasPermission('occupancy.read'),
     apartments: hasPermission('apartment.read'),
     households: hasPermission('household.read'),
+    maintenance: hasPermission('maintenance-fund.read') && hasPermission('maintenance-round.read'),
     recordPayment: hasPermission('payment.record'),
     writeInvoice: hasPermission('invoice.write'),
     cancelInvoice: hasPermission('invoice.cancel') || hasPermission('invoice.write'),
@@ -129,15 +132,17 @@ export default function StaffPeriodsTab({ onOpenFees }) {
       orEmpty(can.occupancies, () => getAllOccupanciesApi(signal)),
       orEmpty(can.apartments, () => getAllApartmentsApi({ signal })),
       orEmpty(can.households, () => getAllHouseholdsApi(signal)),
-    ]).then(([periods, invoices, catalog, occupancies, apartments, households]) => {
+      orEmpty(can.maintenance, () => getMaintenanceFundsApi(signal)),
+      orEmpty(can.maintenance, () => getMaintenanceRoundsApi({}, signal)),
+    ]).then(([periods, invoices, catalog, occupancies, apartments, households, maintenanceFunds, maintenanceRounds]) => {
       if (signal.aborted) return
-      setData({ periods, invoices, ...catalog, occupancies, apartments, households })
+      setData({ periods, invoices, ...catalog, occupancies, apartments, households, maintenanceFunds, maintenanceRounds })
       setError('')
     }).catch((err) => {
       if (!signal.aborted) setError(apiErrorMessage(err, 'Không tải được danh sách đợt thu.'))
     })
     return () => controller.abort()
-  }, [revision, can.fees, can.occupancies, can.apartments, can.households])
+  }, [revision, can.fees, can.occupancies, can.apartments, can.households, can.maintenance])
 
   useEffect(() => {
     if (!success) return undefined
@@ -194,7 +199,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
       const invoices = await getInvoicesApi({ periodId: target.id })
       setReview({ period: target, invoices })
     } catch (err) {
-      setError(apiErrorMessage(err, 'Không lập được phiếu thu. Vui lòng thử lại.'))
+      setError(apiErrorMessage(err, 'Không lập được phiếu báo phí. Vui lòng thử lại.'))
     } finally {
       setPreparing(false)
     }
@@ -203,7 +208,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
   const startPayment = (invoice) => setPaying({ invoice, householdId: lookups.householdMap[invoice.occupancyId]?.id ?? '' })
 
   const deleteLine = async (invoice, lineId) => {
-    if (!window.confirm('Xóa dòng phí này khỏi phiếu thu?')) return
+    if (!window.confirm('Xóa dòng phí này khỏi phiếu báo phí?')) return
     try {
       await deleteInvoiceLineApi(invoice.id, lineId, { version: invoice.version })
       setSuccess(`Đã xóa dòng phí khỏi phiếu ${invoice.invoiceNo}.`)
@@ -228,6 +233,9 @@ export default function StaffPeriodsTab({ onOpenFees }) {
   }
 
   const previous = review && data ? previousPeriod(data.periods, review.period) : null
+  // A maintenance round can only join a draft month, so remind before the bills go out.
+  const maintenanceHint = Boolean(review && data?.maintenanceFunds?.length
+    && !data.maintenanceRounds.some((round) => round.periodId === review.period.id))
 
   return (
     <div className="flex flex-col gap-6">
@@ -269,14 +277,14 @@ export default function StaffPeriodsTab({ onOpenFees }) {
 
         {data && !sent && !reviewing && (
           <div className="mt-4 flex flex-col items-start gap-2">
-            <p className="m-0 text-sm text-slate-600">Chưa gửi phiếu thu cho tháng {monthLabel(month)}.</p>
+            <p className="m-0 text-sm text-slate-600">Chưa gửi phiếu báo phí cho tháng {monthLabel(month)}.</p>
             {can.create ? (
               <button type="button" className="btn btn-primary" onClick={prepare} disabled={preparing}>
                 <ReceiptIcon size={16} />
-                <span>{preparing ? 'Đang tính tiền…' : `Lập phiếu thu tháng ${monthLabel(month)}`}</span>
+                <span>{preparing ? 'Đang tính tiền…' : `Lập phiếu báo phí tháng ${monthLabel(month)}`}</span>
               </button>
             ) : (
-              <p className="m-0 text-sm text-slate-500">Bạn không có quyền lập phiếu thu.</p>
+              <p className="m-0 text-sm text-slate-500">Bạn không có quyền lập phiếu báo phí.</p>
             )}
           </div>
         )}
@@ -306,6 +314,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
               <div className="h-full rounded-full bg-emerald-500" style={{ width: `${summary.percentPaid}%` }} />
             </div>
             <p className="m-0 text-sm text-slate-600">{summary.paidCount}/{summary.count} căn đã đóng đủ · còn nợ {formatMoney(summary.outstanding)}</p>
+            <p className="m-0 text-xs text-slate-500">Tiền đã nộp được ghi ở <Link to={ROUTES.payments} className="font-semibold underline">Sổ thu tiền</Link>.</p>
           </div>
         )}
       </section>
@@ -359,6 +368,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
           apartmentCodeOf={apartmentCodeOf}
           onClose={() => { setReview(null); reload() }}
           onOpenFees={onOpenFees}
+          maintenanceHint={maintenanceHint}
           onReviewBills={can.writeInvoice ? () => { setReviewingId(review.period.id); setReview(null); reload() } : undefined}
           onIssued={(message) => { setReview(null); setReviewingId(null); setSuccess(message); reload() }}
         />

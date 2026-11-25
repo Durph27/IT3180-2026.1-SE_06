@@ -32,7 +32,7 @@ const PAGE_TITLES = {
   [ROUTES.fees]: 'Khoản thu',
   [ROUTES.residents]: 'Nhân khẩu',
   [ROUTES.billing]: 'Khoản thu',
-  [ROUTES.payments]: 'Thu phí & Sổ quỹ',
+  [ROUTES.payments]: 'Sổ thu tiền',
   [ROUTES.family]: 'Hộ gia đình',
   [ROUTES.residenceChanges]: 'Tạm trú, tạm vắng',
   [ROUTES.maintenanceFunds]: 'Quỹ bảo trì',

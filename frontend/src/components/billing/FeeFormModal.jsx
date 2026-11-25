@@ -104,7 +104,7 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
     setServerError('')
     try {
       const updated = await updateFeeTypeApi(fee.id, { active: !fee.active })
-      onSaved(updated.active ? `Đã áp dụng lại "${updated.name}".` : `Đã tạm dừng "${updated.name}". Phí này không được tính vào phiếu thu mới.`)
+      onSaved(updated.active ? `Đã áp dụng lại "${updated.name}".` : `Đã tạm dừng "${updated.name}". Phí này không được tính vào phiếu báo phí mới.`)
     } catch (err) {
       setServerError(apiErrorMessage(err, 'Không đổi được trạng thái khoản phí.'))
     } finally {
@@ -208,7 +208,7 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
                 </div>
               ) : (
                 <p className="m-0">
-                  Giá mới áp dụng cho các phiếu thu lập từ hôm nay. Phiếu đã gửi giữ giá cũ.{' '}
+                  Giá mới áp dụng cho các phiếu báo phí lập từ hôm nay. Phiếu đã gửi giữ giá cũ.{' '}
                   <button type="button" className={LINK} onClick={() => setPickDate(true)}>Chọn ngày khác</button>
                 </p>
               )}

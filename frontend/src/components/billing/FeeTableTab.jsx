@@ -16,7 +16,7 @@ function CurrentPrice({ fee, rates, today }) {
   const unit = BASIS_SIMPLE[fee.basis]?.unit ?? 'đ'
   if (fee.basis === 'ACTUAL') return <span className="text-slate-500">Theo hóa đơn thực tế</span>
   const active = rates.filter((rate) => rateActiveAt(rate, today))
-  if (active.length === 0) return <span className="font-semibold text-amber-700">Chưa có giá: chưa được tính vào phiếu thu</span>
+  if (active.length === 0) return <span className="font-semibold text-amber-700">Chưa có giá: chưa được tính vào phiếu báo phí</span>
   if (fee.basis === 'PER_VEHICLE') {
     return (
       <span className="flex flex-wrap gap-x-3 gap-y-1">

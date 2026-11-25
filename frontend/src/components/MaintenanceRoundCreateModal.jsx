@@ -351,8 +351,8 @@ function MaintenanceRoundCreateDialog({
         {catalogState.ready && draftPeriods.length === 0 && (
           <div className="alert alert-info mb-4" role="status">
             <div>
-              Chưa có kỳ thu nào ở trạng thái <strong>Bản nháp (DRAFT)</strong>. Đợt thu bảo trì chỉ có thể gắn vào kỳ thu nháp — hãy{' '}
-              <Link to={ROUTES.billing} onClick={onClose} className="font-semibold underline">mở trang Khoản thu</Link> để tạo kỳ thu mới.
+              Đợt thu bảo trì chỉ gắn được vào phiếu báo phí <strong>chưa gửi</strong> của một tháng. Ở{' '}
+              <Link to={ROUTES.billing} onClick={onClose} className="font-semibold underline">trang Khoản thu</Link>, bấm "Lập phiếu báo phí tháng …" rồi chọn Hủy để giữ bản nháp, sau đó quay lại đây.
             </div>
           </div>
         )}
@@ -361,7 +361,7 @@ function MaintenanceRoundCreateDialog({
           <div className="alert alert-info mb-4" role="status">
             <div>
               Chưa có loại phí nào thỏa điều kiện <strong>Bắt buộc · Cố định theo căn hộ (PER_APARTMENT) · Đang áp dụng</strong>. Vui lòng thiết lập tại{' '}
-              <Link to={ROUTES.fees} onClick={onClose} className="font-semibold underline">trang Biểu phí</Link>.
+              <Link to={`${ROUTES.billing}?tab=bang-phi`} onClick={onClose} className="font-semibold underline">tab Bảng phí</Link>.
             </div>
           </div>
         )}

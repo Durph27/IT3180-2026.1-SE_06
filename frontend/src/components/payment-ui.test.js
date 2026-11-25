@@ -188,7 +188,7 @@ test('VoidPaymentModal renders summary and requires cancellation reason', () => 
   assert.match(html, /450\.000 ₫/)
   assert.match(html, /Lý do hủy phiếu thu/)
   assert.match(html, /Cảnh báo nghiệp vụ/)
-  assert.match(html, /Thao tác hủy sẽ hoàn trả lại số dư nợ cho các bảng kê/)
+  assert.match(html, /Thao tác hủy sẽ hoàn trả lại số dư nợ cho các phiếu báo phí/)
 })
 
 test('RecordPaymentModal renders household select, unpaid line targets and amount in words preview', () => {
@@ -255,8 +255,8 @@ test('InvoiceListTable displays Thu phí button for issued unpaid invoices when 
       onRecordPayment() {},
     })
   )
-  assert.match(htmlWithPerm, /Thu phí cho bảng kê INV-202611-001/)
-  assert.doesNotMatch(htmlWithPerm, /Thu phí cho bảng kê INV-202611-002/)
+  assert.match(htmlWithPerm, /Thu phí cho phiếu báo phí INV-202611-001/)
+  assert.doesNotMatch(htmlWithPerm, /Thu phí cho phiếu báo phí INV-202611-002/)
 
   // With canRecordPayment = false: "Thu phí" button must not be shown
   const htmlWithoutPerm = renderToStaticMarkup(
@@ -265,26 +265,26 @@ test('InvoiceListTable displays Thu phí button for issued unpaid invoices when 
       canRecordPayment: false,
     })
   )
-  assert.doesNotMatch(htmlWithoutPerm, /Thu phí cho bảng kê/)
+  assert.doesNotMatch(htmlWithoutPerm, /Thu phí cho phiếu báo phí/)
 })
 
-test('Navbar renders Thu phí & Sổ quỹ for accountant/manager/admin but not for unauthorized authority', () => {
-  // ACCOUNTANT has payment.read -> should show Thu phí & Sổ quỹ
+test('Navbar renders Sổ thu tiền for accountant/manager/admin but not for unauthorized authority', () => {
+  // ACCOUNTANT has payment.read -> should show Sổ thu tiền
   const accountantContext = auth('ACCOUNTANT')
   const accountantHtml = render(accountantContext, Navbar, {})
-  assert.match(accountantHtml, /Thu phí.*Sổ quỹ/)
+  assert.match(accountantHtml, /Sổ thu tiền/)
 
-  // AUTHORITY lacks payment.read -> should NOT show Thu phí & Sổ quỹ
+  // AUTHORITY lacks payment.read -> should NOT show Sổ thu tiền
   const authorityContext = auth('AUTHORITY')
   const authorityHtml = render(authorityContext, Navbar, {})
-  assert.doesNotMatch(authorityHtml, /Thu phí.*Sổ quỹ/)
+  assert.doesNotMatch(authorityHtml, /Sổ thu tiền/)
 })
 
 test('PaymentPage renders PageHeader and StatCards for ACCOUNTANT, denies AUTHORITY', () => {
   // ACCOUNTANT has payment.read -> shows page header and stat cards
   const accountantContext = auth('ACCOUNTANT')
   const accountantHtml = render(accountantContext, PaymentPage, {})
-  assert.match(accountantHtml, /Thu phí.*Sổ quỹ/)
+  assert.match(accountantHtml, /Sổ thu tiền/)
   assert.match(accountantHtml, /Tổng thực thu/)
   assert.match(accountantHtml, /Thu tiền mặt/)
   assert.match(accountantHtml, /Thu chuyển khoản/)

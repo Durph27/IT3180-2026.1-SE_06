@@ -92,7 +92,7 @@ export default function VoidPaymentModal({
                 <AlertTriangleIcon size={14} className="shrink-0" /> Cảnh báo nghiệp vụ:
               </p>
               <p>
-                • Thao tác hủy sẽ hoàn trả lại số dư nợ cho các bảng kê và dòng phí tương ứng.
+                • Thao tác hủy sẽ hoàn trả lại số dư nợ cho các phiếu báo phí và dòng phí tương ứng.
               </p>
               <p>
                 • Biên lai thu tiền sẽ bị chuyển sang trạng thái <strong>ĐÃ HỦY</strong>.

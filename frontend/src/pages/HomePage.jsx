@@ -85,8 +85,8 @@ export default function HomePage() {
           <PermissionGate permission="invoice.read" householdId={scope?.householdId}>
             <article className="feature-card">
               <h3>{ownHousehold ? 'Khoản thu của hộ' : 'Thu phí & Công nợ'}</h3>
-              <p>{ownHousehold ? 'Xem bảng kê và khoản thu của hộ đang chọn.' : 'Theo dõi bảng kê thu phí toàn chung cư.'}</p>
-              <PermissionGate permission="invoice.generate"><p className="access-note">Được lập bảng kê thu phí.</p></PermissionGate>
+              <p>{ownHousehold ? 'Xem phiếu báo phí và khoản thu của hộ đang chọn.' : 'Theo dõi phiếu báo phí thu phí toàn chung cư.'}</p>
+              <PermissionGate permission="invoice.generate"><p className="access-note">Được lập phiếu báo phí thu phí.</p></PermissionGate>
               <PermissionGate permission="billing-period.issue"><p className="access-note">Được phát hành kỳ thu.</p></PermissionGate>
               <PermissionGate permission="report.debts"><p className="access-note">Được tra cứu công nợ toàn chung cư.</p></PermissionGate>
             </article>

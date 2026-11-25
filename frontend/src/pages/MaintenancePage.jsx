@@ -364,7 +364,7 @@ function MaintenanceContent({ canReadFunds, canReadRounds }) {
     <div className="user-management-container">
       <PageHeader
         title="Quỹ bảo trì & Đối chiếu số dư"
-        description="Quản lý các quỹ bảo trì chung cư, lập đợt thu phân bổ chi phí và báo cáo đối chiếu thu – chi – số dư."
+        description="Quản lý quỹ bảo trì, lập đợt thu và đối chiếu thu – chi – số dư. Phí bảo trì được cộng vào phiếu báo phí của tháng đã chọn; cư dân nộp chung và tiền được ghi ở Sổ thu tiền."
         actions={(
           <>
             <button type="button" className="btn btn-secondary" onClick={refreshAll} disabled={loadingOverview}>
