@@ -22,7 +22,7 @@ const SAVED_MESSAGE = {
   ended: (name) => `Đợt "${name}" nhận đóng góp đến hết hôm nay.`,
 }
 
-/** Voluntary tab of "Phí đột xuất": campaigns, who gave, and recording a gift. */
+/** Voluntary tab of "Phí phát sinh": campaigns, who gave, and recording a gift. */
 export default function VoluntaryTab() {
   const { hasPermission } = useAuth()
   const canWriteCampaigns = hasPermission('campaign.write')

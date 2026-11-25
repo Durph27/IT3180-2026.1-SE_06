@@ -51,7 +51,7 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
 
           {summary.count === 0 ? (
             <p className="alert alert-info">
-              Chưa có phiếu báo phí nào được lập. Hãy kiểm tra trang Phí cố định đã có giá và các căn hộ đã có hộ đang ở.
+              Chưa có phiếu báo phí nào được lập. Hãy kiểm tra trang Phí định kỳ đã có giá và các căn hộ đã có hộ đang ở.
             </p>
           ) : (
             <div className="mb-4">
@@ -86,8 +86,8 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
 
           {maintenanceHint && (
             <p className="m-0 mb-4 rounded-lg border border-solid border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
-              Tháng này có thu phí bảo trì không? Bấm "Thu bảo trì" ở trang Phí đột xuất trước khi gửi, phí sẽ được cộng vào phiếu.{' '}
-              <Link to={MAINTENANCE_PAGE} className="font-semibold underline">Mở Phí đột xuất</Link>
+              Tháng này có thu phí bảo trì không? Bấm "Thu bảo trì" ở trang Phí phát sinh trước khi gửi, phí sẽ được cộng vào phiếu.{' '}
+              <Link to={MAINTENANCE_PAGE} className="font-semibold underline">Mở Phí phát sinh</Link>
             </p>
           )}
 

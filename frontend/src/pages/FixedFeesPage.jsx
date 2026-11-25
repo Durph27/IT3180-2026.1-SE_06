@@ -13,7 +13,7 @@ export default function FixedFeesPage({ onBack }) {
   if (!isStaff || !canAccess(auth, 'fee-type.read') || !canAccess(auth, 'fee-rate.read')) return <ForbiddenView onBack={onBack} />
   return (
     <div className="user-management-container">
-      <PageHeader title="Phí cố định" description="Các khoản phí thu hằng tháng theo diện tích, nhân khẩu, xe… và giá đang áp dụng. Phiếu báo phí mỗi tháng được tính từ bảng này." />
+      <PageHeader title="Phí định kỳ" description="Các khoản phí thu hằng tháng theo diện tích, nhân khẩu, xe… và giá đang áp dụng. Phiếu báo phí mỗi tháng được tính từ bảng này." />
       <FeeTableTab />
     </div>
   )

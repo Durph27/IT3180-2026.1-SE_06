@@ -332,7 +332,7 @@ export default function HomePage() {
       links.push({
         key: 'fees',
         to: ROUTES.fixedFees,
-        title: 'Phí cố định',
+        title: 'Phí định kỳ',
         description: hasPermission('fee-type.write') || hasPermission('fee-rate.write')
           ? 'Thêm khoản phí và đổi giá.'
           : 'Xem các khoản phí và giá đang áp dụng.',
@@ -342,7 +342,7 @@ export default function HomePage() {
       links.push({
         key: 'maintenanceFunds',
         to: ROUTES.adhocFees,
-        title: 'Phí đột xuất',
+        title: 'Phí phát sinh',
         description: hasPermission('maintenance-fund.write')
           ? 'Thu bảo trì theo đợt, đóng góp tự nguyện và đối chiếu quỹ.'
           : 'Theo dõi quỹ bảo trì và các đợt đóng góp tự nguyện.',
