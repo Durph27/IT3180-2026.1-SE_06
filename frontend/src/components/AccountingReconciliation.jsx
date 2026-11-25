@@ -274,7 +274,6 @@ export default function AccountingReconciliation({
             <table className="modern-table">
               <thead>
                 <tr>
-                  <th scope="col">Mã phiếu báo phí</th>
                   <th scope="col">Căn hộ / Hộ</th>
                   <th scope="col" className="text-right!">Tổng phiếu báo phí</th>
                   <th scope="col" className="text-right!">Tổng dòng phí</th>
@@ -293,13 +292,10 @@ export default function AccountingReconciliation({
 
                   return (
                     <tr key={d.invoiceId} className="bg-rose-50/30">
-                      <th scope="row" className="font-mono font-bold text-rose-900">
-                        {d.invoiceNo}
-                      </th>
-                      <td>
+                      <th scope="row" className="font-normal">
                         <span className="font-semibold text-slate-800">{placeLabel}</span>
                         {hhLabel && <span className="block text-xs text-slate-500">{hhLabel}</span>}
-                      </td>
+                      </th>
                       <td className="text-right! font-bold text-slate-900 whitespace-nowrap">
                         {formatMoney(d.totalAmount)}
                       </td>

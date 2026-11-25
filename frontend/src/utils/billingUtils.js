@@ -177,7 +177,7 @@ export function collectDueAlerts({ invoices, feeTypes, periods, today = todayInV
     const period = periodById.get(invoice.periodId)
     if (!period || !owesMandatoryFee(invoice, mandatoryById)) continue
     const due = getDueInfo(period.dueDate, { today })
-    if (ALERT_ORDER.includes(due.status)) alerts.push({ invoiceNo: invoice.invoiceNo, periodCode: period.code, dueDate: period.dueDate, due })
+    if (ALERT_ORDER.includes(due.status)) alerts.push({ invoiceNo: invoice.invoiceNo, periodCode: period.code, periodLabel: periodMonthLabel(period), dueDate: period.dueDate, due })
   }
   return alerts.sort((a, b) => ALERT_ORDER.indexOf(a.due.status) - ALERT_ORDER.indexOf(b.due.status)
     || b.due.daysOverdue - a.due.daysOverdue || a.due.daysRemaining - b.due.daysRemaining)

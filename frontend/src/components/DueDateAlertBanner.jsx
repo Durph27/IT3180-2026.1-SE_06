@@ -16,7 +16,7 @@ export default function DueDateAlertBanner({ alerts }) {
   return (
     <div className={`flex flex-col gap-1 rounded-xl border px-4 py-3 lg:sticky lg:top-[78px] lg:z-10 ${overdue > 0 ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800'}`} role={overdue > 0 ? 'alert' : 'status'}>
       <strong>Khoản phí bắt buộc cần chú ý: {parts.join(', ')}.</strong>
-      <span>Gấp nhất: {worst.invoiceNo} (kỳ {worst.periodCode}) - {dueLabel(worst.due)}.</span>
+      <span>Gấp nhất: {worst.periodLabel ?? worst.periodCode} - {dueLabel(worst.due)}.</span>
     </div>
   )
 }

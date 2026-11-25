@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useId } from 'react'
-import { getOpenInvoicesApi } from '../api/billing'
+import { getBillingPeriodsApi, getOpenInvoicesApi } from '../api/billing'
 import { recordPaymentApi, getPaymentReceiptApi } from '../api/payments'
 import { apiErrorMessage } from '../api/errors'
-import { formatMoney, toCents } from '../utils/billingUtils'
+import { formatMoney, periodMonthLabel, toCents } from '../utils/billingUtils'
 import {
   PAYMENT_CHANNEL,
   validatePaymentPayload,
@@ -68,6 +68,16 @@ export default function RecordPaymentModal({
     return map
   }, [households, apartments, occupancies])
 
+  // A household may owe several months; the month tells its lines apart better than an invoice id.
+  const [periodLabels, setPeriodLabels] = useState({})
+  useEffect(() => {
+    const controller = new AbortController()
+    getBillingPeriodsApi(controller.signal)
+      .then((periods) => !controller.signal.aborted && setPeriodLabels(Object.fromEntries(periods.map((period) => [period.id, periodMonthLabel(period)]))))
+      .catch(() => {})
+    return () => controller.abort()
+  }, [])
+
   // Load unpaid invoices when householdId changes
   useEffect(() => {
     if (!householdId) {
@@ -124,6 +134,7 @@ export default function RecordPaymentModal({
           list.push({
             invoiceId: inv.id,
             invoiceNo: inv.invoiceNo,
+            periodId: inv.periodId,
             lineId: line.id,
             description: line.description,
             quantity: line.quantity,
@@ -369,7 +380,7 @@ export default function RecordPaymentModal({
                   <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
                     <thead className="bg-slate-50 font-bold text-slate-700">
                       <tr>
-                        <th className="px-3 py-2">Mã phiếu báo phí</th>
+                        <th className="px-3 py-2">Tháng</th>
                         <th className="px-3 py-2">Nội dung khoản thu</th>
                         <th className="px-3 py-2 text-right!">Còn nợ</th>
                         <th className="px-3 py-2 text-right! w-44">Số tiền thu (VND)</th>
@@ -384,8 +395,8 @@ export default function RecordPaymentModal({
 
                         return (
                           <tr key={line.lineId} className={currentCents > 0n ? 'bg-blue-50/30' : ''}>
-                            <td className="px-3 py-2 font-mono font-semibold text-slate-800">
-                              {line.invoiceNo}
+                            <td className="px-3 py-2 font-semibold whitespace-nowrap text-slate-800">
+                              {periodLabels[line.periodId] ?? '—'}
                             </td>
                             <td className="px-3 py-2">
                               <span className="font-medium text-slate-900 block">{line.description}</span>

@@ -3,6 +3,7 @@ import { addInvoiceLineApi } from '../api/billing'
 import { getFeeRatesApi } from '../api/fees'
 import { apiErrorMessage } from '../api/errors'
 import { formatMoney, calculateLineAmount } from '../utils/billingUtils'
+import { BASIS_SIMPLE } from '../utils/feeValidation'
 import { numberToVietnameseWords } from '../utils/paymentUtils'
 import { XIcon, AlertTriangleIcon, PlusIcon } from './Icons'
 
@@ -173,9 +174,7 @@ export default function AddInvoiceLineModal({
               <h3 id="add-line-modal-title" className="text-base font-bold text-slate-900">
                 Thêm khoản phí vào phiếu báo phí
               </h3>
-              <p className="text-xs text-slate-500">
-                Phiếu báo phí: <strong className="font-mono text-slate-800">{invoice.invoiceNo}</strong>
-              </p>
+              {apartment?.code && <p className="text-xs text-slate-500">Căn <strong className="text-slate-800">{apartment.code}</strong></p>}
             </div>
           </div>
           <button
@@ -214,7 +213,7 @@ export default function AddInvoiceLineModal({
                 <option value="">-- Chọn loại phí --</option>
                 {activeFeeTypes.map((ft) => (
                   <option key={ft.id} value={ft.id}>
-                    {ft.name} ({ft.code} — {ft.basis})
+                    {ft.name} ({BASIS_SIMPLE[ft.basis]?.label ?? ft.basis})
                   </option>
                 ))}
               </select>

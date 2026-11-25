@@ -6,6 +6,7 @@ export default function CancelInvoiceModal({
   isOpen,
   invoice,
   isCancelling = false,
+  placeLabel = '',
   onConfirm,
   onClose,
 }) {
@@ -45,15 +46,11 @@ export default function CancelInvoiceModal({
 
         <div className="space-y-4 px-6 py-5 text-sm text-slate-600">
           <p>
-            Bạn có chắc chắn muốn hủy phiếu báo phí số <strong className="font-mono text-slate-900">{invoice.invoiceNo}</strong>?
+            Bạn có chắc chắn muốn hủy phiếu báo phí{placeLabel ? <> của <strong className="text-slate-900">{placeLabel}</strong></> : ''}?
           </p>
 
           {/* Invoice Summary Box */}
           <div className="rounded-lg border border-solid border-slate-200 bg-slate-50 p-4 text-xs space-y-2">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Mã phiếu báo phí:</span>
-              <strong className="font-mono text-slate-800">{invoice.invoiceNo}</strong>
-            </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Ngày lập:</span>
               <span className="text-slate-800">{formatDate(invoice.issuedAt)}</span>

@@ -83,7 +83,7 @@ export default function InvoiceListTable({
           <input
             type="search"
             className="form-control min-h-10 text-sm"
-            placeholder="Tìm theo mã phiếu báo phí, phòng, hộ…"
+            placeholder="Tìm theo phòng, hộ…"
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value)
@@ -115,7 +115,6 @@ export default function InvoiceListTable({
         <table className="modern-table">
           <thead>
             <tr>
-              <th scope="col">Mã phiếu báo phí</th>
               <th scope="col">Căn hộ / Phòng</th>
               <th scope="col">Hộ gia đình</th>
               <th scope="col">Ngày lập</th>
@@ -129,7 +128,7 @@ export default function InvoiceListTable({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={9} className="empty-table-cell">
+                <td colSpan={8} className="empty-table-cell">
                   <div className="table-loading-box">
                     <div className="loading-spinner-ring" />
                     <p>Đang tải danh sách phiếu báo phí…</p>
@@ -138,7 +137,7 @@ export default function InvoiceListTable({
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={9} className="empty-table-cell">
+                <td colSpan={8} className="empty-table-cell">
                   <div className="empty-state-box">
                     <p className="text-rose-700">{error}</p>
                     {onRefresh && (
@@ -151,7 +150,7 @@ export default function InvoiceListTable({
               </tr>
             ) : displayedInvoices.length === 0 ? (
               <tr>
-                <td colSpan={9} className="empty-table-cell">
+                <td colSpan={8} className="empty-table-cell">
                   <div className="empty-state-box">
                     <ReceiptIcon size={32} className="text-slate-400" />
                     <p className="font-semibold text-slate-800">Không tìm thấy phiếu báo phí nào</p>
@@ -238,9 +237,6 @@ function InvoiceRowGroup({
   return (
     <>
       <tr className={`cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50' : ''}`} onClick={onToggle}>
-        <td data-label="Mã phiếu báo phí" className="font-mono font-bold text-slate-900">
-          {invoice.invoiceNo}
-        </td>
         <td data-label="Căn hộ / Phòng" className="font-semibold text-slate-800">
           {aptLabel}
         </td>
@@ -269,8 +265,8 @@ function InvoiceRowGroup({
                 type="button"
                 className="btn btn-primary btn-sm px-2 py-0.5 text-xs font-semibold"
                 onClick={() => onRecordPayment(invoice, hhInfo)}
-                title={`Thu phí cho phiếu báo phí ${invoice.invoiceNo}`}
-                aria-label={`Thu phí cho phiếu báo phí ${invoice.invoiceNo}`}
+                title={`Thu phí ${aptLabel}`}
+                aria-label={`Thu phí ${aptLabel}`}
               >
                 Thu phí
               </button>
@@ -280,8 +276,8 @@ function InvoiceRowGroup({
                 type="button"
                 className="btn btn-sm px-2 py-0.5 text-xs text-rose-700 hover:bg-rose-50 border border-rose-200"
                 onClick={() => onCancelInvoice(invoice)}
-                title={`Hủy phiếu báo phí ${invoice.invoiceNo}`}
-                aria-label={`Hủy phiếu báo phí ${invoice.invoiceNo}`}
+                title={`Hủy phiếu báo phí ${aptLabel}`}
+                aria-label={`Hủy phiếu báo phí ${aptLabel}`}
               >
                 Hủy
               </button>
@@ -291,7 +287,7 @@ function InvoiceRowGroup({
               className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200"
               onClick={onToggle}
               aria-expanded={isExpanded}
-              aria-label={`${isExpanded ? 'Thu gọn' : 'Xem'} ${lines.length} dòng phí của ${invoice.invoiceNo}`}
+              aria-label={`${isExpanded ? 'Thu gọn' : 'Xem'} ${lines.length} dòng phí của ${aptLabel}`}
             >
               <span>{lines.length} mục</span>
               <ChevronDownIcon size={14} className={`transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} />
@@ -302,12 +298,12 @@ function InvoiceRowGroup({
 
       {isExpanded && (
         <tr className="bg-slate-50">
-          <td colSpan={9} className="p-0!">
+          <td colSpan={8} className="p-0!">
             <div className="border-0 border-y border-dashed border-slate-300 bg-slate-50/80 px-6 py-4">
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Chi tiết các khoản phí — {invoice.invoiceNo} ({lines.length} khoản)
+                    Chi tiết các khoản phí — {aptLabel} ({lines.length} khoản)
                   </h4>
                   {canModifyLines && onAddLine && (
                     <button

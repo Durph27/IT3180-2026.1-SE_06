@@ -255,8 +255,8 @@ test('InvoiceListTable displays Thu phí button for issued unpaid invoices when 
       onRecordPayment() {},
     })
   )
-  assert.match(htmlWithPerm, /Thu phí cho phiếu báo phí INV-202611-001/)
-  assert.doesNotMatch(htmlWithPerm, /Thu phí cho phiếu báo phí INV-202611-002/)
+  assert.match(htmlWithPerm, /aria-label="Thu phí occ-1"/)
+  assert.doesNotMatch(htmlWithPerm, /aria-label="Thu phí occ-2"/)
 
   // With canRecordPayment = false: "Thu phí" button must not be shown
   const htmlWithoutPerm = renderToStaticMarkup(
@@ -265,7 +265,7 @@ test('InvoiceListTable displays Thu phí button for issued unpaid invoices when 
       canRecordPayment: false,
     })
   )
-  assert.doesNotMatch(htmlWithoutPerm, /Thu phí cho phiếu báo phí/)
+  assert.doesNotMatch(htmlWithoutPerm, /aria-label="Thu phí /)
 })
 
 test('Navbar renders Sổ thu tiền for accountant/manager/admin but not for unauthorized authority', () => {

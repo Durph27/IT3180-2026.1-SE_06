@@ -130,7 +130,7 @@ export default function CollectMaintenanceModal({ fund, periods = [], feeTypes =
     // A priced fee under this code would bill every month and never reach the fund.
     const rates = await getAllFeeRatesApi(existing.id)
     if (existing.basis !== 'PER_APARTMENT' || !existing.mandatory || rates.length > 0) {
-      throw new Error(`Mã phí ${MAINTENANCE_FEE_CODE} đang là một khoản phí thường có đơn giá ở Bảng phí, nên không dùng được cho đợt thu bảo trì. Hãy liên hệ quản trị để đổi mã khoản phí đó.`)
+      throw new Error('Một khoản phí có đơn giá ở Bảng phí đang trùng với phí bảo trì theo đợt, nên chưa thu được. Hãy liên hệ quản trị hệ thống.')
     }
     return existing.active ? existing : updateFeeTypeApi(existing.id, { active: true })
   }

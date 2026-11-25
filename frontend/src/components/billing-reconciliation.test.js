@@ -84,7 +84,8 @@ test('AccountingReconciliation warns when discrepancy is detected and lists prob
   assert.match(html, /Cảnh báo: Phát hiện chênh lệch đối chiếu kế toán/)
   assert.match(html, /50\.000 ₫/)
   assert.match(html, /Danh sách phiếu báo phí có chênh lệch cần kiểm tra/)
-  assert.match(html, /INV-ERR-01/)
+  // Invoice numbers are internal ids; rows are named by apartment.
+  assert.doesNotMatch(html, /INV-ERR-01/)
   assert.match(html, /Phòng 1204/)
   assert.match(html, /Tổng dòng phí.*không khớp tổng phiếu báo phí/)
 })
@@ -120,7 +121,7 @@ test('InvoiceListTable renders invoices with room, household, amounts and lines'
 
   const html = renderToStaticMarkup(h(InvoiceListTable, { invoices, apartmentMap, householdMap }))
   assert.match(html, /Phiếu báo phí phát sinh phí/)
-  assert.match(html, /INV-2026-001/)
+  assert.doesNotMatch(html, /INV-2026-001/)
   assert.match(html, /Phòng P501/)
   assert.match(html, /Hộ H501/)
   assert.match(html, /10\/11\/2026/)
@@ -128,7 +129,7 @@ test('InvoiceListTable renders invoices with room, household, amounts and lines'
   assert.match(html, /Đã phát hành/)
   assert.match(html, /1 mục/)
   // Responsive data-label check for mobile rendering
-  assert.match(html, /data-label="Mã phiếu báo phí"/)
+  assert.doesNotMatch(html, /data-label="Mã phiếu báo phí"/)
   assert.match(html, /data-label="Căn hộ \/ Phòng"/)
   assert.match(html, /data-label="Tổng tiền"/)
   assert.match(html, /whitespace-nowrap/)

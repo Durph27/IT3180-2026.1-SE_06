@@ -71,8 +71,8 @@ test('creating a fund asks for name, opening balance and date; the code is deriv
   assert.match(html, /Tên quỹ bảo trì/)
   assert.match(html, /Số dư đầu kỳ/)
   assert.match(html, /Ngày mở quỹ/)
-  // The code field is tucked into the advanced section.
-  assert.match(html, /<details[^>]*>.*Nâng cao: mã quỹ.*fund-code.*<\/details>/s)
+  // The fund code is generated from the name and never shown.
+  assert.doesNotMatch(html, /Mã quỹ|fund-code/)
 })
 
 test('MaintenanceExpenseRecordModal displays fund balance and input fields', () => {

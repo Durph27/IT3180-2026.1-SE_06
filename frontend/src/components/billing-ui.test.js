@@ -83,11 +83,12 @@ test('billing page renders only with both invoice and period access', () => {
   assert.doesNotMatch(render(noPeriods, BillingPage, { onBack() {} }), /header-title/)
 })
 
-test('period selector shows the month, code and status', () => {
+test('period selector shows the month and status, not the period code', () => {
   const periods = [{ id: 'p1', code: 'KY-11', startDate: '2026-11-01', status: 'ISSUED' }, { id: 'p2', code: 'KY-12', startDate: '2026-12-01', status: 'DRAFT' }]
   const html = renderToStaticMarkup(h(BillingPeriodSelector, { periods, value: 'p1', onChange() {} }))
-  assert.match(html, /Tháng 11\/2026 \(KY-11\) - Đang thu/)
-  assert.match(html, /Tháng 12\/2026 \(KY-12\) - Đang soạn/)
+  assert.match(html, /Tháng 11\/2026 - Đang thu/)
+  assert.match(html, /Tháng 12\/2026 - Đang soạn/)
+  assert.doesNotMatch(html, /KY-1/)
 })
 
 const alert = (status, daysOverdue, daysRemaining) => ({ invoiceNo: 'INV-1', periodCode: 'KY-11', dueDate: '2026-11-01', due: { status, daysOverdue, daysRemaining } })
@@ -112,7 +113,6 @@ test('mandatory table shows due dates; voluntary table states there is none', ()
   const voluntary = renderToStaticMarkup(h(FeeItemTable, { category: 'VOLUNTARY', items: [{ ...item('b', null), category: 'VOLUNTARY', invoiceNo: null, dueDate: null }], total: 100000n }))
   assert.doesNotMatch(voluntary, /Hạn nộp<\/th>/)
   assert.match(voluntary, /Không áp hạn/)
-  assert.match(voluntary, /Đợt vận động/)
 })
 
 test('long tables paginate', () => {

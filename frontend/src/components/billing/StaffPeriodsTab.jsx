@@ -205,13 +205,15 @@ export default function StaffPeriodsTab({ onOpenFees }) {
     }
   }
 
+  const placeOf = (invoice) => (lookups.apartmentMap[invoice.occupancyId]?.code ? `căn ${lookups.apartmentMap[invoice.occupancyId].code}` : 'căn này')
+
   const startPayment = (invoice) => setPaying({ invoice, householdId: lookups.householdMap[invoice.occupancyId]?.id ?? '' })
 
   const deleteLine = async (invoice, lineId) => {
     if (!window.confirm('Xóa dòng phí này khỏi phiếu báo phí?')) return
     try {
       await deleteInvoiceLineApi(invoice.id, lineId, { version: invoice.version })
-      setSuccess(`Đã xóa dòng phí khỏi phiếu ${invoice.invoiceNo}.`)
+      setSuccess(`Đã xóa dòng phí khỏi phiếu báo phí ${placeOf(invoice)}.`)
       reload()
     } catch (err) {
       setError(apiErrorMessage(err, 'Không xóa được dòng phí. Vui lòng thử lại.'))
@@ -224,7 +226,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
     try {
       await cancelInvoiceApi(invoice.id, { version: invoice.version, reason })
       setCancelling(null)
-      setSuccess(`Đã hủy phiếu ${invoice.invoiceNo}.`)
+      setSuccess(`Đã hủy phiếu báo phí ${placeOf(invoice)}.`)
       reload()
     } catch (err) {
       setCancelling(null)
@@ -413,6 +415,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
         <CancelInvoiceModal
           isOpen
           invoice={cancelling.invoice}
+          placeLabel={placeOf(cancelling.invoice)}
           isCancelling={cancelling.busy}
           onConfirm={confirmCancel}
           onClose={() => setCancelling(null)}
