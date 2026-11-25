@@ -563,3 +563,59 @@ export function buildFundReconciliationReport({
     },
   }
 }
+
+// ---- Simplified maintenance page ------------------------------------------------------------
+
+export { MAINTENANCE_FEE_CODE, MAINTENANCE_FEE_NAME, isMaintenanceFeeType } from './billingUtils.js'
+
+const nextMonth = (yyyyMm) => {
+  const [year, month] = yyyyMm.split('-').map(Number)
+  return month === 12 ? `${year + 1}-01` : `${year}-${String(month + 1).padStart(2, '0')}`
+}
+
+// A round joins a month whose bills are not sent yet: this month if still open, else the next.
+export function maintenanceMonthOptions(periods = [], today = todayInVietnam(), count = 3) {
+  const periodOf = (yyyyMm) => periods.find((period) => period.code === `KY-${yyyyMm}`)
+    ?? periods.find((period) => period.startDate?.slice(0, 7) === yyyyMm)
+  const options = []
+  let month = today.slice(0, 7)
+  for (let i = 0; i < count; i += 1) {
+    const period = periodOf(month) ?? null
+    options.push({ month, period, available: !period || period.status === 'DRAFT' })
+    month = nextMonth(month)
+  }
+  return options
+}
+
+export function defaultMaintenanceMonth(periods = [], today = todayInVietnam()) {
+  const options = maintenanceMonthOptions(periods, today)
+  return (options.find((option) => option.available) ?? options[options.length - 1]).month
+}
+
+const dayOf = (value) => String(value ?? '').slice(0, 10)
+
+// One ledger, newest first: maintenance rounds are money in, expenses are money out.
+export function buildFundLedger(report) {
+  if (!report) return []
+  const income = report.roundRows.map((round) => ({
+    kind: 'IN',
+    key: `in-${round.id}`,
+    date: dayOf(round.createdAt) || round.snapshotDate,
+    description: round.description,
+    amountCents: round.totalCostCents,
+    collectedCents: round.collectedCents,
+    percentCollected: round.collectedCents !== null && round.collectedCents !== undefined && round.totalCostCents > 0n
+      ? Number((round.collectedCents * 100n) / round.totalCostCents)
+      : null,
+    round,
+  }))
+  const spending = report.expenseRows.map((expense) => ({
+    kind: 'OUT',
+    key: `out-${expense.id}`,
+    date: dayOf(expense.spentAt),
+    description: expense.description,
+    amountCents: expense.amountCents,
+    recordedBy: expense.recordedByLabel,
+  }))
+  return [...income, ...spending].sort((a, b) => b.date.localeCompare(a.date) || a.key.localeCompare(b.key))
+}

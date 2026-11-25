@@ -328,3 +328,25 @@ test('buildFundReconciliationReport reconciles opening + posted collections - ex
   assert.equal(skewed.summary.isBalanced, false)
   assert.notEqual(skewed.summary.balanceDiscrepancyCents, 0n)
 })
+
+test('maintenance goes to this month while its bills are unsent, otherwise the next open month', async () => {
+  const { defaultMaintenanceMonth, maintenanceMonthOptions } = await import('./maintenanceUtils.js')
+  assert.equal(defaultMaintenanceMonth([], '2026-12-05'), '2026-12')
+  const sentDecember = [{ id: 'd', code: 'KY-2026-12', status: 'ISSUED', startDate: '2026-12-01' }]
+  assert.equal(defaultMaintenanceMonth(sentDecember, '2026-12-05'), '2027-01')
+  const draftDecember = [{ id: 'd', code: 'KY-2026-12', status: 'DRAFT', startDate: '2026-12-01' }]
+  assert.equal(defaultMaintenanceMonth(draftDecember, '2026-12-05'), '2026-12')
+  assert.deepEqual(maintenanceMonthOptions(sentDecember, '2026-12-05').map((o) => [o.month, o.available]), [['2026-12', false], ['2027-01', true], ['2027-02', true]])
+})
+
+test('the fund ledger merges rounds and expenses newest first', async () => {
+  const { buildFundLedger } = await import('./maintenanceUtils.js')
+  const report = {
+    roundRows: [{ id: 'r1', createdAt: '2026-11-15T10:00:00Z', description: 'Sơn', totalCostCents: 20000n, collectedCents: 5000n, allocations: [] }],
+    expenseRows: [{ id: 'e1', spentAt: '2026-11-20T09:00:00Z', description: 'Bơm', amountCents: 3000n, recordedByLabel: 'KT' }],
+  }
+  const rows = buildFundLedger(report)
+  assert.deepEqual(rows.map((row) => [row.kind, row.date]), [['OUT', '2026-11-20'], ['IN', '2026-11-15']])
+  assert.equal(rows[1].percentCollected, 25)
+  assert.deepEqual(buildFundLedger(null), [])
+})

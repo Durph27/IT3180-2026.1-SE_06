@@ -138,3 +138,12 @@ test('money input accepts Vietnamese thousands separators', () => {
   assert.equal(parseVndInput('abc'), null)
   assert.equal(parseVndInput(''), null)
 })
+
+test('the maintenance fee type never raises a missing-price warning', () => {
+  const feeTypes = [
+    { id: 'm', code: 'PHI_BAO_TRI', name: 'Phí bảo trì', basis: 'PER_APARTMENT', active: true },
+    { id: 'x', code: 'PHI_X', name: 'Phí X', basis: 'PER_APARTMENT', active: true },
+  ]
+  const { feesWithoutPrice } = generationWarnings({ feeTypes, ratesByFeeType: {}, snapshotDate: '2026-12-05' })
+  assert.deepEqual(feesWithoutPrice.map((fee) => fee.id), ['x'])
+})

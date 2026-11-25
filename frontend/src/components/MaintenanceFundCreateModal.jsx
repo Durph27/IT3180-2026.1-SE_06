@@ -4,24 +4,27 @@ import { apiErrorMessage } from '../api/errors'
 import { useModalDialog } from '../hooks/useModalDialog'
 import { todayInVietnam } from '../residents/validation'
 import { formatMoney, toCents } from '../utils/billingUtils'
+import { feeCodeFromName } from '../utils/feeValidation'
 import {
   normalizeWholeDongAmount,
   validateMaintenanceFundForm,
 } from '../utils/maintenanceUtils'
 import { AlertTriangleIcon, CheckCircleIcon, WalletIcon, XIcon } from './Icons'
 
-export default function MaintenanceFundCreateModal({ isOpen = true, onClose, onSuccess }) {
+export default function MaintenanceFundCreateModal({ isOpen = true, onClose, onSuccess, existingCodes = [] }) {
   if (!isOpen) return null
-  return <MaintenanceFundCreateDialog onClose={onClose} onSuccess={onSuccess} />
+  return <MaintenanceFundCreateDialog onClose={onClose} onSuccess={onSuccess} existingCodes={existingCodes} />
 }
 
-function MaintenanceFundCreateDialog({ onClose, onSuccess }) {
+// Only the name, opening balance and date are asked for; the code is derived from the name.
+function MaintenanceFundCreateDialog({ onClose, onSuccess, existingCodes }) {
   const [submitting, setSubmitting] = useState(false)
   const dialogRef = useModalDialog(onClose, submitting)
   const titleId = useId()
 
-  const [code, setCode] = useState('')
+  const [customCode, setCustomCode] = useState(null)
   const [name, setName] = useState('')
+  const code = customCode ?? (name.trim() ? feeCodeFromName(name, existingCodes) : '')
   const [openingBalance, setOpeningBalance] = useState('0')
   const [openingDate, setOpeningDate] = useState(() => todayInVietnam())
   const [touched, setTouched] = useState({ code: false, name: false, openingBalance: false, openingDate: false })
@@ -49,7 +52,7 @@ function MaintenanceFundCreateDialog({ onClose, onSuccess }) {
   }
 
   const handleChange = (field, value) => {
-    if (field === 'code') setCode(value)
+    if (field === 'code') setCustomCode(value)
     else if (field === 'name') setName(value)
     else if (field === 'openingBalance') setOpeningBalance(value)
     else if (field === 'openingDate') setOpeningDate(value)
@@ -107,29 +110,6 @@ function MaintenanceFundCreateDialog({ onClose, onSuccess }) {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          <div className="form-group">
-            <label className="form-label" htmlFor="fund-code">
-              Mã quỹ <span className="req-star">*</span>
-            </label>
-            <input
-              id="fund-code"
-              name="code"
-              type="text"
-              className={`form-input ${touched.code && formErrors.code ? 'input-error' : ''}`}
-              placeholder="VD: QBT-2027"
-              value={code}
-              onChange={(e) => handleChange('code', e.target.value)}
-              onBlur={() => handleBlur('code')}
-              maxLength={30}
-              disabled={submitting}
-              required
-            />
-            <span className="field-hint">Mã duy nhất toàn hệ thống, tự động viết hoa khi lưu.</span>
-            {touched.code && formErrors.code && (
-              <div className="field-error-msg" role="alert">{formErrors.code}</div>
-            )}
-          </div>
-
           <div className="form-group">
             <label className="form-label" htmlFor="fund-name">
               Tên quỹ bảo trì <span className="req-star">*</span>
@@ -201,6 +181,35 @@ function MaintenanceFundCreateDialog({ onClose, onSuccess }) {
               )}
             </div>
           </div>
+
+          <details className="mb-2" open={Boolean(touched.code && formErrors.code)}>
+            <summary className="cursor-pointer text-sm font-semibold text-slate-600">Nâng cao: mã quỹ {code && <span className="font-mono">({code})</span>}</summary>
+            <div className="mt-3">
+          <div className="form-group">
+            <label className="form-label" htmlFor="fund-code">
+              Mã quỹ <span className="req-star">*</span>
+            </label>
+            <input
+              id="fund-code"
+              name="code"
+              type="text"
+              className={`form-input ${touched.code && formErrors.code ? 'input-error' : ''}`}
+              placeholder="VD: QBT-2027"
+              value={code}
+              onChange={(e) => handleChange('code', e.target.value)}
+              onBlur={() => handleBlur('code')}
+              maxLength={30}
+              disabled={submitting}
+              required
+            />
+            <span className="field-hint">Tự tạo từ tên quỹ. Chỉ sửa khi cần mã riêng.</span>
+            {touched.code && formErrors.code && (
+              <div className="field-error-msg" role="alert">{formErrors.code}</div>
+            )}
+          </div>
+
+            </div>
+          </details>
 
           <div className="dialog-footer dialog-form-footer mt-4">
             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>

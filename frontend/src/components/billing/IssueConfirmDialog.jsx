@@ -86,8 +86,8 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
 
           {maintenanceHint && (
             <p className="m-0 mb-4 rounded-lg border border-solid border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
-              Tháng này có thu phí bảo trì không? Tạo đợt thu bảo trì trước khi gửi, phí sẽ được cộng vào phiếu.{' '}
-              <Link to={`${ROUTES.maintenanceFunds}?tab=rounds`} className="font-semibold underline">Mở Quỹ bảo trì</Link>
+              Tháng này có thu phí bảo trì không? Bấm "Thu bảo trì" ở Quỹ bảo trì trước khi gửi, phí sẽ được cộng vào phiếu.{' '}
+              <Link to={ROUTES.maintenanceFunds} className="font-semibold underline">Mở Quỹ bảo trì</Link>
             </p>
           )}
 

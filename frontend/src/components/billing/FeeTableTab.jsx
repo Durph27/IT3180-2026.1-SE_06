@@ -3,7 +3,7 @@ import { getFeeCatalogApi } from '../../api/fees'
 import { apiErrorMessage } from '../../api/errors'
 import { useAuth } from '../../hooks/useAuth'
 import { todayInVietnam } from '../../residents/validation.js'
-import { formatDay, formatPrice, GENERATED_BASES, rateActiveAt } from '../../utils/billingUtils'
+import { formatDay, formatPrice, GENERATED_BASES, isMaintenanceFeeType, rateActiveAt } from '../../utils/billingUtils'
 import { BASIS_SIMPLE, VEHICLE_TYPE_OPTIONS } from '../../utils/feeValidation'
 import { AlertTriangleIcon, CheckCircleIcon, EditIcon, PlusIcon, SearchIcon } from '../Icons'
 import StatusBadge from '../StatusBadge'
@@ -15,6 +15,7 @@ const vehicleLabel = (value) => VEHICLE_TYPE_OPTIONS.find((option) => option.val
 function CurrentPrice({ fee, rates, today }) {
   const unit = BASIS_SIMPLE[fee.basis]?.unit ?? 'đ'
   if (fee.basis === 'ACTUAL') return <span className="text-slate-500">Theo hóa đơn thực tế</span>
+  if (isMaintenanceFeeType(fee)) return <span className="text-slate-500">Thu theo đợt bảo trì (Quỹ bảo trì)</span>
   const active = rates.filter((rate) => rateActiveAt(rate, today))
   if (active.length === 0) return <span className="font-semibold text-amber-700">Chưa có giá: chưa được tính vào phiếu báo phí</span>
   if (fee.basis === 'PER_VEHICLE') {
@@ -83,7 +84,7 @@ export default function FeeTableTab() {
   }, [catalog, search])
 
   const ratesOf = (fee) => catalog?.ratesByFeeType[fee.id] ?? []
-  const missingPrice = (fee) => GENERATED_BASES.includes(fee.basis) && !ratesOf(fee).some((rate) => rateActiveAt(rate, today))
+  const missingPrice = (fee) => GENERATED_BASES.includes(fee.basis) && !isMaintenanceFeeType(fee) && !ratesOf(fee).some((rate) => rateActiveAt(rate, today))
 
   const rows = (fees) => fees.map((fee) => {
     const open = expanded === fee.id
@@ -102,7 +103,7 @@ export default function FeeTableTab() {
           <td data-label="Giá đang áp dụng"><CurrentPrice fee={fee} rates={ratesOf(fee)} today={today} /></td>
           <td data-label="Thao tác" className="text-right!">
             {!fee.active && <span className="mr-2"><StatusBadge tone="warning">Tạm dừng</StatusBadge></span>}
-            {canWrite && fee.basis !== 'ACTUAL' && (
+            {canWrite && fee.basis !== 'ACTUAL' && !isMaintenanceFeeType(fee) && (
               <button type="button" className={`btn btn-sm ${warn ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setEditing({ fee })} aria-label={`${warn ? 'Đặt giá' : 'Sửa'} ${fee.name}`}>
                 <EditIcon size={14} />
                 <span>{warn ? 'Đặt giá' : 'Sửa'}</span>
