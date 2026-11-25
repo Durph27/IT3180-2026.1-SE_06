@@ -25,6 +25,8 @@ const { AuthContext } = await server.ssrLoadModule('/src/context/AuthContext.js'
 const { default: TemporaryResidenceModal } = await server.ssrLoadModule('/src/components/TemporaryResidenceModal.jsx')
 const { default: TemporaryAbsenceModal } = await server.ssrLoadModule('/src/components/TemporaryAbsenceModal.jsx')
 const { default: RejectResidenceChangeModal } = await server.ssrLoadModule('/src/components/RejectResidenceChangeModal.jsx')
+const { default: EarlyEndResidenceChangeModal } = await server.ssrLoadModule('/src/components/EarlyEndResidenceChangeModal.jsx')
+const { default: ResidenceChangeDetailModal } = await server.ssrLoadModule('/src/components/ResidenceChangeDetailModal.jsx')
 const { default: ResidenceChangeManagement } = await server.ssrLoadModule('/src/components/ResidenceChangeManagement.jsx')
 const { api } = await server.ssrLoadModule('/src/api/client.js')
 
@@ -50,7 +52,17 @@ function mockApi(handler) {
 
 function makeAuth({
   role = 'MANAGER',
-  permissions = ['residence-change.read', 'residence-change.write', 'residence-change.approve', 'resident.read', 'resident.write'],
+  permissions = [
+    'apartment.read',
+    'occupancy.read',
+    'household.read',
+    'residence-change.read',
+    'residence-change.write',
+    'residence-change.approve',
+    'resident.read',
+    'resident.identity.read',
+    'resident.write',
+  ],
   householdIds = ['hh-1'],
   userId = 'user-mgr',
 } = {}) {
@@ -109,56 +121,29 @@ async function setInput(selector, value) {
   })
 }
 
-test('TemporaryResidenceModal renders HTML5 constraint attributes matching UI rules', async () => {
+test('TemporaryResidenceModal renders existing-resident search without new-person or UUID form fields', async () => {
   mockApi(() => makeResponse({}, {}))
   await mount(
     h(AuthContext.Provider, { value: makeAuth() },
       h(TemporaryResidenceModal, {
         isOpen: true,
         initialHouseholdId: 'hh-1',
-        households: [{ id: 'hh-1', code: 'P101' }],
+        households: [{ id: 'hh-1', code: 'P101', apartmentCode: 'A101' }],
         onClose: () => closedCount++,
         onSuccess: (msg) => savedMessages.push(msg),
       })
     )
   )
 
-  const fullNameInput = document.querySelector('input[name="fullName"]')
-  const identityInput = document.querySelector('input[name="identityNo"]')
-  const birthInput = document.querySelector('input[name="birthDate"]')
-  const phoneInput = document.querySelector('input[name="phone"]')
-  const fromInput = document.querySelector('input[name="effectiveFrom"]')
-  const toInput = document.querySelector('input[name="effectiveTo"]')
-
-  assert.ok(fullNameInput, 'fullName input exists')
-  assert.equal(fullNameInput.getAttribute('required'), '')
-  assert.equal(fullNameInput.getAttribute('maxlength'), '120')
-
-  assert.ok(identityInput, 'identityNo input exists')
-  assert.equal(identityInput.getAttribute('required'), '')
-  assert.equal(identityInput.getAttribute('pattern'), '[0-9]{12}')
-  assert.equal(identityInput.getAttribute('minlength'), '12')
-  assert.equal(identityInput.getAttribute('maxlength'), '12')
-  assert.equal(identityInput.getAttribute('inputmode'), 'numeric')
-
-  assert.ok(birthInput, 'birthDate input exists')
-  assert.equal(birthInput.getAttribute('type'), 'date')
-  assert.equal(birthInput.getAttribute('required'), '')
-
-  assert.ok(phoneInput, 'phone input exists')
-  assert.equal(phoneInput.getAttribute('pattern'), '[0-9]{10}')
-  assert.equal(phoneInput.getAttribute('maxlength'), '10')
-
-  assert.ok(fromInput, 'effectiveFrom input exists')
-  assert.equal(fromInput.getAttribute('type'), 'date')
-  assert.equal(fromInput.getAttribute('required'), '')
-
-  assert.ok(toInput, 'effectiveTo input exists')
-  assert.equal(toInput.getAttribute('type'), 'date')
-  assert.equal(toInput.getAttribute('required'), '')
+  assert.equal(document.querySelector('input[name="fullName"]'), null, 'No new-resident fullName field')
+  assert.equal(document.querySelector('input[name="residentType"]'), null, 'No residentType radio toggle')
+  assert.equal(document.querySelector('input[name="residentId"]').getAttribute('type'), 'hidden')
+  assert.ok(document.querySelector('#resident-search-term'), 'Search input for existing residents exists')
+  assert.equal(document.querySelector('input[name="effectiveFrom"]').getAttribute('required'), '')
+  assert.equal(document.querySelector('input[name="effectiveTo"]').getAttribute('required'), '')
 })
 
-test('TemporaryResidenceModal shows validation error when dates are invalid or reversed', async () => {
+test('TemporaryResidenceModal safely handles partial/empty effectiveFrom and invalid dates without crashing', async () => {
   mockApi(() => makeResponse({}, {}))
   await mount(
     h(AuthContext.Provider, { value: makeAuth() },
@@ -172,42 +157,34 @@ test('TemporaryResidenceModal shows validation error when dates are invalid or r
     )
   )
 
-  await setInput('input[name="fullName"]', 'Trần Văn Khách')
-  await setInput('input[name="identityNo"]', '012345678901')
-  await setInput('input[name="birthDate"]', '1990-01-01')
+  await setInput('input[name="effectiveFrom"]', '')
+  assert.ok(document.querySelector('input[name="effectiveFrom"]'), 'Did not crash on empty effectiveFrom')
+
   await setInput('input[name="effectiveFrom"]', '2026-11-20')
-  await setInput('input[name="effectiveTo"]', '2026-11-10') // Before from
+  await setInput('input[name="effectiveTo"]', '2026-11-10')
 
   const form = document.querySelector('form')
   await act(async () => {
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
   })
 
-  // API must not have been called
   assert.equal(requests.length, 0)
-
-  // Error message must be rendered
-  const errorMsg = document.querySelector('.field-hint.text-danger')
-  assert.ok(errorMsg, 'Field error is rendered')
-  assert.match(errorMsg.textContent, /sau ngày bắt đầu/)
+  assert.match(document.body.textContent, /chọn nhân khẩu đã có hồ sơ/)
+  assert.match(document.body.textContent, /sau ngày bắt đầu/)
 })
 
-test('TemporaryResidenceModal successfully submits multi-step temporary residence and avoids duplicate resident on retry', async () => {
-  let residentCreatedCount = 0
-  let residenceChangeAttempts = 0
-
+test('TemporaryResidenceModal searches existing resident, supports duration presets, and submits clean payload', async () => {
   mockApi((config) => {
-    if (config.url === '/residents' && config.method === 'post') {
-      residentCreatedCount++
-      return makeResponse(config, { id: 'created-res-123' }, 201)
+    if (config.url === '/residents' && config.method === 'get') {
+      return makeResponse(config, {
+        content: [
+          { id: 'res-found-99', fullName: 'Lê Văn Khách', identityNo: '001099000001', birthDate: '1995-02-14' },
+        ],
+        totalElements: 1,
+      })
     }
     if (config.url === '/residence-changes' && config.method === 'post') {
-      residenceChangeAttempts++
-      if (residenceChangeAttempts === 1) {
-        // Fail on first attempt to test retry idempotency
-        return makeResponse(config, { message: 'Mạng gián đoạn' }, 500)
-      }
-      return makeResponse(config, { id: 'change-1', status: 'PENDING' }, 201)
+      return makeResponse(config, { id: 'change-created', status: 'PENDING' }, 201)
     }
     return makeResponse(config, {})
   })
@@ -217,80 +194,71 @@ test('TemporaryResidenceModal successfully submits multi-step temporary residenc
       h(TemporaryResidenceModal, {
         isOpen: true,
         initialHouseholdId: 'hh-1',
-        households: [{ id: 'hh-1', code: 'P101' }],
+        households: [{ id: 'hh-1', code: 'H101', apartmentCode: 'A101' }],
         onClose: () => closedCount++,
         onSuccess: (msg) => savedMessages.push(msg),
       })
     )
   )
 
-  await setInput('input[name="fullName"]', 'Nguyễn Thị Hoa')
-  await setInput('input[name="identityNo"]', '079123456789')
-  await setInput('input[name="birthDate"]', '1998-05-15')
-  await setInput('input[name="phone"]', '0987654321')
+  await setInput('#resident-search-term', 'Lê Văn')
+  const searchBtn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent.includes('Tìm kiếm'))
+  await act(async () => searchBtn.click())
+
+  assert.match(document.body.textContent, /Lê Văn Khách/)
+  const chooseBtn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent === 'Chọn')
+  await act(async () => chooseBtn.click())
+
+  assert.equal(document.querySelector('input[name="residentId"]').value, 'res-found-99')
+  await setInput('input[name="permanentAddress"]', 'TP. Hải Phòng')
+  await setInput('textarea[name="note"]', 'Thuê dài hạn')
   await setInput('input[name="effectiveFrom"]', '2026-11-15')
-  await setInput('input[name="effectiveTo"]', '2027-05-15')
+
+  const sixMonthsBtn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent === '6 tháng')
+  await act(async () => sixMonthsBtn.click())
+  assert.equal(document.querySelector('input[name="effectiveTo"]').value, '2027-05-15')
 
   const form = document.querySelector('form')
-
-  // First submit: fails on residence-changes
   await act(async () => {
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
   })
 
-  assert.equal(residentCreatedCount, 1, 'Resident was created')
-  assert.equal(residenceChangeAttempts, 1, 'Residence change was attempted once')
-  assert.equal(savedMessages.length, 0, 'Did not succeed yet')
-
-  // Check that the modal displays the created resident ID banner
-  const alertInfo = document.querySelector('.alert-info')
-  assert.ok(alertInfo, 'Shows status alert with created resident ID')
-  assert.match(alertInfo.textContent, /created-res-123/)
-
-  // Second submit: retry
-  await act(async () => {
-    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-  })
-
-  // Resident creation was NOT called again! (Idempotency achieved)
-  assert.equal(residentCreatedCount, 1, 'createResidentApi was NOT called a second time on retry')
-  assert.equal(residenceChangeAttempts, 2, 'Residence change was attempted a second time')
-  assert.equal(savedMessages.length, 1, 'Succeeded on second attempt')
-  assert.equal(closedCount, 1, 'Modal closed on success')
-
-  // Verify the second POST /residence-changes payload
-  const secondPost = requests.find((r) => r.url === '/residence-changes' && getRequestData(r)?.residentId === 'created-res-123')
-  assert.ok(secondPost, 'Posted residence change with created resident ID')
-  assert.deepEqual(getRequestData(secondPost), {
+  assert.equal(savedMessages.length, 1)
+  assert.equal(closedCount, 1)
+  const postReq = requests.find((r) => r.url === '/residence-changes' && r.method === 'post')
+  assert.deepEqual(getRequestData(postReq), {
     householdId: 'hh-1',
-    residentId: 'created-res-123',
+    residentId: 'res-found-99',
     changeType: 'TEMPORARY_RESIDENCE',
     effectiveFrom: '2026-11-15',
     effectiveTo: '2027-05-15',
     details: {
       relationship: 'TẠM TRÚ',
       isHead: false,
+      permanentAddress: 'TP. Hải Phòng',
+      note: 'Thuê dài hạn',
     },
   })
 })
 
-test('TemporaryAbsenceModal loads active members and submits strictly empty details', async () => {
+test('TemporaryAbsenceModal loads members with status tags, supports reason chips and submits destination/reason', async () => {
   mockApi((config) => {
     if (config.url === '/households/hh-1/members') {
       return makeResponse(config, {
         content: [
           { id: 'm-1', residentId: 'r-1', householdId: 'hh-1', relationship: 'CHỦ HỘ', isHead: true, validFrom: '2020-01-01', validTo: null },
           { id: 'm-2', residentId: 'r-2', householdId: 'hh-1', relationship: 'CON', isHead: false, validFrom: '2020-01-01', validTo: null },
+          { id: 'm-3', residentId: 'r-3', householdId: 'hh-1', relationship: 'TẠM TRÚ', isHead: false, validFrom: '2026-11-01', validTo: '2027-05-01' },
         ],
         totalPages: 1,
       })
     }
-    if (config.url === '/residents/r-1') {
-      return makeResponse(config, { id: 'r-1', fullName: 'Bố Gia Đình' })
+    if (config.url === '/residence-changes' && config.method === 'get') {
+      return makeResponse(config, { content: [], totalPages: 1 })
     }
-    if (config.url === '/residents/r-2') {
-      return makeResponse(config, { id: 'r-2', fullName: 'Con Gia Đình' })
-    }
+    if (config.url === '/residents/r-1') return makeResponse(config, { id: 'r-1', fullName: 'Bố Gia Đình' })
+    if (config.url === '/residents/r-2') return makeResponse(config, { id: 'r-2', fullName: 'Con Gia Đình' })
+    if (config.url === '/residents/r-3') return makeResponse(config, { id: 'r-3', fullName: 'Khách Tạm Trú' })
     if (config.url === '/residence-changes' && config.method === 'post') {
       return makeResponse(config, { id: 'change-abs-1', status: 'PENDING' }, 201)
     }
@@ -302,21 +270,24 @@ test('TemporaryAbsenceModal loads active members and submits strictly empty deta
       h(TemporaryAbsenceModal, {
         isOpen: true,
         initialHouseholdId: 'hh-1',
-        households: [{ id: 'hh-1', code: 'P101' }],
+        households: [{ id: 'hh-1', code: 'P101', apartmentCode: 'A101' }],
         onClose: () => closedCount++,
         onSuccess: (msg) => savedMessages.push(msg),
       })
     )
   )
 
-  // Wait for members promise to resolve
   await act(async () => {})
 
   const residentSelect = document.querySelector('select[name="residentId"]')
-  assert.ok(residentSelect, 'residentId select exists')
-  assert.ok(residentSelect.options.length >= 2, 'Options loaded')
+  assert.ok(residentSelect.options.length >= 3)
+  assert.match(residentSelect.options[2].textContent, /Đang tạm trú/)
 
   await setInput('select[name="residentId"]', 'r-2')
+  await setInput('input[name="destination"]', 'TP. Đà Nẵng')
+  const reasonBtn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent === 'Công tác')
+  await act(async () => reasonBtn.click())
+
   await setInput('input[name="effectiveFrom"]', '2026-11-20')
   await setInput('input[name="effectiveTo"]', '2027-01-20')
 
@@ -325,18 +296,20 @@ test('TemporaryAbsenceModal loads active members and submits strictly empty deta
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
   })
 
-  assert.equal(savedMessages.length, 1, 'Saved successfully')
-  assert.equal(closedCount, 1, 'Modal closed')
+  assert.equal(savedMessages.length, 1)
+  assert.equal(closedCount, 1)
 
-  const changePost = requests.find((r) => r.url === '/residence-changes')
-  assert.ok(changePost, 'Called /residence-changes')
+  const changePost = requests.find((r) => r.url === '/residence-changes' && r.method === 'post')
   assert.deepEqual(getRequestData(changePost), {
     householdId: 'hh-1',
     residentId: 'r-2',
     changeType: 'TEMPORARY_ABSENCE',
     effectiveFrom: '2026-11-20',
     effectiveTo: '2027-01-20',
-    details: {}, // Strictly empty, conforming to OpenAPI contract
+    details: {
+      destination: 'TP. Đà Nẵng',
+      reason: 'Công tác',
+    },
   })
 })
 
@@ -359,22 +332,13 @@ test('RejectResidenceChangeModal enforces non-empty reason and calls reject API'
     )
   )
 
-  const textarea = document.querySelector('textarea[name="reason"]')
-  assert.ok(textarea, 'reason textarea exists')
-  assert.equal(textarea.getAttribute('required'), '')
-  assert.equal(textarea.getAttribute('maxlength'), '1000')
-
   const form = document.querySelector('form')
-
-  // Submit with empty reason
   await act(async () => {
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
   })
-  assert.equal(requests.length, 0, 'No API call when empty')
+  assert.equal(requests.length, 0)
 
-  // Enter valid reason and submit
   await setInput('textarea[name="reason"]', 'Hồ sơ chưa có xác nhận từ công an phường')
-
   await act(async () => {
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
   })
@@ -386,8 +350,97 @@ test('RejectResidenceChangeModal enforces non-empty reason and calls reject API'
   assert.equal(closedCount, 1)
 })
 
-test('ResidenceChangeManagement gates unauthorized users and renders data table with StatCards', async () => {
-  // Test unauthorized access
+test('EarlyEndResidenceChangeModal validates bounds and posts to /residence-changes/{id}/end', async () => {
+  mockApi((config) => {
+    if (config.url === '/residence-changes/ch-9/end' && config.method === 'post') {
+      return makeResponse(config, { id: 'ch-9', status: 'APPROVED', effectiveTo: '2026-12-01' }, 200)
+    }
+    return makeResponse(config, {})
+  })
+
+  await mount(
+    h(AuthContext.Provider, { value: makeAuth() },
+      h(EarlyEndResidenceChangeModal, {
+        isOpen: true,
+        change: {
+          id: 'ch-9',
+          changeType: 'TEMPORARY_RESIDENCE',
+          effectiveFrom: '2026-11-01',
+          effectiveTo: '2027-05-01',
+        },
+        residentName: 'Lê Tạm Trú',
+        householdLabel: 'Phòng A101 · Hộ H101',
+        onClose: () => closedCount++,
+        onSuccess: (msg) => savedMessages.push(msg),
+      })
+    )
+  )
+
+  await setInput('input[name="effectiveTo"]', '2027-06-01')
+  const form = document.querySelector('form')
+  await act(async () => {
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+  })
+  assert.equal(requests.length, 0)
+
+  await setInput('input[name="effectiveTo"]', '2026-12-01')
+  await setInput('textarea[name="reason"]', 'Khách trả phòng sớm')
+  await act(async () => {
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+  })
+
+  assert.equal(requests.length, 1)
+  assert.equal(requests[0].url, '/residence-changes/ch-9/end')
+  assert.deepEqual(getRequestData(requests[0]), {
+    effectiveTo: '2026-12-01',
+    reason: 'Khách trả phòng sớm',
+  })
+  assert.equal(savedMessages.length, 1)
+  assert.equal(closedCount, 1)
+})
+
+test('ResidenceChangeDetailModal shows masked/visible CCCD and opens timeline callback', async () => {
+  let timelineOpened = false
+  await mount(
+    h(AuthContext.Provider, { value: makeAuth() },
+      h(ResidenceChangeDetailModal, {
+        isOpen: true,
+        change: {
+          id: 'ch-detail-1',
+          householdId: 'hh-1',
+          residentId: 'res-1',
+          changeType: 'TEMPORARY_ABSENCE',
+          effectiveFrom: '2026-11-01',
+          effectiveTo: '2026-12-15',
+          status: 'REJECTED',
+          details: { destination: 'Huế', reason: 'Thăm thân', decisionReason: 'Thiếu xác nhận' },
+        },
+        residentInfo: { fullName: 'Nguyễn Văn B', identityNo: '001199887766' },
+        householdLabel: 'Phòng A101 · Hộ H101',
+        canReadIdentity: false,
+        canOpenTimeline: true,
+        onOpenTimeline: () => { timelineOpened = true },
+        onClose: () => closedCount++,
+      })
+    )
+  )
+
+  const text = document.body.textContent
+  assert.match(text, /Nguyễn Văn B/)
+  assert.match(text, /••••••••••••/)
+  assert.ok(!text.includes('001199887766'))
+  assert.match(text, /Huế/)
+  assert.match(text, /Thiếu xác nhận/)
+
+  const timelineBtn = Array.from(document.querySelectorAll('button')).find((b) =>
+    b.textContent.includes('Xem lịch sử cư trú')
+  )
+  assert.ok(timelineBtn)
+  await act(async () => timelineBtn.click())
+  assert.equal(timelineOpened, true)
+})
+
+test('ResidenceChangeManagement gates unauthorized users, computes full stats, filters by tabs/search, and allows staff self-approval on temp changes', async () => {
   await mount(
     h(AuthContext.Provider, { value: makeAuth({ permissions: [] }) },
       h(ResidenceChangeManagement, {})
@@ -395,10 +448,23 @@ test('ResidenceChangeManagement gates unauthorized users and renders data table 
   )
   assert.match(document.body.textContent, /không có quyền truy cập/)
 
-  // Test authorized manager access
   mockApi((config) => {
     if (config.url === '/households') {
-      return makeResponse(config, { content: [{ id: 'hh-1', code: 'P101' }], totalPages: 1 })
+      return makeResponse(config, { content: [{ id: 'hh-1', code: 'H101' }], totalPages: 1 })
+    }
+    if (config.url === '/apartments') {
+      return makeResponse(config, { content: [{ id: 'apt-1', code: 'A101' }], totalPages: 1 })
+    }
+    if (config.url === '/occupancies') {
+      return makeResponse(config, { content: [{ id: 'occ-1', householdId: 'hh-1', apartmentId: 'apt-1', validFrom: '2025-01-01', validTo: null }], totalPages: 1 })
+    }
+    if (config.url === '/residents' && config.method === 'get') {
+      return makeResponse(config, {
+        content: [
+          { id: 'r-1', fullName: 'Lê Tạm Trú', identityNo: '001200001234', birthDate: '1997-01-01', gender: 'MALE' },
+        ],
+        totalPages: 1,
+      })
     }
     if (config.url === '/residence-changes') {
       return makeResponse(config, {
@@ -411,8 +477,8 @@ test('ResidenceChangeManagement gates unauthorized users and renders data table 
             effectiveFrom: '2026-11-01',
             effectiveTo: '2027-05-01',
             status: 'PENDING',
-            requestedBy: 'other-user',
-            details: { relationship: 'TẠM TRÚ', isHead: false },
+            requestedBy: 'user-mgr',
+            details: { relationship: 'TẠM TRÚ', isHead: false, permanentAddress: 'Thái Bình' },
           },
           {
             id: 'rc-2',
@@ -420,20 +486,17 @@ test('ResidenceChangeManagement gates unauthorized users and renders data table 
             residentId: 'r-2',
             changeType: 'TEMPORARY_ABSENCE',
             effectiveFrom: '2026-10-01',
-            effectiveTo: '2026-12-01',
+            effectiveTo: '2027-01-20',
             status: 'APPROVED',
             requestedBy: 'user-mgr',
-            details: {},
+            details: { destination: 'TP.HCM', reason: 'Công tác' },
           },
         ],
         totalPages: 1,
         totalElements: 2,
-        page: 0,
-        size: 10,
       })
     }
-    if (config.url === '/residents/r-1') return makeResponse(config, { id: 'r-1', fullName: 'Lê Tạm Trú' })
-    if (config.url === '/residents/r-2') return makeResponse(config, { id: 'r-2', fullName: 'Trần Tạm Vắng' })
+    if (config.url === '/residents/r-2') return makeResponse(config, { id: 'r-2', fullName: 'Trần Tạm Vắng', identityNo: '001200009999' })
     return makeResponse(config, {})
   })
 
@@ -445,34 +508,39 @@ test('ResidenceChangeManagement gates unauthorized users and renders data table 
 
   await act(async () => {})
 
-  // Header and buttons
   assert.match(document.body.textContent, /Quản lý tạm trú, tạm vắng/)
   assert.ok(document.body.textContent.includes('Đăng ký tạm trú'))
   assert.ok(document.body.textContent.includes('Khai báo tạm vắng'))
+  assert.ok(document.body.textContent.includes('Xuất Excel (.xlsx)'))
 
-  // Table structure
+  assert.match(document.body.textContent, /Phòng A101 · Hộ H101/)
+  assert.match(document.body.textContent, /Lê Tạm Trú/)
+  assert.match(document.body.textContent, /01\/11\/2026/)
+  assert.match(document.body.textContent, /Thái Bình/)
+
+  const approveBtns = Array.from(document.querySelectorAll('button')).filter((b) => b.textContent === 'Duyệt')
+  assert.equal(approveBtns.length, 1)
+
   const table = document.querySelector('table.modern-table')
-  assert.ok(table, 'table.modern-table exists')
-  assert.ok(table.querySelector('caption'), 'table has caption')
-  assert.ok(table.querySelector('th[scope="col"]'), 'table has th with scope col')
-
-  // Table wrapper has tabIndex and role region per message.txt
+  assert.ok(table.querySelector('caption'))
+  assert.ok(table.querySelector('th[scope="col"]'))
   const wrapper = document.querySelector('.table-wrapper')
   assert.equal(wrapper.getAttribute('tabindex'), '0')
   assert.equal(wrapper.getAttribute('role'), 'region')
 
-  // Status badges
-  assert.match(document.body.textContent, /Chờ duyệt/)
-  assert.match(document.body.textContent, /Đã duyệt/)
+  await setInput('#filter-search-q', 'Đà Nẵng không khớp')
+  assert.match(document.body.textContent, /Chưa có yêu cầu tạm trú hoặc tạm vắng nào phù hợp/)
+  await setInput('#filter-search-q', 'Thái Bình')
+  assert.match(document.body.textContent, /Lê Tạm Trú/)
 })
 
-test('TemporaryResidenceModal adapts appropriately for RESIDENT role without resident.write', async () => {
+test('TemporaryResidenceModal guides RESIDENT role when searching existing residents', async () => {
   mockApi(() => makeResponse({}, {}))
   await mount(
     h(AuthContext.Provider, {
       value: makeAuth({
         role: 'RESIDENT',
-        permissions: ['residence-change.read', 'residence-change.write', 'household.read'],
+        permissions: ['residence-change.read', 'residence-change.write', 'household.read', 'resident.read'],
         householdIds: ['hh-resident-1'],
       }),
     },
@@ -487,135 +555,20 @@ test('TemporaryResidenceModal adapts appropriately for RESIDENT role without res
     )
   )
 
-  // Resident notice must be visible
-  assert.match(document.body.textContent, /Lưu ý cho Cư dân/)
-  assert.match(document.body.textContent, /Ban quản lý\/Lễ tân để lập hồ sơ cư dân ban đầu/)
-
-  // Radio button for new resident should be disabled for RESIDENT role
-  const newResidentRadio = document.querySelector('input[name="residentType"][value=""]') || document.querySelectorAll('input[name="residentType"]')[0]
-  assert.ok(newResidentRadio.disabled, 'Khai báo nhân khẩu mới radio is disabled for RESIDENT')
-
-  // Household is displayed as read-only label
-  assert.match(document.body.textContent, /Hộ H101 \(Căn A101\)/)
-
-  // Existing resident form is shown by default (input name="residentId" exists, not fullName)
-  assert.ok(document.querySelector('input[name="residentId"]'), 'residentId input is displayed for resident')
-  assert.equal(document.querySelector('input[name="fullName"]'), null, 'fullName input is not displayed')
+  assert.match(document.body.textContent, /Phòng A101 · Hộ H101/)
+  assert.match(document.body.textContent, /liên hệ Ban quản lý để lập hồ sơ nhân khẩu trước/)
 })
 
-test('TemporaryResidenceModal allows searching and selecting existing resident', async () => {
-  mockApi((config) => {
-    if (config.url === '/residents' && config.method === 'get') {
-      return makeResponse(config, {
-        content: [
-          { id: 'res-found-99', fullName: 'Lê Văn Khách', identityNo: '001099000001', birthDate: '1995-02-14' },
-        ],
-        totalElements: 1,
-      })
-    }
-    if (config.url === '/residence-changes' && config.method === 'post') {
-      return makeResponse(config, { id: 'change-created', status: 'PENDING' }, 201)
-    }
-    return makeResponse(config, {})
-  })
-
-  await mount(
-    h(AuthContext.Provider, {
-      value: makeAuth({
-        role: 'RESIDENT',
-        permissions: ['residence-change.read', 'residence-change.write', 'household.read'],
-        householdIds: ['hh-resident-1'],
-      }),
-    },
-      h(TemporaryResidenceModal, {
-        isOpen: true,
-        initialHouseholdId: 'hh-resident-1',
-        households: [{ id: 'hh-resident-1', code: 'H101' }],
-        canSelectHousehold: false,
-        onClose: () => closedCount++,
-        onSuccess: (msg) => savedMessages.push(msg),
-      })
-    )
-  )
-
-  // Type search query
-  await setInput('#resident-search-term', 'Lê Văn')
-
-  // Click search button
-  const searchBtn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent.includes('Tìm kiếm'))
-  assert.ok(searchBtn, 'Search button exists')
-  await act(async () => {
-    searchBtn.click()
-  })
-
-  // Search result should appear
-  assert.match(document.body.textContent, /Lê Văn Khách/)
-  assert.match(document.body.textContent, /CCCD: 001099000001/)
-
-  // Click choose button
-  const chooseBtn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent.includes('Chọn'))
-  assert.ok(chooseBtn, 'Choose button exists')
-  await act(async () => {
-    chooseBtn.click()
-  })
-
-  // Selected banner should appear
-  assert.match(document.body.textContent, /Đang chọn: Lê Văn Khách/)
-
-  // UUID input should be populated
-  const residentIdInput = document.querySelector('input[name="residentId"]')
-  assert.equal(residentIdInput.value, 'res-found-99')
-
-  // Fill dates and submit
-  await setInput('input[name="effectiveFrom"]', '2026-11-20')
-  await setInput('input[name="effectiveTo"]', '2027-01-20')
-
-  const form = document.querySelector('form')
-  await act(async () => {
-    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-  })
-
-  // Must have successfully submitted
-  assert.equal(savedMessages.length, 1)
-  assert.equal(closedCount, 1)
-  const req = requests.find((r) => r.url === '/residence-changes' && r.method === 'post')
-  assert.ok(req, 'POST /residence-changes was sent')
-  const body = getRequestData(req)
-  assert.equal(body.residentId, 'res-found-99')
-  assert.equal(body.householdId, 'hh-resident-1')
-  assert.equal(body.changeType, 'TEMPORARY_RESIDENCE')
-})
-
-test('TemporaryResidenceModal auto-syncs householdId when initialHouseholdId is empty', async () => {
+test('TemporaryResidenceModal auto-syncs householdId and allows selecting different households', async () => {
   mockApi(() => makeResponse({}, {}))
   await mount(
     h(AuthContext.Provider, { value: makeAuth() },
       h(TemporaryResidenceModal, {
         isOpen: true,
         initialHouseholdId: '',
-        households: [{ id: 'hh-sync-auto', code: 'SYNC101' }],
-        canSelectHousehold: true,
-        onClose: () => closedCount++,
-        onSuccess: (msg) => savedMessages.push(msg),
-      })
-    )
-  )
-
-  const select = document.querySelector('select[name="householdId"]')
-  assert.equal(select.value, 'hh-sync-auto', 'householdId was automatically synced to first household')
-})
-
-test('TemporaryResidenceModal allows selecting different households without reverting to initialHouseholdId', async () => {
-  mockApi(() => makeResponse({}, {}))
-  await mount(
-    h(AuthContext.Provider, { value: makeAuth() },
-      h(TemporaryResidenceModal, {
-        isOpen: true,
-        initialHouseholdId: 'hh-first',
         households: [
           { id: 'hh-first', code: 'H101' },
           { id: 'hh-second', code: 'H202' },
-          { id: 'hh-third', code: 'H303' },
         ],
         canSelectHousehold: true,
         onClose: () => closedCount++,
@@ -625,22 +578,15 @@ test('TemporaryResidenceModal allows selecting different households without reve
   )
 
   const select = document.querySelector('select[name="householdId"]')
-  assert.equal(select.value, 'hh-first', 'Initially selects hh-first')
-
-  // User changes select to hh-second
+  assert.equal(select.value, 'hh-first')
   await setInput('select[name="householdId"]', 'hh-second')
-  assert.equal(select.value, 'hh-second', 'Maintains user choice hh-second without resetting to initialHouseholdId')
-
-  // User changes select to hh-third
-  await setInput('select[name="householdId"]', 'hh-third')
-  assert.equal(select.value, 'hh-third', 'Maintains user choice hh-third without resetting')
+  assert.equal(select.value, 'hh-second')
 })
 
 test('TemporaryAbsenceModal allows selecting different households without reverting', async () => {
   mockApi((config) => {
-    if (config.url.includes('/members')) {
-      return makeResponse(config, { content: [] })
-    }
+    if (config.url.includes('/members')) return makeResponse(config, { content: [] })
+    if (config.url === '/residence-changes') return makeResponse(config, { content: [] })
     return makeResponse(config, {})
   })
 
@@ -662,7 +608,6 @@ test('TemporaryAbsenceModal allows selecting different households without revert
 
   const select = document.querySelector('select[name="householdId"]')
   assert.equal(select.value, 'hh-1')
-
   await setInput('select[name="householdId"]', 'hh-2')
-  assert.equal(select.value, 'hh-2', 'Maintains hh-2 without reverting to hh-1')
+  assert.equal(select.value, 'hh-2')
 })

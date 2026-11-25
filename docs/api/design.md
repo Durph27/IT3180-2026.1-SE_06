@@ -136,13 +136,13 @@ ResidenceChange.details có cấu trúc theo changeType:
 | MOVE_IN | residentId, details.relationship/isHead; details.apartmentId nếu mở occupancy mới | Mở membership; chỉ mở occupancy mới khi có apartmentId và chưa có occupancy đó |
 | MOVE_OUT | residentId, details.endOccupancyIds (array, có thể rỗng) | Kết thúc membership và occupancy chỉ định tại effectiveFrom |
 | TRANSFER | residentId, targetHouseholdId, details.relationship/isHead | Đóng membership nguồn, mở hộ đích khác hộ nguồn; không chuyển nợ |
-| TEMPORARY_ABSENCE | residentId, effectiveTo | Lưu tạm vắng, giữ membership/occupancy |
-| TEMPORARY_RESIDENCE | residentId, effectiveTo, details.relationship/isHead | Mở membership có validTo ở householdId |
+| TEMPORARY_ABSENCE | residentId, effectiveTo, details.(destination/reason/note?) | Lưu tạm vắng, giữ membership/occupancy |
+| TEMPORARY_RESIDENCE | residentId, effectiveTo, details.relationship/isHead (+ permanentAddress/note?) | Mở membership có validTo ở householdId |
 
-Field details ngoài danh sách tương ứng trả 422; decisionReason do server ghi.
+Field details ngoài danh sách tương ứng trả 422; decisionReason và dữ liệu kết thúc sớm do server ghi.
 Cư dân chỉ tạo yêu cầu cho hộ mình, người duyệt kiểm tra hộ đích. Tạm vắng vẫn
 tính phí nhân khẩu. PENDING → APPROVED/REJECTED/CANCELLED, trạng thái cuối bất
-biến; người tạo không tự duyệt. Khóa và cập nhật lịch sử/audit cùng transaction.
+biến (riêng tạm trú/tạm vắng APPROVED được kết thúc sớm qua `/end`). Các lệnh chuyển/nhập/tách hộ giữ rule người tạo không tự duyệt; tạm trú/tạm vắng cho phép quản lý xác nhận tại quầy. Khóa và cập nhật lịch sử/audit cùng transaction.
 
 ## 5. Thu phí và đóng góp
 

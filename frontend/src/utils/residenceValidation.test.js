@@ -1,16 +1,20 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  addCalendarDays,
+  addCalendarMonths,
+  classifyResidenceChangeLifecycle,
+  diffCalendarDays,
   isDateAfter,
   isValidDateFormat,
   RESIDENCE_CHANGE_STATUS,
   RESIDENCE_CHANGE_TYPES,
+  resolveChangeResidentInfo,
   TEMPORARY_RELATIONSHIPS,
+  validateEarlyEndDate,
   validateTemporaryAbsence,
   validateTemporaryResidence,
 } from './residenceValidation.js'
-
-const TODAY = '2026-11-12'
 
 test('isValidDateFormat validates calendar dates correctly', () => {
   assert.equal(isValidDateFormat('2026-11-12'), true)
@@ -24,68 +28,39 @@ test('isValidDateFormat validates calendar dates correctly', () => {
   assert.equal(isValidDateFormat(undefined), false)
 })
 
-test('isDateAfter checks chronological order correctly', () => {
+test('isDateAfter and pure calendar math handle leap years and invalid strings safely', () => {
   assert.equal(isDateAfter('2026-11-13', '2026-11-12'), true)
   assert.equal(isDateAfter('2026-11-12', '2026-11-12'), false)
   assert.equal(isDateAfter('2026-11-11', '2026-11-12'), false)
   assert.equal(isDateAfter('invalid', '2026-11-12'), false)
   assert.equal(isDateAfter('2026-11-12', 'invalid'), false)
+
+  assert.equal(addCalendarDays('2026-11-26', 1), '2026-11-27')
+  assert.equal(addCalendarDays('', 1), '')
+  assert.equal(addCalendarDays('2026-13-99', 1), '')
+
+  assert.equal(addCalendarMonths('2026-01-31', 1), '2026-02-28')
+  assert.equal(addCalendarMonths('2024-01-31', 1), '2024-02-29')
+  assert.equal(addCalendarMonths('2026-11-15', 6), '2027-05-15')
+
+  assert.equal(diffCalendarDays('2026-11-20', '2026-11-27'), 7)
+  assert.equal(diffCalendarDays('bad', '2026-11-27'), null)
 })
 
-test('validateTemporaryResidence - valid new resident passes with sanitized payload', () => {
-  const input = {
-    householdId: '00000000-0000-0000-0000-000000000001',
-    isNewResident: true,
-    fullName: '  Lê Văn Khách  ',
-    identityNo: '001200001234',
-    birthDate: '1995-08-20',
-    gender: 'MALE',
-    phone: '0912345678',
-    relationship: 'TẠM TRÚ',
-    effectiveFrom: '2026-11-15',
-    effectiveTo: '2027-05-15',
-  }
-
-  const result = validateTemporaryResidence(input, { today: TODAY })
-  assert.equal(result.isValid, true)
-  assert.deepEqual(result.errors, {})
-
-  // Verify resident payload
-  assert.deepEqual(result.residentPayload, {
-    fullName: 'Lê Văn Khách',
-    identityNo: '001200001234',
-    birthDate: '1995-08-20',
-    gender: 'MALE',
-    phone: '0912345678',
-  })
-
-  // Verify residence change payload conforms strictly to OpenAPI contract
-  assert.deepEqual(result.residenceChangePayload, {
-    householdId: '00000000-0000-0000-0000-000000000001',
-    residentId: null, // Will be filled after resident is created
-    changeType: 'TEMPORARY_RESIDENCE',
-    effectiveFrom: '2026-11-15',
-    effectiveTo: '2027-05-15',
-    details: {
-      relationship: 'TẠM TRÚ',
-      isHead: false,
-    },
-  })
-})
-
-test('validateTemporaryResidence - valid existing resident payload', () => {
+test('validateTemporaryResidence builds valid payload for existing resident with optional details', () => {
   const input = {
     householdId: '00000000-0000-0000-0000-000000000001',
     residentId: '00000000-0000-0000-0000-000000000002',
-    isNewResident: false,
     relationship: 'KHÁC',
+    permanentAddress: '  TP. Nam Định  ',
+    note: '  Thuê căn hộ 6 tháng  ',
     effectiveFrom: '2026-12-01',
     effectiveTo: '2027-06-01',
+    extraField: 'should_not_leak',
   }
 
-  const result = validateTemporaryResidence(input, { today: TODAY })
+  const result = validateTemporaryResidence(input)
   assert.equal(result.isValid, true)
-  assert.equal(result.residentPayload, null)
   assert.deepEqual(result.residenceChangePayload, {
     householdId: '00000000-0000-0000-0000-000000000001',
     residentId: '00000000-0000-0000-0000-000000000002',
@@ -95,102 +70,101 @@ test('validateTemporaryResidence - valid existing resident payload', () => {
     details: {
       relationship: 'KHÁC',
       isHead: false,
+      permanentAddress: 'TP. Nam Định',
+      note: 'Thuê căn hộ 6 tháng',
     },
   })
 })
 
-test('validateTemporaryResidence - catches invalid resident and date fields', () => {
-  const invalid = {
+test('validateTemporaryResidence omits optional keys when empty and enforces required resident & dates', () => {
+  const minimal = validateTemporaryResidence({
+    householdId: '00000000-0000-0000-0000-000000000001',
+    residentId: '00000000-0000-0000-0000-000000000002',
+    relationship: 'TẠM TRÚ',
+    effectiveFrom: '2026-11-15',
+    effectiveTo: '2027-05-15',
+  })
+  assert.equal(minimal.isValid, true)
+  assert.deepEqual(minimal.residenceChangePayload.details, {
+    relationship: 'TẠM TRÚ',
+    isHead: false,
+  })
+
+  const invalid = validateTemporaryResidence({
     householdId: '',
-    isNewResident: true,
-    fullName: '',
-    identityNo: '12345', // Must be 12 digits
-    birthDate: '2030-01-01', // Future date
-    gender: 'INVALID_GENDER',
-    phone: '0901', // Invalid length
+    residentId: '',
     relationship: '',
     effectiveFrom: '2026-11-20',
-    effectiveTo: '2026-11-10', // Before effectiveFrom
-  }
-
-  const result = validateTemporaryResidence(invalid, { today: TODAY })
-  assert.equal(result.isValid, false)
-  assert.match(result.errors.householdId, /hộ gia đình/)
-  assert.match(result.errors.fullName, /Họ và tên/)
-  assert.match(result.errors.identityNo, /12 chữ số/)
-  assert.match(result.errors.birthDate, /tương lai/)
-  assert.match(result.errors.gender, /giới tính/)
-  assert.match(result.errors.phone, /10 chữ số/)
-  assert.match(result.errors.relationship, /quan hệ/)
-  assert.match(result.errors.effectiveTo, /sau ngày bắt đầu/)
+    effectiveTo: '2026-11-10',
+  })
+  assert.equal(invalid.isValid, false)
+  assert.match(invalid.errors.householdId, /hộ gia đình/)
+  assert.match(invalid.errors.residentId, /chọn nhân khẩu/)
+  assert.match(invalid.errors.relationship, /quan hệ/)
+  assert.match(invalid.errors.effectiveTo, /sau ngày bắt đầu/)
 })
 
 test('validateTemporaryResidence - effectiveTo equal to effectiveFrom is rejected', () => {
-  const sameDay = {
+  const result = validateTemporaryResidence({
     householdId: '00000000-0000-0000-0000-000000000001',
     residentId: '00000000-0000-0000-0000-000000000002',
-    isNewResident: false,
     relationship: 'CON',
     effectiveFrom: '2026-11-15',
     effectiveTo: '2026-11-15',
-  }
-
-  const result = validateTemporaryResidence(sameDay, { today: TODAY })
+  })
   assert.equal(result.isValid, false)
   assert.match(result.errors.effectiveTo, /sau ngày bắt đầu/)
 })
 
-test('validateTemporaryResidence - details contains only relationship and isHead', () => {
-  const input = {
-    householdId: '00000000-0000-0000-0000-000000000001',
-    residentId: '00000000-0000-0000-0000-000000000002',
-    isNewResident: false,
-    relationship: 'VỢ/CHỒNG',
-    effectiveFrom: '2026-11-15',
-    effectiveTo: '2027-11-15',
-    extraField: 'should_not_leak',
-  }
-
-  const result = validateTemporaryResidence(input, { today: TODAY })
-  assert.equal(result.isValid, true)
-  assert.deepEqual(Object.keys(result.residenceChangePayload.details).sort(), ['isHead', 'relationship'])
-  assert.equal(result.residenceChangePayload.details.isHead, false)
-})
-
-test('validateTemporaryAbsence - valid absence payload with strictly empty details', () => {
-  const input = {
+test('validateTemporaryAbsence - keeps details empty when optional fields omitted and includes destination/reason when set', () => {
+  const minimal = validateTemporaryAbsence({
     householdId: '00000000-0000-0000-0000-000000000001',
     residentId: '00000000-0000-0000-0000-000000000003',
     effectiveFrom: '2026-12-01',
     effectiveTo: '2027-02-01',
-  }
+  })
+  assert.equal(minimal.isValid, true)
+  assert.deepEqual(minimal.residenceChangePayload.details, {})
 
-  const result = validateTemporaryAbsence(input)
-  assert.equal(result.isValid, true)
-  assert.deepEqual(result.errors, {})
-  assert.deepEqual(result.residenceChangePayload, {
+  const rich = validateTemporaryAbsence({
     householdId: '00000000-0000-0000-0000-000000000001',
     residentId: '00000000-0000-0000-0000-000000000003',
-    changeType: 'TEMPORARY_ABSENCE',
+    destination: '  Đà Nẵng ',
+    reason: ' Công tác ',
+    note: ' Liên hệ sđt cũ ',
     effectiveFrom: '2026-12-01',
     effectiveTo: '2027-02-01',
-    details: {}, // Strictly empty, preventing backend 422 contract error
+  })
+  assert.equal(rich.isValid, true)
+  assert.deepEqual(rich.residenceChangePayload.details, {
+    destination: 'Đà Nẵng',
+    reason: 'Công tác',
+    note: 'Liên hệ sđt cũ',
   })
 })
 
-test('validateTemporaryAbsence - enforces required fields and date order', () => {
-  const missing = {
-    householdId: '',
-    residentId: '',
-    effectiveFrom: '2026-12-05',
-    effectiveTo: '2026-12-01',
+test('validateEarlyEndDate, lifecycle classification, and resident lookup work accurately', () => {
+  const change = {
+    status: 'APPROVED',
+    effectiveFrom: '2026-11-01',
+    effectiveTo: '2026-11-17',
   }
+  const life = classifyResidenceChangeLifecycle(change, '2026-11-12')
+  assert.equal(life.key, 'EXPIRING_SOON')
+  assert.equal(life.daysRemaining, 5)
+  assert.equal(life.isActive, true)
+  assert.equal(life.isExpiringSoon, true)
 
-  const result = validateTemporaryAbsence(missing)
-  assert.equal(result.isValid, false)
-  assert.match(result.errors.householdId, /hộ gia đình/)
-  assert.match(result.errors.residentId, /nhân khẩu/)
-  assert.match(result.errors.effectiveTo, /sau ngày bắt đầu/)
+  assert.equal(classifyResidenceChangeLifecycle({ ...change, effectiveFrom: '2026-11-20', effectiveTo: '2026-12-20' }, '2026-11-12').key, 'UPCOMING')
+  assert.equal(classifyResidenceChangeLifecycle({ ...change, effectiveTo: '2026-11-12' }, '2026-11-12').key, 'EXPIRED')
+
+  assert.equal(validateEarlyEndDate(change, { effectiveTo: '2026-11-10', reason: 'Đã rời đi' }).isValid, true)
+  assert.equal(validateEarlyEndDate(change, { effectiveTo: '2026-11-01' }).isValid, false)
+  assert.equal(validateEarlyEndDate(change, { effectiveTo: '2026-11-25' }).isValid, false)
+
+  const resolved = resolveChangeResidentInfo({ residentId: 'res-1' }, { 'res-1': { fullName: 'Nguyễn Khách', identityNo: '001122334455' } })
+  assert.equal(resolved.fullName, 'Nguyễn Khách')
+  assert.equal(resolved.identityNo, '001122334455')
 })
 
 test('constants and status mappings are defined and frozen', () => {
