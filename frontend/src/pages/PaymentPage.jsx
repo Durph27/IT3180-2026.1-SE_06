@@ -343,7 +343,7 @@ function PaymentContent({ householdId, buildingWide = false }) {
         title="Sổ thu tiền"
         description={
           buildingWide
-            ? <>Ghi nhận tiền mặt, chuyển khoản và biên lai. Số phải thu theo tháng xem ở <Link to={ROUTES.billing} className="font-semibold underline">Khoản thu</Link>.</>
+            ? <>Ghi nhận tiền mặt, chuyển khoản và biên lai. Số phải thu theo tháng xem ở <Link to={ROUTES.billing} className="font-semibold underline">Đợt thu</Link>.</>
             : 'Lịch sử nộp phí và biên lai điện tử của hộ gia đình.'
         }
         actions={headerActions}

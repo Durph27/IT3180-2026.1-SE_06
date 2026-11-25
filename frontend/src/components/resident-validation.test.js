@@ -393,8 +393,10 @@ test('resident scope lists only owned households and never fetches the building 
   adapter((config) => response(config, { content: [], totalPages: 0 }))
   const container = document.createElement('div'); document.body.append(container); root = createRoot(container)
   await act(async () => root.render(h(AuthContext.Provider, { value }, h(Management))))
-  assert.deepEqual(requests.map((r) => r.url), ['/households/own-hh/members'])
+  // Scoped occupancy and apartment lists give the apartment code; the household directory is never read.
+  assert.deepEqual(requests.map((r) => r.url).sort(), ['/apartments', '/households/own-hh/members', '/occupancies'])
   assert.equal(document.getElementById('resident-household').options.length, 1)
+  assert.equal(document.getElementById('resident-household').options[0].textContent, 'Hộ của tôi')
   assert.ok(!document.body.textContent.includes('Thêm nhân khẩu'))
   await act(async () => root.render(h(AuthContext.Provider, { value }, h(Table, { householdId: 'foreign', residents: [{ ...valid, memberId: 'secret' }] }))))
   assert.ok(!document.body.textContent.includes(valid.fullName))

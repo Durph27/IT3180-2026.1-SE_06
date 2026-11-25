@@ -500,3 +500,13 @@ export function occupancyLookups({ occupancies = [], apartments = [], households
   }
   return { apartmentMap, householdMap }
 }
+
+// Residents know their home by its apartment code ("B1-0101"), never by the household id.
+export function householdPlaceLabel(householdId, { occupancies = [], apartments = [], at = todayInVietnam() } = {}) {
+  const apartmentById = new Map(apartments.map((row) => [row.id, row]))
+  const codes = occupancies
+    .filter((row) => row.householdId === householdId && row.validFrom <= at && (row.validTo == null || row.validTo > at))
+    .map((row) => apartmentById.get(row.apartmentId)?.code)
+    .filter(Boolean)
+  return [...new Set(codes)].sort((a, b) => a.localeCompare(b, 'vi')).join(', ')
+}

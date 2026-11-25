@@ -308,11 +308,11 @@ export default function HomePage() {
       links.push({
         key: 'billing',
         to: ROUTES.billing,
-        title: ownHousehold ? 'Khoản thu của hộ' : 'Khoản thu',
+        title: ownHousehold ? 'Khoản thu của hộ' : 'Đợt thu',
         description: ownHousehold
           ? 'Xem phiếu báo phí và công nợ từng tháng.'
           : canGenerateInvoices
-            ? 'Lập và gửi phiếu báo phí hằng tháng, quản lý bảng phí.'
+            ? 'Lập và gửi phiếu báo phí hằng tháng, theo dõi thu tiền.'
             : 'Theo dõi phiếu báo phí từng tháng.',
       })
     }
@@ -331,8 +331,8 @@ export default function HomePage() {
     if (canViewFees) {
       links.push({
         key: 'fees',
-        to: `${ROUTES.billing}?tab=bang-phi`,
-        title: 'Bảng phí',
+        to: ROUTES.fixedFees,
+        title: 'Phí cố định',
         description: hasPermission('fee-type.write') || hasPermission('fee-rate.write')
           ? 'Thêm khoản phí và đổi giá.'
           : 'Xem các khoản phí và giá đang áp dụng.',
@@ -341,11 +341,11 @@ export default function HomePage() {
     if (canViewMaintenance) {
       links.push({
         key: 'maintenanceFunds',
-        to: ROUTES.maintenanceFunds,
-        title: 'Quỹ bảo trì',
+        to: ROUTES.adhocFees,
+        title: 'Phí đột xuất',
         description: hasPermission('maintenance-fund.write')
-          ? 'Quản lý quỹ, phân bổ sửa chữa và đối chiếu số dư.'
-          : 'Theo dõi số dư quỹ bảo trì và các đợt đóng góp.',
+          ? 'Thu bảo trì theo đợt, đóng góp tự nguyện và đối chiếu quỹ.'
+          : 'Theo dõi quỹ bảo trì và các đợt đóng góp tự nguyện.',
       })
     }
     if (ownHousehold && householdId && canViewHouseholds) {

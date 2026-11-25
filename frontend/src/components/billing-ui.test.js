@@ -15,6 +15,7 @@ const server = await createServer({
 after(() => server.close())
 const { AuthContext } = await server.ssrLoadModule('/src/context/AuthContext.js')
 const { default: BillingPage } = await server.ssrLoadModule('/src/pages/BillingPage.jsx')
+const { default: FixedFeesPage } = await server.ssrLoadModule('/src/pages/FixedFeesPage.jsx')
 const { default: BillingPeriodSelector } = await server.ssrLoadModule('/src/components/BillingPeriodSelector.jsx')
 const { default: DueDateAlertBanner } = await server.ssrLoadModule('/src/components/DueDateAlertBanner.jsx')
 const { default: FeeItemTable } = await server.ssrLoadModule('/src/components/FeeItemTable.jsx')
@@ -39,9 +40,12 @@ const navProps = {}
 
 test('billing tab follows invoice access and household scope', () => {
   const accountant = render(auth('ACCOUNTANT'), Navbar, navProps)
-  assert.match(accountant, /Khoản thu/)
-  // The price list is a tab of the billing page now, not its own menu entry.
-  assert.doesNotMatch(accountant, /Biểu phí/)
+  // Staff get three pages: monthly bills, the price list and ad-hoc fees; residents keep one "Khoản thu".
+  assert.match(accountant, /href="\/khoan-thu"[^>]*>.*?Đợt thu/)
+  assert.match(accountant, /href="\/phi-co-dinh"[^>]*>.*?Phí cố định/)
+  assert.match(accountant, /Phí đột xuất/)
+  assert.doesNotMatch(accountant, /Khoản thu|Biểu phí/)
+  assert.doesNotMatch(render(auth('RESIDENT'), Navbar, navProps), /Phí cố định|Đợt thu/)
   assert.match(render(auth('RESIDENT'), Navbar, navProps), /Khoản thu/)
   assert.doesNotMatch(render(auth('RESIDENT', { householdIds: [] }), Navbar, navProps), /Khoản thu/)
   assert.doesNotMatch(render(auth('AUTHORITY'), Navbar, navProps), /Khoản thu/)
@@ -77,7 +81,7 @@ test('outstanding periods show totals and mark the selected period', () => {
 
 test('billing page renders only with both invoice and period access', () => {
   assert.match(render(auth('RESIDENT'), BillingPage, { onBack() {} }), /Các khoản thu của hộ gia đình/)
-  assert.match(render(auth('MANAGER'), BillingPage, { onBack() {} }), /Lập phiếu báo phí hằng tháng/)
+  assert.match(render(auth('MANAGER'), BillingPage, { onBack() {} }), /<h1 class="header-title">Đợt thu<\/h1>/)
   assert.doesNotMatch(render(auth('AUTHORITY'), BillingPage, { onBack() {} }), /header-title/)
   const noPeriods = auth('RESIDENT', { permissions: ROLE_PERMISSIONS.RESIDENT.filter((permission) => permission !== 'billing-period.read') })
   assert.doesNotMatch(render(noPeriods, BillingPage, { onBack() {} }), /header-title/)
@@ -122,14 +126,15 @@ test('long tables paginate', () => {
   assert.doesNotMatch(html, /Phí 50</)
 })
 
-test('staff get the two billing tabs; residents get only their bills', () => {
+test('bills and the price list are separate pages; residents get only their bills', () => {
   const manager = render(auth('MANAGER'), BillingPage, { onBack() {} })
-  assert.match(manager, /role="tablist"/)
+  assert.doesNotMatch(manager, /role="tablist"/)
   assert.match(manager, /Đợt thu/)
-  assert.match(manager, /Bảng phí/)
-  const priceList = render(auth('ACCOUNTANT'), BillingPage, { onBack() {} }, '/khoan-thu?tab=bang-phi')
-  assert.match(priceList, /aria-selected="true"[^>]*>Bảng phí/)
+  assert.doesNotMatch(manager, /Thêm phí|Tìm theo tên phí/)
+  const priceList = render(auth('ACCOUNTANT'), FixedFeesPage, { onBack() {} }, '/phi-co-dinh')
+  assert.match(priceList, /<h1 class="header-title">Phí cố định<\/h1>/)
   assert.match(priceList, /Thêm phí/)
+  for (const role of ['RESIDENT', 'AUTHORITY', 'ADMIN']) assert.match(render(auth(role), FixedFeesPage, { onBack() {} }, '/phi-co-dinh'), /Bạn không có quyền truy cập/, role)
   const resident = render(auth('RESIDENT'), BillingPage, { onBack() {} })
   assert.doesNotMatch(resident, /role="tablist"/)
   assert.doesNotMatch(resident, /Bản nháp/)
@@ -141,9 +146,9 @@ test('only the accountant can create bills; the board only follows collection', 
   assert.equal(can('MANAGER'), false)
   assert.equal(can('RESIDENT'), false)
   assert.equal(can('ADMIN'), false)
-  assert.match(render(auth('ACCOUNTANT'), BillingPage, { onBack() {} }, '/khoan-thu?tab=bang-phi'), /Thêm phí/)
-  const board = render(auth('MANAGER'), BillingPage, { onBack() {} }, '/khoan-thu?tab=bang-phi')
-  assert.match(board, /Bảng phí/)
+  assert.match(render(auth('ACCOUNTANT'), FixedFeesPage, { onBack() {} }, '/phi-co-dinh'), /Thêm phí/)
+  const board = render(auth('MANAGER'), FixedFeesPage, { onBack() {} }, '/phi-co-dinh')
+  assert.match(board, /Phí cố định/)
   assert.doesNotMatch(board, /Thêm phí/)
 })
 
@@ -188,10 +193,10 @@ test('the send dialog shows the total, the due date and what would make bills wr
   assert.match(html, /Phí vệ sinh chưa có giá/)
   assert.match(html, /1 căn hộ đang có người ở/)
   assert.match(html, /Gửi cho cư dân/)
-  assert.doesNotMatch(html, /Quỹ bảo trì/)
+  assert.doesNotMatch(html, /Phí đột xuất/)
   const withMaintenance = render(auth('ACCOUNTANT'), IssueConfirmDialog, { ...props, maintenanceHint: true })
-  assert.match(withMaintenance, /Thu bảo trì&quot; ở Quỹ bảo trì trước khi gửi/)
-  assert.match(withMaintenance, /href="\/quy-bao-tri"/)
+  assert.match(withMaintenance, /Thu bảo trì&quot; ở trang Phí đột xuất trước khi gửi/)
+  assert.match(withMaintenance, /href="\/phi-dot-xuat\?tab=bao-tri"/)
   const withEmptyBill = render(auth('ACCOUNTANT'), IssueConfirmDialog, { ...props, warnings: { ...props.warnings, emptyInvoices: [{ id: 'x', occupancyId: 'o' }] } })
   assert.match(withEmptyBill, /1 phiếu báo phí không còn khoản phí nào \(A101\)/)
   assert.match(withEmptyBill, /disabled=""[^>]*>Gửi cho cư dân/)

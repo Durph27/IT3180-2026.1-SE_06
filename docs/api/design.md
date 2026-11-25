@@ -213,7 +213,8 @@ giữ chỗ không giảm nợ hiển thị. Ghi payment/allocations/receipt/s�
 Receipt.paymentId unique, tự tạo một biên lai/payment. Snapshot bất biến gồm
 schemaVersion, paymentNo, receiptNo, householdCode, apartmentCodes,
 payerDisplayName, channel, amount, currency, paidAt, issuedAt,
-recordedByDisplayName nullable và allocations (đích/mô tả/số tiền). Đổi tên/giá/
+recordedByDisplayName nullable và allocations (đích/mô tả/số tiền). Với allocation
+contribution, apartmentCodes lấy các căn hộ đang ở của hộ tại ngày thu. Đổi tên/giá/
 địa chỉ sau này không đổi biên lai cũ. VOIDED giữ snapshot nhưng xem/PDF phải có
 dấu HỦY từ payment status.
 
