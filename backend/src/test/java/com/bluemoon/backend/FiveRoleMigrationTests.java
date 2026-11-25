@@ -9,9 +9,11 @@ import static org.assertj.core.api.Assertions.*;
 class FiveRoleMigrationTests {
     @Test void seedCanBeReappliedWithoutOverwritingExistingData() throws Exception {
         String url = "jdbc:h2:mem:seed_reapply;MODE=PostgreSQL;DB_CLOSE_DELAY=-1";
-        Flyway.configure().dataSource(url, "sa", "").load().migrate();
         try (var connection = DriverManager.getConnection(url, "sa", "");
              var sql = connection.createStatement()) {
+            // Keep H2's CHECK constraint session alive when the seed is reapplied.
+            var dataSource = new SingleConnectionDataSource(connection, true);
+            Flyway.configure().dataSource(dataSource).load().migrate();
             sql.execute("UPDATE building SET name='Existing name' WHERE code='B1'");
             org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript(connection,
                     new org.springframework.core.io.ClassPathResource("db/migration/V8__generate_data.sql"));
