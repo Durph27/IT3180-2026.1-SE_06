@@ -64,44 +64,59 @@ test('resident gate requires an owned household', () => {
 })
 
 for (const role of Object.keys(ROLE_PERMISSIONS)) {
-  test(`${role}: account navigation and Dashboard links follow the same policy`, () => {
+  test(`${role}: account navigation and Dashboard links follow separated duty policy`, () => {
     const value = auth(role)
     const navbar = render(value, Navbar, {})
     const dashboard = render(value, HomePage, { onNavigateToUsers() {} })
     for (const markup of [navbar, dashboard]) {
       assert.equal(markup.includes('Quản lý tài khoản'), ['ADMIN', 'MANAGER'].includes(role))
     }
-    assert.equal(dashboard.includes('Trạng thái hạ tầng hệ thống'), role === 'ADMIN')
+    assert.ok(!dashboard.includes('Trạng thái hạ tầng hệ thống'))
+    assert.ok(!dashboard.includes('Phạm vi nghiệp vụ được cấp quyền'))
+
     if (role === 'ADMIN') {
-      for (const hidden of ['Căn hộ &amp; Cư trú', 'Thu phí', 'Quỹ bảo trì']) assert.ok(!dashboard.includes(hidden), hidden)
-      for (const hidden of ['Nhân khẩu', 'Khoản thu', 'Biểu phí', 'Căn hộ', 'Tạm trú']) assert.ok(!navbar.includes(hidden), hidden)
+      assert.match(dashboard, /Quản trị hệ thống/)
+      assert.match(dashboard, /Tổng tài khoản/)
+      for (const hidden of ['Căn hộ', 'Nhân khẩu', 'Tạm trú', 'Thu phí', 'Khoản thu', 'Biểu phí', 'Quỹ bảo trì']) {
+        assert.ok(!dashboard.includes(hidden), hidden)
+        assert.ok(!navbar.includes(hidden), hidden)
+      }
     }
     if (role === 'MANAGER') {
-      assert.match(dashboard, /Căn hộ &amp; Cư trú/)
-      assert.match(dashboard, /Thu phí &amp; Công nợ/)
-      for (const hidden of ['Được phát hành kỳ thu', 'Được lập phiếu báo phí', 'Được ghi nhận chi phí']) assert.ok(!dashboard.includes(hidden), hidden)
+      assert.match(dashboard, /Nhân khẩu &amp; Lưu trú/)
+      assert.match(dashboard, /Khoản thu/)
+      assert.match(dashboard, /Quỹ bảo trì/)
       assert.match(navbar, /Nhân khẩu/)
       assert.match(navbar, /Khoản thu/)
+      for (const hidden of ['Lập kỳ thu', 'Ghi nhận thanh toán']) {
+        assert.ok(!dashboard.includes(hidden), hidden)
+      }
     }
-    assert.equal(dashboard.includes('Được gán và đổi vai trò'), role === 'ADMIN')
     if (role === 'AUTHORITY') {
-      assert.match(dashboard, /Chỉ đọc thông tin cư trú/)
-      for (const hidden of ['Thu phí', 'Quỹ bảo trì', 'Phản ánh', 'Được duyệt', 'Được nộp đơn', 'Được cập nhật']) {
+      assert.match(dashboard, /Rà soát lưu trú &amp; Xuất Excel/)
+      assert.match(dashboard, /Hồ sơ căn hộ/)
+      assert.match(dashboard, /Tạm trú, tạm vắng/)
+      for (const hidden of ['Thu phí', 'Quỹ bảo trì', 'Phản ánh', 'Quản lý tài khoản', 'Được duyệt', 'Được nộp đơn', 'Được cập nhật']) {
         assert.ok(!dashboard.includes(hidden), hidden)
       }
     }
     if (role === 'ACCOUNTANT') {
-      assert.match(dashboard, /Thu phí &amp; Công nợ/)
+      assert.match(dashboard, /Sổ thu tiền/)
       assert.match(dashboard, /Quỹ bảo trì/)
-      for (const hidden of ['Căn hộ &amp; Cư trú', 'thông tin cư trú', 'Được duyệt', 'Được nộp đơn']) assert.ok(!dashboard.includes(hidden), hidden)
-      for (const hidden of ['Nhân khẩu', 'Tạm trú']) assert.ok(!navbar.includes(hidden), hidden)
       assert.match(navbar, /Khoản thu/)
+      for (const hidden of ['Nhân khẩu', 'Tạm trú', 'Quản lý tài khoản', 'Được duyệt', 'Được nộp đơn']) {
+        assert.ok(!dashboard.includes(hidden), hidden)
+        assert.ok(!navbar.includes(hidden), hidden)
+      }
     }
     if (role === 'RESIDENT') {
       assert.match(dashboard, /Khoản thu của hộ/)
-      assert.match(dashboard, /Phản ánh/)
-      assert.match(dashboard, /Được nộp đơn biến động/)
-      for (const hidden of ['Toàn chung cư', 'toàn chung cư', 'Quỹ bảo trì', 'Được duyệt', 'Được lập phiếu báo phí']) assert.ok(!dashboard.includes(hidden), hidden)
+      assert.match(dashboard, /Lịch sử nộp tiền/)
+      assert.match(dashboard, /Tạm trú, tạm vắng/)
+      assert.match(dashboard, /Hộ gia đình/)
+      for (const hidden of ['Toàn chung cư', 'toàn chung cư', 'Quỹ bảo trì', 'Quản lý tài khoản', 'Được duyệt', 'Được lập bảng kê', 'Được lập phiếu báo phí']) {
+        assert.ok(!dashboard.includes(hidden), hidden)
+      }
     }
   })
 }

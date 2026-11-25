@@ -313,7 +313,7 @@ test('workspace tab and password dialog reset after logout and a new resident lo
   assert.equal(getStoredToken(), null)
   assert.equal(document.querySelector('table'), null)
   adapter((config) => config.url === '/auth/login'
-    ? response(config, { accessToken: 'resident-token', profile: profile('RESIDENT', ['invoice.read', 'household.read']) })
+    ? response(config, { accessToken: 'resident-token', profile: profile('RESIDENT', ['invoice.read', 'billing-period.read', 'household.read']) })
     : response(config, { status: 'UP', database: 'UP' }))
   assert.equal(currentPath(), '/dang-nhap')
   await submitLogin('resident')

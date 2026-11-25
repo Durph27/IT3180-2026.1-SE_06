@@ -240,6 +240,50 @@ class SprintOneTests {
         var reply=call("POST","/residence-changes/"+id(rejected)+"/reject",map("reason","Không đủ hồ sơ"),approver,null);
         assertThat(reply.body().get("status")).isEqualTo("REJECTED");assertThat(object(reply.body().get("details")).get("decisionReason")).isEqualTo("Không đủ hồ sơ");
     }
+    @Test void temporaryResidenceSupportsEarlyEndOverlapChecksAndRichAbsenceDetails()throws Exception {
+        Home home=home();var guest=resident();
+        var pending=create("/residence-changes",map(
+            "householdId",home.household(),
+            "residentId",id(guest),
+            "changeType","TEMPORARY_RESIDENCE",
+            "effectiveFrom",today().toString(),
+            "effectiveTo",today().plusDays(30).toString(),
+            "details",map(
+                "relationship","TẠM TRÚ",
+                "isHead",false,
+                "permanentAddress","Nam Định",
+                "note","Thăm người thân"
+            )
+        ));
+        // Overlapping pending request for the same resident must fail with 409
+        var dupPending=map(
+            "householdId",home.household(),"residentId",id(guest),"changeType","TEMPORARY_RESIDENCE",
+            "effectiveFrom",today().plusDays(1).toString(),"effectiveTo",today().plusDays(10).toString(),
+            "details",map("relationship","TẠM TRÚ","isHead",false)
+        );
+        assertThat(call("POST","/residence-changes",dupPending,admin,null).status()).isEqualTo(409);
+        // Manager/Admin can approve temporary residence at reception desk
+        var approved=call("POST","/residence-changes/"+id(pending)+"/approve",null,admin,null);
+        assertThat(approved.status()).isEqualTo(200);
+        var activeMember=db.where("HouseholdMember","residentId",id(guest)).getFirst();
+        assertThat(activeMember.get("validTo")).isEqualTo(today().plusDays(30).toString());
+        // Temporary resident cannot register temporary absence; must use early end instead
+        var invalidAbs=map("householdId",home.household(),"residentId",id(guest),"changeType","TEMPORARY_ABSENCE","effectiveFrom",today().toString(),"effectiveTo",today().plusDays(5).toString(),"details",Map.of("destination","Hà Nội","reason","Công tác"));
+        assertThat(call("POST","/residence-changes",invalidAbs,admin,null).status()).isEqualTo(422);
+        // End temporary residence early -> updates effectiveTo & HouseholdMember.validTo
+        var ended=call("POST","/residence-changes/"+id(pending)+"/end",map("effectiveTo",today().plusDays(5).toString(),"reason","Khách đã rời đi"),admin,null);
+        assertThat(ended.status()).isEqualTo(200);
+        assertThat(ended.body().get("effectiveTo")).isEqualTo(today().plusDays(5).toString());
+        assertThat(object(ended.body().get("details")).get("originalEffectiveTo")).isEqualTo(today().plusDays(30).toString());
+        assertThat(db.where("HouseholdMember","residentId",id(guest)).getFirst().get("validTo")).isEqualTo(today().plusDays(5).toString());
+        // Rich details on temporary absence works cleanly
+        var perm=resident();member(home,perm,false);
+        var abs=create("/residence-changes",map("householdId",home.household(),"residentId",id(perm),"changeType","TEMPORARY_ABSENCE","effectiveFrom",today().toString(),"effectiveTo",today().plusDays(15).toString(),"details",map("destination","Đà Nẵng","reason","Công tác")));
+        assertThat(call("POST","/residence-changes/"+id(abs)+"/approve",null,admin,null).status()).isEqualTo(200);
+        var endedAbs=call("POST","/residence-changes/"+id(abs)+"/end",map("effectiveTo",today().plusDays(3).toString(),"reason","Đã trở về"),admin,null);
+        assertThat(endedAbs.status()).isEqualTo(200);
+        assertThat(endedAbs.body().get("effectiveTo")).isEqualTo(today().plusDays(3).toString());
+    }
     @Test void rateIntervalsAndInvoiceVersionsAreEnforced()throws Exception {
         var fee=fee(true);String ratePath="/fee-types/"+id(fee)+"/rates";
         create(ratePath,map("unitPrice","0.00","effectiveFrom",start(),"effectiveTo",today().toString()));

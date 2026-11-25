@@ -27,7 +27,7 @@ export default function SystemHealth() {
         <StatusCard
           label="Backend REST API"
           value={pending ? 'Đang kiểm tra…' : backendConnected ? 'Đã kết nối' : 'Mất kết nối'}
-          description="Spring Boot 3 · Java 21 · Port 8080"
+          description="Spring Boot 4 · Java 21 · Port 8080"
           connected={backendConnected}
           icon={ServerIcon}
         />
