@@ -16,29 +16,33 @@ const profile = (role, overrides = {}) => ({
 // so an accidental broad UI grant is caught even if backend data is overbroad.
 const matrix = [
   // permission                ADMIN MANAGER ACCOUNTANT RESIDENT AUTHORITY
-  ['household.read',             1,    1,       1,         1,       1],
-  ['resident.read',              1,    1,       1,         1,       1],
-  ['resident.identity.read',     1,    1,       1,         0,       1],
-  ['residence-change.read',      1,    1,       1,         1,       1],
-  ['resident.write',             1,    1,       0,         0,       0],
-  ['residence-change.write',     1,    1,       0,         1,       0],
-  ['residence-change.approve',   1,    1,       0,         0,       0],
-  ['invoice.read',               1,    1,       1,         1,       0],
-  ['invoice.write',              1,    1,       1,         0,       0],
-  ['invoice.generate',           1,    1,       1,         0,       0],
-  ['billing-period.read',        1,    1,       1,         1,       0],
-  ['billing-period.issue',       1,    1,       1,         0,       0],
-  ['fee-type.read',              1,    1,       1,         1,       0],
-  ['campaign.read',              1,    1,       1,         1,       0],
-  ['payment.record',            1,    1,       1,         0,       0],
-  ['report.revenue',            1,    1,       1,         0,       0],
-  ['report.debts',              1,    1,       1,         0,       0],
-  ['report.export',             1,    1,       1,         0,       0],
-  ['maintenance-fund.read',     1,    1,       1,         0,       0],
-  ['maintenance-fund.write',    1,    1,       1,         0,       0],
-  ['maintenance-expense.record',1,    1,       1,         0,       0],
-  ['payment-intent.create',     1,    1,       0,         1,       0],
-  ['ticket.write',              1,    1,       0,         1,       0],
+  ['household.read',             0,    1,       1,         1,       1],
+  ['occupancy.read',             0,    1,       1,         1,       1],
+  ['resident.read',              0,    1,       0,         1,       1],
+  ['resident.identity.read',     0,    1,       0,         0,       1],
+  ['residence-change.read',      0,    1,       0,         1,       1],
+  ['resident.write',             0,    1,       0,         0,       0],
+  ['residence-change.write',     0,    1,       0,         1,       0],
+  ['residence-change.approve',   0,    1,       0,         0,       0],
+  ['invoice.read',               0,    1,       1,         1,       0],
+  ['invoice.write',              0,    0,       1,         0,       0],
+  ['invoice.generate',           0,    0,       1,         0,       0],
+  ['billing-period.read',        0,    1,       1,         1,       0],
+  ['billing-period.write',       0,    0,       1,         0,       0],
+  ['billing-period.issue',       0,    0,       1,         0,       0],
+  ['fee-type.read',              0,    1,       1,         1,       0],
+  ['fee-type.write',             0,    0,       1,         0,       0],
+  ['campaign.read',              0,    1,       1,         1,       0],
+  ['payment.read',              0,    1,       1,         1,       0],
+  ['payment.record',            0,    0,       1,         0,       0],
+  ['report.revenue',            0,    1,       1,         0,       0],
+  ['report.debts',              0,    1,       1,         0,       0],
+  ['report.export',             0,    0,       1,         0,       0],
+  ['maintenance-fund.read',     0,    1,       1,         0,       0],
+  ['maintenance-fund.write',    0,    0,       1,         0,       0],
+  ['maintenance-expense.record',0,    0,       1,         0,       0],
+  ['payment-intent.create',     0,    0,       0,         1,       0],
+  ['ticket.write',              0,    0,       0,         1,       0],
   ['user.read',                 1,    1,       0,         0,       0],
   ['user.write',                1,    1,       0,         0,       0],
   ['user.manage',               1,    1,       0,         0,       0],
@@ -103,10 +107,20 @@ test('resident grants require an explicit owned household for every permitted ac
   }
 })
 
-test('building-wide roles can read residence without a household context', () => {
-  for (const role of ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUTHORITY']) {
+test('building-wide roles read their grants without a household context', () => {
+  for (const role of ['MANAGER', 'ACCOUNTANT', 'AUTHORITY']) {
     assert.equal(canAccess(profile(role, { householdIds: [] }), 'household.read'), true)
   }
+  assert.equal(canAccess(profile('ADMIN', { householdIds: [] }), 'user.read'), true)
+})
+
+test('ADMIN holds no residence or fee permission; ACCOUNTANT holds no demographic permission', () => {
+  const residenceOrFee = /^(building|apartment|household|occupancy|resident|residence-change|vehicle|fee-type|fee-rate|billing-period|invoice|payment|receipt|report|maintenance-|campaign|contribution)/
+  assert.deepEqual(ROLE_PERMISSIONS.ADMIN.filter((permission) => residenceOrFee.test(permission)), [])
+  assert.deepEqual(ROLE_PERMISSIONS.ACCOUNTANT.filter((permission) => /^(resident|residence-change|vehicle)\./.test(permission)), [])
+  assert.ok(ROLE_PERMISSIONS.AUTHORITY.every((permission) => permission.endsWith('.read')))
+  const feeAction = /^(fee-type|fee-rate|billing-period|invoice|payment|receipt|maintenance-|campaign|contribution)[^.]*\.(?!read$)|^report\.export$/
+  assert.deepEqual(ROLE_PERMISSIONS.MANAGER.filter((permission) => feeAction.test(permission)), [])
 })
 
 test('role strings and role DTOs are supported without accepting malformed roles', () => {

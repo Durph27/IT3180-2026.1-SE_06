@@ -36,7 +36,7 @@ export default function HomePage() {
   const canViewFees = buildingWide && (hasPermission('fee-type.read') || hasPermission('fee-rate.read'))
   const canManageUsers = hasPermission('user.read')
   const hasWorkspaces = canViewApartments || canViewFees || canManageUsers
-  const hasModules = hasPermission('household.read', scope) || hasPermission('invoice.read', scope)
+  const hasModules = hasPermission('resident.read', scope) || hasPermission('invoice.read', scope)
     || hasPermission('maintenance-fund.read') || hasPermission('user.read') || hasPermission('ticket.write', scope) || canViewFees
 
   return (
@@ -48,7 +48,7 @@ export default function HomePage() {
 
       {ownHousehold && householdIds.length === 0 && <p className="alert alert-info" role="status">Tài khoản chưa được liên kết với hộ gia đình. Liên hệ Ban quản trị để cập nhật thông tin.</p>}
 
-      <RoleGuard roles={['ADMIN', 'MANAGER']} fallback={null}><SystemHealth /></RoleGuard>
+      <RoleGuard roles={['ADMIN']} fallback={null}><SystemHealth /></RoleGuard>
 
       {hasWorkspaces && (
         <section className="dashboard-section" aria-labelledby="workspace-title">
@@ -72,7 +72,8 @@ export default function HomePage() {
         </div></div>
         {!hasModules && <p role="status">Chưa có phân hệ được cấp quyền trong phạm vi hiện tại. Liên hệ Ban quản trị để được hỗ trợ.</p>}
         <div className="features-grid">
-          <PermissionGate permission="household.read" householdId={scope?.householdId}>
+          {/* Household codes alone (Kế toán) do not make a residence module; it needs people data. */}
+          <PermissionGate permission="resident.read" householdId={scope?.householdId}>
             <article className="feature-card">
               <h3>{ownHousehold ? 'Thông tin hộ gia đình' : 'Căn hộ & Cư trú'}</h3>
               <p>{ownHousehold ? 'Xem thông tin thành viên và lịch sử cư trú của hộ đang chọn.' : 'Tra cứu hộ gia đình, nhân khẩu và lịch sử cư trú toàn chung cư.'}</p>

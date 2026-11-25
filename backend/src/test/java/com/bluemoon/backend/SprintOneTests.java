@@ -37,6 +37,10 @@ class SprintOneTests {
     String id(Map<String,Object> value){return text(value,"id");}
     String start(){return today().minusMonths(1).toString();}
     @BeforeAll void loginAdmin() throws Exception {
+        // Business-flow tests drive every module from one operator account, so this test database
+        // gives ADMIN the full catalog. Real role boundaries are covered by RoleSeparationTests.
+        db.jdbc().update("INSERT INTO role_permission SELECT r.id,p.id FROM app_role r CROSS JOIN app_permission p WHERE r.code='ADMIN'"
+            +" AND NOT EXISTS (SELECT 1 FROM role_permission rp WHERE rp.role_id=r.id AND rp.permission_id=p.id)");
         admin=login("admin","Sprint1-test-password!");
         var reply=call("GET","/roles?size=100",null,admin,null);assertThat(reply.status()).as(reply.body().toString()).isEqualTo(200);
         for(var role:objects(reply.body().get("content")))roleIds.put(text(role,"code"),id(role));

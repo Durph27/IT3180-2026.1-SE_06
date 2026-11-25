@@ -128,9 +128,12 @@ test('BillingPeriodCreateModal renders form fields and buttons', () => {
   assert.match(html, /Tạo kỳ thu/)
 })
 
-test('staff sees create period button on billing page header', () => {
+test('only the accountant sees the create period button on billing page header', () => {
+  const accountantHtml = render(auth('ACCOUNTANT'), BillingPage, { onBack() {} })
+  assert.match(accountantHtml, /Tạo kỳ thu mới/)
+  // The board follows collection but does not create, issue or close periods.
   const managerHtml = render(auth('MANAGER'), BillingPage, { onBack() {} })
-  assert.match(managerHtml, /Tạo kỳ thu mới/)
+  assert.doesNotMatch(managerHtml, /Tạo kỳ thu mới/)
   const residentHtml = render(auth('RESIDENT'), BillingPage, { onBack() {} })
   assert.doesNotMatch(residentHtml, /Tạo kỳ thu mới/)
 })
