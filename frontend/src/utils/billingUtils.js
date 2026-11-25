@@ -70,6 +70,19 @@ export function formatMoney(cents) {
   return `${negative ? '-' : ''}${whole}${decimals} ₫`
 }
 
+export function calculateLineAmount(quantityStr, unitPriceStr) {
+  const q = Number.parseFloat(quantityStr)
+  const p = Number.parseFloat(unitPriceStr)
+  if (Number.isNaN(q) || Number.isNaN(p) || q <= 0 || p < 0) return { amountStr: '0.00', amountCents: 0n }
+  const qInt = BigInt(Math.round(q * 1000))
+  const pInt = BigInt(Math.round(p * 100))
+  const totalCents = (qInt * pInt + 500n) / 1000n
+  const whole = totalCents / 100n
+  const frac = totalCents % 100n
+  const amountStr = `${whole}.${String(frac).padStart(2, '0')}`
+  return { amountStr, amountCents: totalCents }
+}
+
 function mandatoryFeeIds(feeTypes) {
   return new Map(feeTypes.map((feeType) => [feeType.id, feeType.mandatory]))
 }
@@ -172,4 +185,153 @@ export function collectDueAlerts({ invoices, feeTypes, periods, today = todayInV
 export function defaultPeriod(periods) {
   const newestFirst = [...periods].sort((a, b) => b.startDate.localeCompare(a.startDate))
   return newestFirst.find((period) => period.status === 'ISSUED') ?? newestFirst[0] ?? null
+}
+
+export function formatDate(value) {
+  if (!value) return '—'
+  const datePart = value.includes('T') ? value.split('T')[0] : value
+  return datePart.split('-').reverse().join('/')
+}
+
+export function generateIdempotencyKey() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
+
+export const INVOICE_STATUS = Object.freeze({
+  DRAFT: 'DRAFT',
+  ISSUED: 'ISSUED',
+  PARTIALLY_PAID: 'PARTIALLY_PAID',
+  PAID: 'PAID',
+  CANCELLED: 'CANCELLED',
+})
+
+export const INVOICE_STATUS_LABELS = Object.freeze({
+  DRAFT: 'Bản nháp',
+  ISSUED: 'Đã phát hành',
+  PARTIALLY_PAID: 'Thanh toán 1 phần',
+  PAID: 'Đã thanh toán',
+  CANCELLED: 'Đã hủy',
+})
+
+export function reconcileInvoices(invoices = [], period = null, today = todayInVietnam()) {
+  const isPeriodOverdue = Boolean(period?.dueDate && (daysUntil(period.dueDate, today) ?? 0) < 0)
+
+  let totalInvoiceCents = 0n
+  let totalLineCents = 0n
+  let totalPaidCents = 0n
+  let totalOutstandingCents = 0n
+
+  const uniqueApartments = new Set()
+  const uniqueHouseholds = new Set()
+  let paidCount = 0
+  let debtCount = 0
+  let overdueCount = 0
+
+  const discrepancies = []
+
+  for (const inv of invoices) {
+    if (inv.occupancyId) uniqueApartments.add(inv.occupancyId)
+    if (inv.householdId) uniqueHouseholds.add(inv.householdId)
+
+    const invTotal = toCents(inv.totalAmount)
+    const invPaid = toCents(inv.paidAmount)
+    const invOutstanding = toCents(inv.outstandingAmount)
+
+    totalInvoiceCents += invTotal
+    totalPaidCents += invPaid
+    totalOutstandingCents += invOutstanding
+
+    const isPaid = inv.status === 'PAID' || (invTotal > 0n && invOutstanding === 0n)
+    if (isPaid) {
+      paidCount += 1
+    } else {
+      debtCount += 1
+      if (inv.status === 'OVERDUE' || isPeriodOverdue) {
+        overdueCount += 1
+      }
+    }
+
+    // Check lines sum
+    let lineSum = 0n
+    for (const line of inv.lines ?? []) {
+      const lineCents = toCents(line.amount)
+      lineSum += lineCents
+      totalLineCents += lineCents
+    }
+
+    const lineDiff = invTotal - lineSum
+    const balanceDiff = invTotal - (invPaid + invOutstanding)
+
+    if (lineDiff !== 0n || balanceDiff !== 0n || invTotal < 0n || invPaid < 0n || invOutstanding < 0n) {
+      const reasons = []
+      if (lineDiff !== 0n) reasons.push(`Tổng dòng phí (${formatMoney(lineSum)}) không khớp tổng bảng kê (${formatMoney(invTotal)})`)
+      if (balanceDiff !== 0n) reasons.push(`Đã thu (${formatMoney(invPaid)}) + Còn nợ (${formatMoney(invOutstanding)}) không khớp tổng bảng kê (${formatMoney(invTotal)})`)
+      if (invTotal < 0n || invPaid < 0n || invOutstanding < 0n) reasons.push('Số tiền âm không hợp lệ')
+
+      discrepancies.push({
+        invoiceId: inv.id,
+        invoiceNo: inv.invoiceNo,
+        occupancyId: inv.occupancyId,
+        totalAmount: invTotal,
+        lineAmount: lineSum,
+        paidAmount: invPaid,
+        outstandingAmount: invOutstanding,
+        lineDifference: lineDiff,
+        balanceDifference: balanceDiff,
+        reason: reasons.join('; '),
+      })
+    }
+  }
+
+  const lineDifference = totalInvoiceCents - totalLineCents
+  const balanceDifference = totalInvoiceCents - (totalPaidCents + totalOutstandingCents)
+  const isMatched = lineDifference === 0n && balanceDifference === 0n && discrepancies.length === 0
+
+  return {
+    totalInvoices: invoices.length,
+    uniqueApartmentsCount: uniqueApartments.size,
+    uniqueHouseholdsCount: uniqueHouseholds.size,
+    totalInvoiceAmount: totalInvoiceCents,
+    totalLineAmount: totalLineCents,
+    totalPaid: totalPaidCents,
+    totalOutstanding: totalOutstandingCents,
+    lineDifference,
+    balanceDifference,
+    paidCount,
+    debtCount,
+    overdueCount,
+    validCount: invoices.length - discrepancies.length,
+    discrepantCount: discrepancies.length,
+    isMatched,
+    discrepancies,
+  }
+}
+
+export function filterInvoices(invoices = [], { status = 'ALL', search = '', apartmentMap = {}, householdMap = {} } = {}) {
+  const query = search.trim().toLowerCase()
+  return invoices.filter((inv) => {
+    if (status !== 'ALL') {
+      if (status === 'OVERDUE') {
+        const isOverdue = inv.status === 'OVERDUE' || toCents(inv.outstandingAmount) > 0n
+        if (!isOverdue) return false
+      } else if (inv.status !== status) {
+        return false
+      }
+    }
+    if (!query) return true
+
+    const invNo = (inv.invoiceNo ?? '').toLowerCase()
+    const aptCode = (apartmentMap[inv.occupancyId]?.code ?? '').toLowerCase()
+    const hhCode = (householdMap[inv.occupancyId]?.code ?? '').toLowerCase()
+    const occId = (inv.occupancyId ?? '').toLowerCase()
+
+    return invNo.includes(query) || aptCode.includes(query) || hhCode.includes(query) || occId.includes(query)
+  })
 }
