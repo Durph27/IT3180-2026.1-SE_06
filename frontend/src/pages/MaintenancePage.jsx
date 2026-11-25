@@ -15,15 +15,18 @@ import {
 import { getUsersApi } from '../api/users'
 import { apiErrorMessage } from '../api/errors'
 import { STAFF_ROLES, formatMoney, monthLabel, periodMonth, toCents } from '../utils/billingUtils'
-import { buildFundReconciliationReport, formatShortDate } from '../utils/maintenanceUtils'
+import { buildFundReconciliationReport } from '../utils/maintenanceUtils'
 import { ROUTES } from '../routes'
 import PageHeader from '../components/PageHeader'
 import ForbiddenView from '../components/ForbiddenView'
 import MaintenanceFundCreateModal from '../components/MaintenanceFundCreateModal'
 import MaintenanceExpenseRecordModal from '../components/MaintenanceExpenseRecordModal'
-import MaintenanceReconciliationReport from '../components/MaintenanceReconciliationReport'
 import CollectMaintenanceModal from '../components/maintenance/CollectMaintenanceModal'
-import FundLedger from '../components/maintenance/FundLedger'
+import ExpenseList from '../components/maintenance/ExpenseList'
+import FundSummary from '../components/maintenance/FundSummary'
+import ReconciliationDialog from '../components/maintenance/ReconciliationDialog'
+import RoundApartmentsDialog from '../components/maintenance/RoundApartmentsDialog'
+import RoundList from '../components/maintenance/RoundList'
 import { AlertTriangleIcon, CheckCircleIcon, PlusIcon, ReceiptIcon, WalletIcon } from '../components/Icons'
 
 export default function MaintenancePage({ onBack }) {
@@ -215,29 +218,33 @@ function MaintenanceContent({ canReadFunds, canReadRounds }) {
 
   const fund = report?.fund ?? null
   const summary = report?.summary
+  const showExpenses = searchParams.get('xem') === 'chi'
+  const [roundForApartments, setRoundForApartments] = useState(null)
+  const [showReconciliation, setShowReconciliation] = useState(false)
+  const selectView = (expenses) => {
+    const next = new URLSearchParams(searchParams)
+    if (expenses) next.set('xem', 'chi')
+    else next.delete('xem')
+    setSearchParams(next)
+  }
+  const selectFund = (id) => setSearchParams({ quy: id })
 
   return (
     <div className="user-management-container">
       <PageHeader
         title="Quỹ bảo trì"
-        description="Thu phí bảo trì vào phiếu báo phí của một tháng và ghi các khoản chi. Cư dân nộp chung với phí tháng; tiền được ghi ở Sổ thu tiền."
-        actions={(
+        actions={fund && (
           <>
-            {canCollect && fund && (
+            {canCollect && (
               <button type="button" className="btn btn-primary" onClick={() => setModal('collect')} disabled={loadingOverview}>
                 <PlusIcon size={16} />
                 <span>Thu bảo trì</span>
               </button>
             )}
-            {canRecordExpense && fund && (
+            {canRecordExpense && (
               <button type="button" className="btn btn-secondary" onClick={() => setModal('expense')} disabled={loadingDetail}>
                 <ReceiptIcon size={16} />
                 <span>Ghi khoản chi</span>
-              </button>
-            )}
-            {canWriteFunds && overview.funds.length > 0 && (
-              <button type="button" className="btn btn-outline" onClick={() => setModal('fund')}>
-                <span>Tạo quỹ khác</span>
               </button>
             )}
           </>
@@ -289,47 +296,57 @@ function MaintenanceContent({ canReadFunds, canReadRounds }) {
       )}
 
       {fund && summary && (
-        <section className="rounded-xl border border-solid border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="fund-balance-title">
-          <div className="flex flex-wrap items-center gap-2">
-            {overview.funds.length > 1 ? (
-              <>
-                <label htmlFor="fund-select" className="sr-only">Chọn quỹ bảo trì</label>
-                <select id="fund-select" className="form-control min-h-10 w-auto" value={fund.id} onChange={(event) => setSearchParams({ quy: event.target.value })}>
-                  {overview.funds.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
-                </select>
-              </>
-            ) : (
-              <h2 className="m-0 text-lg font-semibold text-slate-900">{fund.name}</h2>
-            )}
-            <span className="text-xs text-slate-500">Mở ngày {formatShortDate(fund.openingDate)}</span>
+        <FundSummary
+          fund={fund}
+          summary={summary}
+          funds={overview.funds}
+          expenseCount={report.expenseRows.length}
+          onSelectFund={selectFund}
+          onCreateFund={canWriteFunds ? () => setModal('fund') : undefined}
+          onOpenReconciliation={() => setShowReconciliation(true)}
+        />
+      )}
+
+      {report && (canReadRounds || canReadExpenses) && (
+        <section className="table-card" aria-label="Đợt thu và khoản chi">
+          <div className="px-4 pt-4">
+            <div className="filter-buttons-group" role="group" aria-label="Xem đợt thu hoặc khoản chi">
+              {canReadRounds && (
+                <button type="button" className={`filter-btn ${showExpenses ? '' : 'active'}`} aria-pressed={!showExpenses} onClick={() => selectView(false)}>
+                  Đợt thu ({report.roundRows.length})
+                </button>
+              )}
+              {canReadExpenses && (
+                <button type="button" className={`filter-btn ${showExpenses || !canReadRounds ? 'active' : ''}`} aria-pressed={showExpenses || !canReadRounds} onClick={() => selectView(true)}>
+                  Khoản chi ({report.expenseRows.length})
+                </button>
+              )}
+            </div>
           </div>
-          <p id="fund-balance-title" className="m-0 mt-3 text-sm text-slate-600">Số dư hiện tại</p>
-          <p className="m-0 text-3xl font-bold tabular-nums text-slate-900">{formatMoney(summary.reportedBalanceCents)}</p>
-          <p className="m-0 mt-1 text-sm text-slate-600 tabular-nums">
-            = Đầu kỳ {formatMoney(summary.openingCents)} + Đã thu {formatMoney(summary.reportedCollectedCents)} − Đã chi {formatMoney(summary.reportedExpenseCents)}
-          </p>
-          {summary.outstandingCollectionCents > 0n && (
-            <p className="m-0 mt-1 text-xs text-slate-500">Còn {formatMoney(summary.outstandingCollectionCents)} phí bảo trì cư dân chưa nộp.</p>
+          {canReadRounds && !showExpenses ? (
+            <RoundList
+              rounds={report.roundRows}
+              onShowApartments={setRoundForApartments}
+              emptyAction={canCollect && <button type="button" className="btn btn-primary btn-sm" onClick={() => setModal('collect')}>Thu bảo trì</button>}
+            />
+          ) : (
+            <ExpenseList
+              expenses={report.expenseRows}
+              emptyAction={canRecordExpense && <button type="button" className="btn btn-secondary btn-sm" onClick={() => setModal('expense')}>Ghi khoản chi</button>}
+            />
           )}
         </section>
       )}
 
-      {report && (canReadRounds || canReadExpenses) && <FundLedger report={report} />}
-
-      {report && (
-        <details className="table-card" open={!summary.isBalanced}>
-          <summary className="cursor-pointer px-4 py-3 font-semibold text-slate-700">
-            Đối chiếu chi tiết {summary.isBalanced ? '· khớp sổ quỹ' : '· có chênh lệch'}
-          </summary>
-          <div className="p-4 pt-0">
-            <MaintenanceReconciliationReport
-              report={report}
-              loading={loadingOverview || loadingDetail}
-              error={fundDetailState.key === detailKey ? fundDetailState.error : ''}
-              onRetry={refreshAll}
-            />
-          </div>
-        </details>
+      {roundForApartments && <RoundApartmentsDialog round={roundForApartments} onClose={() => setRoundForApartments(null)} />}
+      {showReconciliation && report && (
+        <ReconciliationDialog
+          report={report}
+          loading={loadingOverview || loadingDetail}
+          error={fundDetailState.key === detailKey ? fundDetailState.error : ''}
+          onRetry={refreshAll}
+          onClose={() => setShowReconciliation(false)}
+        />
       )}
 
       {modal === 'fund' && canWriteFunds && (

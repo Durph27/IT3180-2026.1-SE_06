@@ -22,6 +22,9 @@ function currentPrices(rates, today) {
   return prices
 }
 
+// Maintenance money reaches the fund only through rounds, never through a monthly fee.
+const mentionsMaintenance = (name) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('bao tri')
+
 const displayPrice = (unitPrice) => (unitPrice ? String(Number.parseInt(unitPrice, 10)) : '')
 
 /**
@@ -161,6 +164,11 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
               autoFocus={!isEdit}
             />
             {errors.name && <span id="fee-name-error" className="field-hint text-danger">{errors.name}</span>}
+            {!isEdit && mentionsMaintenance(name) && (
+              <p className="mt-2 mb-0 rounded-lg border border-solid border-amber-200 bg-amber-50 p-2 text-sm text-amber-900" role="note">
+                Phí ở đây được tính vào phiếu hằng tháng và <strong>không vào quỹ bảo trì</strong>. Muốn thu vào quỹ, dùng nút &ldquo;Thu bảo trì&rdquo; ở trang Quỹ bảo trì.
+              </p>
+            )}
           </div>
 
           {isEdit ? (

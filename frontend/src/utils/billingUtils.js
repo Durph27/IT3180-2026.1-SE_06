@@ -296,17 +296,18 @@ export const GENERATED_BASES = Object.freeze(['PER_M2', 'PER_APARTMENT', 'PER_PE
 
 const activeOn = (row, date, from = 'validFrom', to = 'validTo') => row[from] <= date && (!row[to] || row[to] > date)
 
-// The one fee type every maintenance round bills under. It has no unit price (each round sets
-// its own amounts), so price-missing warnings must skip it.
-export const MAINTENANCE_FEE_CODE = 'PHI_BAO_TRI'
-export const MAINTENANCE_FEE_NAME = 'Phí bảo trì'
+// The one fee type every maintenance round bills under. Its code is reserved so a fee named
+// "Phí bảo trì" in the price list (code PHI_BAO_TRI) can never be mistaken for it. It has no unit
+// price, since each round sets its own amounts; one that has a price is an ordinary fee.
+export const MAINTENANCE_FEE_CODE = 'QUY_BAO_TRI'
+export const MAINTENANCE_FEE_NAME = 'Phí bảo trì (theo đợt)'
 
-export function isMaintenanceFeeType(feeType) {
-  return feeType?.code === MAINTENANCE_FEE_CODE
+export function isMaintenanceFeeType(feeType, rates = []) {
+  return feeType?.code === MAINTENANCE_FEE_CODE && rates.length === 0
 }
 
 export function generationWarnings({ feeTypes = [], ratesByFeeType = {}, invoices = [], occupancies = [], snapshotDate }) {
-  const feesWithoutPrice = feeTypes.filter((fee) => fee.active && GENERATED_BASES.includes(fee.basis) && !isMaintenanceFeeType(fee)
+  const feesWithoutPrice = feeTypes.filter((fee) => fee.active && GENERATED_BASES.includes(fee.basis) && !isMaintenanceFeeType(fee, ratesByFeeType[fee.id] ?? [])
     && !(ratesByFeeType[fee.id] ?? []).some((rate) => rateActiveAt(rate, snapshotDate)))
   const billed = new Set(liveInvoices(invoices).map((invoice) => invoice.occupancyId))
   const unbilledOccupancies = occupancies.filter((row) => activeOn(row, snapshotDate) && !billed.has(row.id))

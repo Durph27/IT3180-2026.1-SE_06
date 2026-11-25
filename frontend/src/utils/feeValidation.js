@@ -161,6 +161,9 @@ export const BASIS_SIMPLE = Object.freeze({
   ACTUAL: { label: 'Thu hộ', unit: 'đ/hóa đơn', example: 'Theo hóa đơn điện, nước thực tế' },
 })
 
+// Reserved for maintenance rounds (see MAINTENANCE_FEE_CODE in billingUtils.js).
+const RESERVED_FEE_CODES = ['QUY_BAO_TRI']
+
 export const SIMPLE_BASIS_CHOICES = Object.freeze(['PER_M2', 'PER_APARTMENT', 'PER_PERSON', 'PER_VEHICLE'])
 
 const FEE_CODE_MAX = 30
@@ -175,7 +178,7 @@ export function feeCodeFromName(name, existingCodes = []) {
     .replace(/^_+|_+$/g, '')
     .slice(0, FEE_CODE_MAX - 3)
     .replace(/_+$/, '') || 'PHI'
-  const taken = new Set(existingCodes.map((code) => String(code).toUpperCase()))
+  const taken = new Set([...RESERVED_FEE_CODES, ...existingCodes.map((code) => String(code).toUpperCase())])
   if (!taken.has(base)) return base
   for (let suffix = 2; ; suffix += 1) {
     const candidate = `${base}_${suffix}`

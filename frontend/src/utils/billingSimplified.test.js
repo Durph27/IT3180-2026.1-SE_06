@@ -139,11 +139,20 @@ test('money input accepts Vietnamese thousands separators', () => {
   assert.equal(parseVndInput(''), null)
 })
 
-test('the maintenance fee type never raises a missing-price warning', () => {
+test('only the reserved, unpriced maintenance fee type is exempt from missing-price warnings', () => {
   const feeTypes = [
-    { id: 'm', code: 'PHI_BAO_TRI', name: 'Phí bảo trì', basis: 'PER_APARTMENT', active: true },
-    { id: 'x', code: 'PHI_X', name: 'Phí X', basis: 'PER_APARTMENT', active: true },
+    { id: 'round', code: 'QUY_BAO_TRI', name: 'Phí bảo trì (theo đợt)', basis: 'PER_APARTMENT', active: true },
+    { id: 'monthly', code: 'PHI_BAO_TRI', name: 'Phí bảo trì', basis: 'PER_APARTMENT', active: true },
   ]
   const { feesWithoutPrice } = generationWarnings({ feeTypes, ratesByFeeType: {}, snapshotDate: '2026-12-05' })
-  assert.deepEqual(feesWithoutPrice.map((fee) => fee.id), ['x'])
+  assert.deepEqual(feesWithoutPrice.map((fee) => fee.id), ['monthly'])
+})
+
+test('a fee named "Phí bảo trì" never takes the code reserved for maintenance rounds', async () => {
+  const { isMaintenanceFeeType } = await import('./billingUtils.js')
+  assert.equal(feeCodeFromName('Phí bảo trì'), 'PHI_BAO_TRI')
+  assert.notEqual(feeCodeFromName('Quỹ bảo trì'), 'QUY_BAO_TRI')
+  assert.equal(isMaintenanceFeeType({ code: 'QUY_BAO_TRI' }), true)
+  // A priced fee under that code bills monthly and never reaches the fund, so it is ordinary.
+  assert.equal(isMaintenanceFeeType({ code: 'QUY_BAO_TRI' }, [{ unitPrice: '7000.00' }]), false)
 })

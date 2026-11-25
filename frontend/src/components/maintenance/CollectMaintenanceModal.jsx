@@ -1,7 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import { createBillingPeriodApi, generateIdempotencyKey, getBillingPeriodsApi } from '../../api/billing'
 import { apiErrorMessage } from '../../api/errors'
-import { createFeeTypeApi, updateFeeTypeApi } from '../../api/fees'
+import { createFeeTypeApi, getAllFeeRatesApi, updateFeeTypeApi } from '../../api/fees'
 import { createMaintenanceRoundApi } from '../../api/maintenance'
 import { useModalDialog } from '../../hooks/useModalDialog'
 import { todayInVietnam } from '../../residents/validation.js'
@@ -17,6 +17,10 @@ import {
   validateWholeDongAmount,
 } from '../../utils/maintenanceUtils'
 import { LINK } from '../billing/ui'
+
+// Under 1.000 đ per apartment (amounts are in cents) is almost always a typo: 50.000 đ over
+// 600 apartments is 84 đ each, where 50.000.000 đ was meant.
+const SUSPICIOUSLY_SMALL = 100000n
 
 const BASES = [
   { value: 'EQUAL', label: 'Đều mỗi căn', hint: 'Mỗi căn đóng như nhau' },
@@ -72,6 +76,8 @@ export default function CollectMaintenanceModal({ fund, periods = [], feeTypes =
   const amounts = preview.items.map((item) => item.amountCents)
   const min = amounts.length ? amounts.reduce((a, b) => (b < a ? b : a)) : 0n
   const max = amounts.length ? amounts.reduce((a, b) => (b > a ? b : a)) : 0n
+  const looksTooSmall = preview.items.length > 0 && max < SUSPICIOUSLY_SMALL
+  const typedTotal = normalizeWholeDongAmount(totalCost)
   const buildingCodes = [...new Set(active.map((row) => row.buildingCode).filter(Boolean))].sort()
   const term = search.trim().toLowerCase()
   const visible = term ? active.filter((row) => `${row.label} ${row.householdCode}`.toLowerCase().includes(term)) : active
@@ -121,8 +127,10 @@ export default function CollectMaintenanceModal({ fund, periods = [], feeTypes =
   const ensureFeeType = async () => {
     const existing = feeTypes.find((fee) => fee.code === MAINTENANCE_FEE_CODE)
     if (!existing) return createFeeTypeApi({ code: MAINTENANCE_FEE_CODE, name: MAINTENANCE_FEE_NAME, basis: 'PER_APARTMENT', mandatory: true, active: true })
-    if (existing.basis !== 'PER_APARTMENT' || !existing.mandatory) {
-      throw new Error(`Mã phí ${MAINTENANCE_FEE_CODE} đang được dùng cho một khoản phí khác. Hãy đổi mã khoản phí đó ở Bảng phí.`)
+    // A priced fee under this code would bill every month and never reach the fund.
+    const rates = await getAllFeeRatesApi(existing.id)
+    if (existing.basis !== 'PER_APARTMENT' || !existing.mandatory || rates.length > 0) {
+      throw new Error(`Mã phí ${MAINTENANCE_FEE_CODE} đang là một khoản phí thường có đơn giá ở Bảng phí, nên không dùng được cho đợt thu bảo trì. Hãy liên hệ quản trị để đổi mã khoản phí đó.`)
     }
     return existing.active ? existing : updateFeeTypeApi(existing.id, { active: true })
   }
@@ -176,6 +184,7 @@ export default function CollectMaintenanceModal({ fund, periods = [], feeTypes =
             <div className="form-group">
               <label htmlFor="collect-total">Tổng tiền (đ)</label>
               <input id="collect-total" className="form-control" inputMode="numeric" placeholder="Ví dụ: 200000000" value={totalCost} onChange={(event) => setTotalCost(event.target.value)} />
+              {typedTotal && !errors.totalCost && <span className="field-hint">= {formatMoney(toCents(typedTotal))}</span>}
               {errorText('totalCost')}
             </div>
             <div className="form-group">
@@ -242,7 +251,12 @@ export default function CollectMaintenanceModal({ fund, periods = [], feeTypes =
             <p className="mb-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
               {preview.items.length} căn · {min === max ? <>mỗi căn <strong>{formatMoney(min)}</strong></> : <>từ <strong>{formatMoney(min)}</strong> đến <strong>{formatMoney(max)}</strong></>}
               {' '}· cộng vào phiếu báo phí tháng {monthLabel(month)}
-              {totalCost && toCents(normalizeWholeDongAmount(totalCost) ?? '0') > 0n && ` (tổng ${formatMoney(preview.totalCents)})`}
+              {typedTotal && ` (tổng ${formatMoney(preview.totalCents)})`}
+            </p>
+          )}
+          {looksTooSmall && (
+            <p className="mb-3 rounded-lg border border-solid border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="alert">
+              Mỗi căn chỉ {min === max ? formatMoney(min) : `${formatMoney(min)}–${formatMoney(max)}`}. Tổng tiền {formatMoney(preview.totalCents)} có đúng không?
             </p>
           )}
 

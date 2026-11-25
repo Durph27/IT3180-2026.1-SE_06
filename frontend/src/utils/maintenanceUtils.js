@@ -469,7 +469,8 @@ export function buildFundReconciliationReport({
       else if (status.code === 'PARTIALLY_PAID') partialCount += 1
       else if (status.code !== 'CANCELLED') unpaidCount += 1
 
-      const apartmentLabel = apt ? (building ? `${building.code}-${apt.code}` : apt.code) : alloc.occupancyId
+      // Seeded apartment codes already start with the building code ("B1-0101").
+      const apartmentLabel = apt ? (building && !apt.code.startsWith(`${building.code}-`) ? `${building.code}-${apt.code}` : apt.code) : alloc.occupancyId
       const householdCode = hh?.code ?? (occ?.householdId || '—')
 
       return {
@@ -592,30 +593,25 @@ export function defaultMaintenanceMonth(periods = [], today = todayInVietnam()) 
   return (options.find((option) => option.available) ?? options[options.length - 1]).month
 }
 
-const dayOf = (value) => String(value ?? '').slice(0, 10)
+// Paid/total apartments of one round; cancelled bills are left out of both counts.
+export function summarizeRoundCollection(round) {
+  const total = (round.paidCount ?? 0) + (round.partialCount ?? 0) + (round.unpaidCount ?? 0)
+  const percent = round.collectedCents !== null && round.collectedCents !== undefined && round.totalCostCents > 0n
+    ? Number((round.collectedCents * 100n) / round.totalCostCents)
+    : null
+  return { paidCount: round.paidCount ?? 0, total, percent }
+}
 
-// One ledger, newest first: maintenance rounds are money in, expenses are money out.
-export function buildFundLedger(report) {
-  if (!report) return []
-  const income = report.roundRows.map((round) => ({
-    kind: 'IN',
-    key: `in-${round.id}`,
-    date: dayOf(round.createdAt) || round.snapshotDate,
-    description: round.description,
-    amountCents: round.totalCostCents,
-    collectedCents: round.collectedCents,
-    percentCollected: round.collectedCents !== null && round.collectedCents !== undefined && round.totalCostCents > 0n
-      ? Number((round.collectedCents * 100n) / round.totalCostCents)
-      : null,
-    round,
-  }))
-  const spending = report.expenseRows.map((expense) => ({
-    kind: 'OUT',
-    key: `out-${expense.id}`,
-    date: dayOf(expense.spentAt),
-    description: expense.description,
-    amountCents: expense.amountCents,
-    recordedBy: expense.recordedByLabel,
-  }))
-  return [...income, ...spending].sort((a, b) => b.date.localeCompare(a.date) || a.key.localeCompare(b.key))
+export const ALLOCATION_FILTERS = Object.freeze({ UNPAID: 'UNPAID', PAID: 'PAID', ALL: 'ALL' })
+
+// "Unpaid" means anything still owed, including partly paid bills.
+export function filterRoundAllocations(allocations = [], { status = ALLOCATION_FILTERS.UNPAID, search = '' } = {}) {
+  const term = search.trim().toLowerCase()
+  return allocations.filter((row) => {
+    const code = row.status?.code
+    if (code === 'CANCELLED' && status !== ALLOCATION_FILTERS.ALL) return false
+    if (status === ALLOCATION_FILTERS.PAID && code !== 'PAID') return false
+    if (status === ALLOCATION_FILTERS.UNPAID && code === 'PAID') return false
+    return !term || `${row.apartmentLabel ?? ''} ${row.householdCode ?? ''}`.toLowerCase().includes(term)
+  })
 }

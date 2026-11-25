@@ -20,7 +20,10 @@ const { default: Navbar } = await server.ssrLoadModule('/src/components/Navbar.j
 const { default: MaintenancePage } = await server.ssrLoadModule('/src/pages/MaintenancePage.jsx')
 const { default: MaintenanceFundCreateModal } = await server.ssrLoadModule('/src/components/MaintenanceFundCreateModal.jsx')
 const { default: CollectMaintenanceModal } = await server.ssrLoadModule('/src/components/maintenance/CollectMaintenanceModal.jsx')
-const { default: FundLedger } = await server.ssrLoadModule('/src/components/maintenance/FundLedger.jsx')
+const { default: RoundList } = await server.ssrLoadModule('/src/components/maintenance/RoundList.jsx')
+const { default: ExpenseList } = await server.ssrLoadModule('/src/components/maintenance/ExpenseList.jsx')
+const { default: RoundApartmentsDialog } = await server.ssrLoadModule('/src/components/maintenance/RoundApartmentsDialog.jsx')
+const { default: FundSummary } = await server.ssrLoadModule('/src/components/maintenance/FundSummary.jsx')
 const { default: MaintenanceExpenseRecordModal } = await server.ssrLoadModule('/src/components/MaintenanceExpenseRecordModal.jsx')
 const { default: MaintenanceReconciliationReport } = await server.ssrLoadModule('/src/components/MaintenanceReconciliationReport.jsx')
 
@@ -128,13 +131,44 @@ const sampleReport = () => buildFundReconciliationReport({
   canReadPayments: true,
 })
 
-test('the fund ledger lists money in and out together, newest first', () => {
-  const html = render(auth('ACCOUNTANT'), FundLedger, { report: sampleReport() })
-  assert.match(html, /Sổ quỹ/)
-  assert.ok(html.indexOf('Bảo trì máy bơm') < html.indexOf('Sửa chữa sảnh tầng 1'), 'expense on 20/11 comes before round of 15/11')
-  assert.match(html, /\+200\.000 ₫/)
-  assert.match(html, /−50\.000 ₫/)
-  assert.match(html, /Đã thu 100%/)
+test('fund summary shows balance, collected share and spending, with the books check as a chip', () => {
+  const report = sampleReport()
+  const html = render(auth('ACCOUNTANT'), FundSummary, { fund: report.fund, summary: report.summary, funds: [report.fund], expenseCount: 1, onSelectFund() {}, onOpenReconciliation() {} })
+  assert.match(html, /Số dư/)
+  assert.match(html, /250\.000 ₫/)
+  assert.match(html, /100% của 200\.000 ₫ đã phân bổ/)
+  assert.match(html, /50\.000 ₫/)
+  assert.match(html, /Khớp sổ quỹ/)
+  assert.doesNotMatch(html, /Tạo quỹ mới/)
+  const withCreate = render(auth('ACCOUNTANT'), FundSummary, { fund: report.fund, summary: report.summary, funds: [report.fund], expenseCount: 1, onSelectFund() {}, onCreateFund() {}, onOpenReconciliation() {} })
+  assert.match(withCreate, /\+ Tạo quỹ mới…/)
+})
+
+test('rounds and expenses are separate, compact lists', () => {
+  const report = sampleReport()
+  const rounds = render(auth('ACCOUNTANT'), RoundList, { rounds: report.roundRows, onShowApartments() {} })
+  assert.match(rounds, /Sửa chữa sảnh tầng 1/)
+  assert.match(rounds, /tháng 11\/2026/)
+  assert.match(rounds, /100% · 1\/1 căn đã nộp/)
+  assert.doesNotMatch(rounds, /Trọng số|Bảo trì máy bơm/)
+  const expenses = render(auth('ACCOUNTANT'), ExpenseList, { expenses: report.expenseRows })
+  assert.match(expenses, /Bảo trì máy bơm/)
+  assert.doesNotMatch(expenses, /Sửa chữa sảnh tầng 1/)
+})
+
+test('the apartments dialog opens on those still owing with four columns', () => {
+  const round = {
+    description: 'Tu sửa thang máy', snapshotDate: '2026-12-01',
+    allocations: [
+      { id: 'a', apartmentLabel: 'B1-0101', householdCode: 'HO-1', allocatedCents: 8400n, collectedCents: 8400n, status: { code: 'PAID', label: 'Đã thu đủ' } },
+      { id: 'b', apartmentLabel: 'B1-0102', householdCode: 'HO-2', allocatedCents: 8300n, collectedCents: 0n, status: { code: 'UNPAID', label: 'Chưa thu' } },
+    ],
+  }
+  const html = render(auth('ACCOUNTANT'), RoundApartmentsDialog, { round, onClose() {} })
+  assert.match(html, /Chưa nộp \(1\)/)
+  assert.match(html, /B1-0102/)
+  assert.doesNotMatch(html, /B1-0101/)
+  assert.equal((html.match(/<th scope="col"/g) ?? []).length, 4)
 })
 
 test('the reconciliation table shows every line and flags no discrepancy when balanced', () => {
