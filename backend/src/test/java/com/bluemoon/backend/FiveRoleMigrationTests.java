@@ -7,6 +7,42 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import static org.assertj.core.api.Assertions.*;
 
 class FiveRoleMigrationTests {
+    @Test void seedCanBeReappliedWithoutOverwritingExistingData() throws Exception {
+        String url = "jdbc:h2:mem:seed_reapply;MODE=PostgreSQL;DB_CLOSE_DELAY=-1";
+        Flyway.configure().dataSource(url, "sa", "").load().migrate();
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+             var sql = connection.createStatement()) {
+            sql.execute("UPDATE building SET name='Existing name' WHERE code='B1'");
+            org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript(connection,
+                    new org.springframework.core.io.ClassPathResource("db/migration/V8__generate_data.sql"));
+            try (var rows = sql.executeQuery("SELECT name FROM building WHERE code='B1'")) {
+                assertThat(rows.next()).isTrue();
+                assertThat(rows.getString(1)).isEqualTo("Existing name");
+            }
+            try (var rows = sql.executeQuery("SELECT COUNT(*) FROM apartment")) {
+                assertThat(rows.next()).isTrue();
+                assertThat(rows.getInt(1)).isEqualTo(1200);
+            }
+        }
+    }
+
+    @Test void registrationRemovalHandlesExistingAndMissingTable() throws Exception {
+        for (boolean alreadyRemoved : new boolean[] { false, true }) {
+            String url = "jdbc:h2:mem:registration_removal_" + alreadyRemoved
+                    + ";MODE=PostgreSQL;DB_CLOSE_DELAY=-1";
+            Flyway.configure().dataSource(url, "sa", "").target("5").load().migrate();
+            try (var connection = DriverManager.getConnection(url, "sa", "");
+                 var sql = connection.createStatement()) {
+                if (alreadyRemoved) sql.execute("DROP TABLE account_registration");
+                var result = Flyway.configure().dataSource(url, "sa", "").target("6").load().migrate();
+                assertThat(result.migrationsExecuted).isEqualTo(1);
+                try (var tables = connection.getMetaData().getTables(null, "PUBLIC", "ACCOUNT_REGISTRATION", null)) {
+                    assertThat(tables.next()).isFalse();
+                }
+            }
+        }
+    }
+
     @Test void existingManagerReceivesAccountPermissionsOnUpgrade() throws Exception {
         String url = "jdbc:h2:mem:manager_upgrade;MODE=PostgreSQL;DB_CLOSE_DELAY=-1";
         try (var connection = DriverManager.getConnection(url, "sa", ""); var sql = connection.createStatement()) {
