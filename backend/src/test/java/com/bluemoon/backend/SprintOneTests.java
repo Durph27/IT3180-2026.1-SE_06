@@ -37,6 +37,10 @@ class SprintOneTests {
     String id(Map<String,Object> value){return text(value,"id");}
     String start(){return today().minusMonths(1).toString();}
     @BeforeAll void loginAdmin() throws Exception {
+        // Business-flow tests drive every module from one operator account, so this test database
+        // gives ADMIN the full catalog. Real role boundaries are covered by RoleSeparationTests.
+        db.jdbc().update("INSERT INTO role_permission SELECT r.id,p.id FROM app_role r CROSS JOIN app_permission p WHERE r.code='ADMIN'"
+            +" AND NOT EXISTS (SELECT 1 FROM role_permission rp WHERE rp.role_id=r.id AND rp.permission_id=p.id)");
         admin=login("admin","Sprint1-test-password!");
         var reply=call("GET","/roles?size=100",null,admin,null);assertThat(reply.status()).as(reply.body().toString()).isEqualTo(200);
         for(var role:objects(reply.body().get("content")))roleIds.put(text(role,"code"),id(role));
@@ -165,7 +169,6 @@ class SprintOneTests {
         var body=map("username",name,"displayName","Test","password","User-test-password!");
         assertThat(call("POST","/users",body,admin,null).status()).isEqualTo(400);
         assertThat(db.where("AppUser","username",name)).isEmpty();
-        assertThat(register(registration(name)).status()).isEqualTo(400);
         assertThat(call("POST","/auth/login",map("username",name,"password","wrong"),null,null).status()).isEqualTo(401);
         body.put("username","nguyen.van-a_"+unique());
         assertThat(call("POST","/users",body,admin,null).status()).isEqualTo(201);
@@ -375,51 +378,55 @@ class SprintOneTests {
     }
     String cccd(){return String.format("%012d",Math.abs(UUID.randomUUID().getLeastSignificantBits()%1_000_000_000_000L));}
     static final String REGISTER_PASSWORD="Register-test-password!";
-    Map<String,Object> registration(String username){return map("username",username,"password",REGISTER_PASSWORD,"fullName","Cư Dân "+unique(),"identityNo",cccd(),"birthDate","1985-05-05","gender","FEMALE","phone","0900000000","apartmentCode","A-101");}
+    static final String REGISTER_PHONE="0912345678";
+    Map<String,Object> registration(String identityNo){return map("identityNo",identityNo,"phone",REGISTER_PHONE,"password",REGISTER_PASSWORD);}
     Reply register(Map<String,Object> body)throws Exception {db.jdbc().update("DELETE FROM login_attempt");return call("POST","/auth/register",body,null,null);}
-    String submit(Map<String,Object> body)throws Exception {var reply=register(body);assertThat(reply.status()).as(reply.body().toString()).isEqualTo(201);return id(reply.body());}
-    @Test void registrationStaysInactiveUntilApprovedThenBecomesHeadWithResidentRole()throws Exception {
-        String name="r"+unique();var body=registration(name);String request=submit(body);
-        assertThat(call("POST","/auth/login",map("username",name,"password",REGISTER_PASSWORD),null,null).status()).isEqualTo(401);
-        assertThat(db.where("AppUser","username",name)).isEmpty();
-        assertThat(db.where("Resident","identityNo",body.get("identityNo"))).isEmpty();
-        var pending=call("GET","/registrations?status=PENDING&size=100",null,admin,null);assertThat(pending.status()).isEqualTo(200);
-        assertThat(pending.body().toString()).contains(name).doesNotContain("passwordHash");
-        var home=home();String manager=token(user("MANAGER",null));
-        var approved=call("POST","/registrations/"+request+"/approve",map("householdId",home.household()),manager,null);
-        assertThat(approved.status()).as(approved.body().toString()).isEqualTo(200);assertThat(approved.body().get("status")).isEqualTo("APPROVED");
-        contract.validate(approved.body(),object(contract.section("schemas").get("AccountRegistration")),"registration");
-        var login=call("POST","/auth/login",map("username",name,"password",REGISTER_PASSWORD),null,null);assertThat(login.status()).isEqualTo(200);
+    Map<String,Object> residentWithCccd(String identityNo)throws Exception {return residentWithCccd(identityNo,REGISTER_PHONE);}
+    Map<String,Object> residentWithCccd(String identityNo,String phone)throws Exception {return create("/residents",map("fullName","Cư Dân "+unique(),"birthDate","1985-05-05","gender","FEMALE","identityNo",identityNo,"phone",phone));}
+    @Test void residentClaimsPreloadedRecordWithCccdAndCanLogInImmediately()throws Exception {
+        var home=home();String identityNo=cccd();var resident=residentWithCccd(identityNo);member(home,resident,true);
+        var reply=register(registration(identityNo));
+        assertThat(reply.status()).as(reply.body().toString()).isEqualTo(201);
+        contract.validate(reply.body(),object(contract.section("schemas").get("RegistrationReceipt")),"receipt");
+        assertThat(reply.body()).containsEntry("username",identityNo).containsEntry("status","ACTIVE");
+        var user=db.where("AppUser","username",identityNo).getFirst();
+        assertThat(text(user,"residentId")).isEqualTo(id(resident));assertThat(user.get("displayName")).isEqualTo(resident.get("fullName"));
+        var login=call("POST","/auth/login",map("username",identityNo,"password",REGISTER_PASSWORD),null,null);assertThat(login.status()).isEqualTo(200);
         var profile=object(login.body().get("profile"));
         assertThat(objects(profile.get("roles")).stream().map(r->text(r,"code")).toList()).containsExactly("RESIDENT");
         assertThat(profile.get("householdIds")).isEqualTo(List.of(home.household()));
-        assertThat(db.where("AccountRegistration","id",request).getFirst().get("passwordHash")).isNull();
-        assertThat(db.where("HouseholdMember","householdId",home.household()).getFirst().get("relationship")).isEqualTo("CHỦ HỘ");
-        assertThat(call("POST","/registrations/"+request+"/approve",map("householdId",home.household()),admin,null).status()).isEqualTo(409);
+        var again=register(registration(identityNo));
+        assertThat(again.status()).isEqualTo(409);assertThat(text(again.body(),"message")).contains("đã có tài khoản");
     }
-    @Test void registrationRejectsDuplicatesSecondHeadAndUnauthorizedReviewers()throws Exception {
-        String name="r"+unique();String request=submit(registration(name));
-        assertThat(register(registration(name)).status()).isEqualTo(409);
-        assertThat(register(registration("admin")).status()).isEqualTo(409);
-        var unknownField=registration("r"+unique());unknownField.put("status","ACTIVE");assertThat(register(unknownField).status()).isEqualTo(400);
-        var badIdentity=registration("r"+unique());badIdentity.put("identityNo","12345");assertThat(register(badIdentity).status()).isEqualTo(400);
-        var noPhone=registration("r"+unique());noPhone.remove("phone");assertThat(register(noPhone).status()).isEqualTo(400);
-        var home=home();member(home,resident(),true);
-        var secondHead=call("POST","/registrations/"+request+"/approve",map("householdId",home.household()),admin,null);
-        assertThat(secondHead.status()).as(secondHead.body().toString()).isEqualTo(422);
-        assertThat(db.where("AppUser","username",name)).as("failed approval rolls back").isEmpty();
-        var approval=map("householdId",home.household());
-        for(String role:List.of("ACCOUNTANT","AUTHORITY","RESIDENT"))assertThat(call("POST","/registrations/"+request+"/approve",approval,token(user(role,null)),null).status()).isEqualTo(403);
-        assertThat(call("GET","/registrations",null,token(user("RESIDENT",null)),null).status()).isEqualTo(403);
-        var rejected=call("POST","/registrations/"+request+"/reject",map("reason","Sai thông tin căn hộ"),admin,null);
-        assertThat(rejected.status()).isEqualTo(200);assertThat(rejected.body().get("rejectReason")).isEqualTo("Sai thông tin căn hộ");
-        assertThat(call("POST","/auth/login",map("username",name,"password",REGISTER_PASSWORD),null,null).status()).isEqualTo(401);
-        submit(registration(name));
+    @Test void registrationRejectsUnknownCccdResidentsWithAccountsAndExtraFields()throws Exception {
+        int accounts=db.all("AppUser").size();
+        var unknown=register(registration(cccd()));
+        assertThat(unknown.status()).isEqualTo(404);assertThat(text(unknown.body(),"message")).contains("CCCD chưa được đăng ký tài khoản");
+        assertThat(register(registration("12345")).status()).isEqualTo(400);
+        var extra=registration(cccd());extra.put("username","chosen-name");assertThat(register(extra).status()).isEqualTo(400);
+        assertThat(register(map("identityNo",cccd())).status()).isEqualTo(400);
+        var noPhone=registration(cccd());noPhone.remove("phone");assertThat(register(noPhone).status()).isEqualTo(400);
+        assertThat(db.all("AppUser")).hasSize(accounts);
+        String identityNo=cccd();var resident=residentWithCccd(identityNo);user("RESIDENT",id(resident));
+        assertThat(register(registration(identityNo)).status()).as("staff already created an account for this resident").isEqualTo(409);
     }
-    @Test void registrationThrottlesEachClient()throws Exception {
+    @Test void registrationRequiresThePhoneNumberOnFile()throws Exception {
+        String identityNo=cccd();residentWithCccd(identityNo);
+        var wrongPhone=registration(identityNo);wrongPhone.put("phone","0999999999");
+        var reply=register(wrongPhone);
+        assertThat(reply.status()).isEqualTo(422);assertThat(text(reply.body(),"message")).contains("Số điện thoại không khớp");
+        assertThat(db.where("AppUser","username",identityNo)).isEmpty();
+        String noPhoneOnFile=cccd();residentWithCccd(noPhoneOnFile,null);
+        assertThat(register(registration(noPhoneOnFile)).status()).as("a record without a phone cannot be claimed").isEqualTo(422);
+        String formatted=cccd();residentWithCccd(formatted,"+84 912 345 678");
+        assertThat(register(registration(formatted)).status()).as("staff-entered formatting still matches").isEqualTo(201);
+        assertThat(register(registration(identityNo)).status()).isEqualTo(201);
+    }
+    @Test void registrationThrottlesEachClientIncludingRejectedAttempts()throws Exception {
         db.jdbc().update("DELETE FROM login_attempt");
-        for(int i=0;i<5;i++)assertThat(call("POST","/auth/register",registration("r"+unique()),null,null).status()).isEqualTo(201);
-        assertThat(call("POST","/auth/register",registration("r"+unique()),null,null).status()).isEqualTo(429);
+        for(int i=0;i<5;i++)assertThat(call("POST","/auth/register",registration(cccd()),null,null).status()).isEqualTo(404);
+        String identityNo=cccd();residentWithCccd(identityNo);
+        assertThat(call("POST","/auth/register",registration(identityNo),null,null).status()).isEqualTo(429);
         db.jdbc().update("DELETE FROM login_attempt");
     }
     @Test void onlyActiveHeadAddsFamilyMembersAndTheyGetNoAccount()throws Exception {

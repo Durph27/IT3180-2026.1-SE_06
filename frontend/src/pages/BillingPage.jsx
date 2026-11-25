@@ -56,9 +56,9 @@ function StaffBilling({ onBack }) {
   const select = (id) => setSearchParams({ tab: id })
   return (
     <div className="user-management-container">
-      <PageHeader title="Thu phí" description="Lập phiếu thu hằng tháng và quản lý bảng phí của chung cư." />
+      <PageHeader title="Khoản thu" description="Lập phiếu thu hằng tháng, theo dõi thu tiền và quản lý bảng phí của chung cư." />
       {tabs.length > 1 && (
-        <div className="filter-buttons-group w-fit max-w-full flex-wrap" role="tablist" aria-label="Thu phí">
+        <div className="filter-buttons-group w-fit max-w-full flex-wrap" role="tablist" aria-label="Khoản thu">
           {tabs.map((tab) => (
             <button
               key={tab.id}

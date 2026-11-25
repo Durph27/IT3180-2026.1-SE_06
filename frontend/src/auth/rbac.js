@@ -1,4 +1,4 @@
-// UI policy for US21. Server permissions remain mandatory, including for ADMIN.
+// UI policy for US21, mirroring backend security/RolePolicy. Server permissions remain mandatory.
 const residenceRead = [
   'building.read', 'apartment.read', 'household.read', 'occupancy.read',
   'resident.read', 'resident.identity.read', 'residence-change.read',
@@ -7,10 +7,12 @@ const residenceWrite = [
   'building.write', 'apartment.write', 'household.write', 'occupancy.write',
   'resident.write', 'residence-change.write', 'residence-change.approve',
 ]
+// Codes that tie a bill to an apartment; no people, members or residence history.
+const billingContext = ['building.read', 'apartment.read', 'household.read', 'occupancy.read']
+const billingPeriods = ['billing-period.read', 'billing-period.write', 'billing-period.issue', 'billing-period.close']
 const finance = [
-  'fee-type.read', 'fee-type.write', 'fee-rate.read', 'fee-rate.write',
-  'billing-period.read', 'billing-period.write', 'billing-period.issue',
-  'billing-period.close', 'invoice.read', 'invoice.write', 'invoice.generate',
+  'fee-type.read', 'fee-type.write', 'fee-rate.read', 'fee-rate.write', ...billingPeriods,
+  'invoice.read', 'invoice.write', 'invoice.generate',
   'invoice.cancel', 'payment.read', 'payment.record', 'payment.void',
   'receipt.read', 'report.revenue', 'report.debts', 'report.contributions',
   'report.collections', 'report.export', 'maintenance-fund.read', 'maintenance-fund.write',
@@ -24,16 +26,18 @@ const resident = [
   'payment-intent.create', 'ticket.read', 'ticket.write', 'ticket.update',
   'billing-period.read', 'fee-type.read', 'campaign.read',
 ]
-const management = [
-  ...residenceRead, ...residenceWrite, ...finance, ...resident,
-  'user.read', 'user.write', 'user.manage',
-]
+const accounts = ['user.read', 'user.write', 'user.manage']
+// Ban quản trị only follows fee collection; every fee action belongs to Kế toán.
+const feeCollectionView = finance.filter((permission) => permission.endsWith('.read') || /^report\.(?!export$)/.test(permission))
 
-// Four business groups; ADMIN and MANAGER share the management UI policy.
+// ADMIN: system only. MANAGER: residence, accounts, read-only fees. ACCOUNTANT: all fee operations.
+// AUTHORITY: read-only residence lookup. RESIDENT: own household.
 export const ROLE_PERMISSIONS = Object.freeze({
-  ADMIN: Object.freeze([...new Set(management), 'role.read', 'rbac.manage']),
-  MANAGER: Object.freeze([...new Set(management)]),
-  ACCOUNTANT: Object.freeze([...residenceRead, ...finance]),
+  ADMIN: Object.freeze([...accounts, 'role.read', 'rbac.manage']),
+  MANAGER: Object.freeze([...new Set([
+    ...residenceRead, ...residenceWrite, ...feeCollectionView, ...accounts,
+  ])]),
+  ACCOUNTANT: Object.freeze([...billingContext, ...finance]),
   AUTHORITY: Object.freeze([...residenceRead]),
   RESIDENT: Object.freeze([...resident]),
 })

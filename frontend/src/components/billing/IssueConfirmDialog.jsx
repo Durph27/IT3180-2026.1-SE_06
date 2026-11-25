@@ -10,7 +10,7 @@ import { LINK } from './ui'
  * The single review step before bills reach residents: who is billed, how much, the due date,
  * and anything that would make a bill wrong. Cancelling keeps the draft hidden for next time.
  */
-export default function IssueConfirmDialog({ period, summary, previousSummary, warnings, apartmentCodeOf, onClose, onIssued, onOpenFees }) {
+export default function IssueConfirmDialog({ period, summary, previousSummary, warnings, apartmentCodeOf, onClose, onIssued, onOpenFees, onReviewBills }) {
   const titleId = useId()
   const [dueDate, setDueDate] = useState(period.dueDate)
   const [editingDue, setEditingDue] = useState(false)
@@ -61,6 +61,9 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
                 )}
               </p>
               <p className="m-0 mt-1 text-xs text-slate-500">Số người và số xe tính tại ngày {formatDay(period.snapshotDate)}.</p>
+              {onReviewBills && (
+                <button type="button" className={`${LINK} mt-2`} onClick={onReviewBills}>Xem và sửa từng phiếu</button>
+              )}
             </div>
           )}
 

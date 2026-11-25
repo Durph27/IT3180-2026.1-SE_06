@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  cancelInvoiceApi,
   closeBillingPeriodApi,
   createBillingPeriodApi,
+  deleteInvoiceLineApi,
   generateInvoicesApi,
   getBillingPeriodsApi,
   getInvoicesApi,
@@ -16,17 +18,21 @@ import { useAuth } from '../../hooks/useAuth'
 import { useModalDialog } from '../../hooks/useModalDialog'
 import { todayInVietnam } from '../../residents/validation.js'
 import {
-  addMonths, findPeriodForMonth, formatDay, formatMoney, generationWarnings, monthLabel, periodDefaultsForMonth,
-  periodMonth, periodStatusLabel, previousPeriod, summarizeByHousehold, summarizeInvoices,
+  addMonths, canCreateBilling, findPeriodForMonth, formatDay, formatMoney, generationWarnings, monthLabel,
+  occupancyLookups, periodDefaultsForMonth, periodMonth, periodStatusLabel, previousPeriod, reconcileInvoices,
+  summarizeInvoices,
 } from '../../utils/billingUtils'
+import AccountingReconciliation from '../AccountingReconciliation'
+import AddInvoiceLineModal from '../AddInvoiceLineModal'
+import CancelInvoiceModal from '../CancelInvoiceModal'
 import { AlertTriangleIcon, CheckCircleIcon, LockIcon, ReceiptIcon } from '../Icons'
-import Pagination from '../Pagination'
+import InvoiceListTable from '../InvoiceListTable'
+import ReceiptModal from '../ReceiptModal'
+import RecordPaymentModal from '../RecordPaymentModal'
 import StatusBadge from '../StatusBadge'
 import IssueConfirmDialog from './IssueConfirmDialog'
-import { MONEY } from './ui'
 
 const STATUS_TONE = { DRAFT: 'neutral', ISSUED: 'info', CLOSED: 'success' }
-const HOUSEHOLD_PAGE = 20
 
 const clampDate = (value, from, to) => (value < from ? from : value > to ? to : value)
 const orEmpty = (allowed, load) => (allowed ? load() : Promise.resolve([]))
@@ -66,76 +72,34 @@ function CloseConfirmDialog({ period, onClose, onClosed }) {
   )
 }
 
-function HouseholdTable({ rows }) {
-  const [filter, setFilter] = useState('owing')
-  const [page, setPage] = useState(0)
-  const counts = { all: rows.length, owing: rows.filter((row) => !row.settled).length, settled: rows.filter((row) => row.settled).length }
-  const shown = rows.filter((row) => filter === 'all' || (filter === 'owing' ? !row.settled : row.settled))
-  const totalPages = Math.max(1, Math.ceil(shown.length / HOUSEHOLD_PAGE))
-  const current = Math.min(page, totalPages - 1)
-  const pick = (value) => { setFilter(value); setPage(0) }
-  const chips = [['owing', 'Còn nợ'], ['settled', 'Đã đóng'], ['all', 'Tất cả']]
+function ReconciliationPanel({ invoices, period, lookups }) {
   return (
-    <section className="table-card" aria-labelledby="household-collection-title">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4">
-        <h3 id="household-collection-title" className="m-0 text-base font-semibold text-slate-900">Tình hình thu theo hộ</h3>
-        <div className="filter-buttons-group" role="group" aria-label="Lọc theo tình trạng">
-          {chips.map(([value, label]) => (
-            <button key={value} type="button" className={`filter-btn ${filter === value ? 'active' : ''}`} aria-pressed={filter === value} onClick={() => pick(value)}>
-              {label} ({counts[value]})
-            </button>
-          ))}
-        </div>
+    <details className="table-card">
+      <summary className="cursor-pointer px-4 py-3 font-semibold text-slate-700">Đối chiếu kế toán</summary>
+      <div className="p-4 pt-0">
+        <AccountingReconciliation reconciliation={reconcileInvoices(invoices, period)} apartmentMap={lookups.apartmentMap} householdMap={lookups.householdMap} />
       </div>
-      {shown.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-slate-600">{filter === 'owing' ? 'Tất cả các hộ đã đóng đủ.' : 'Không có hộ nào.'}</p>
-      ) : (
-        <div tabIndex={0} role="region" aria-labelledby="household-collection-title" className="table-wrapper">
-          <table className="modern-table">
-            <thead>
-              <tr>
-                <th scope="col">Hộ / Căn hộ</th>
-                <th scope="col" className={MONEY}>Tổng</th>
-                <th scope="col" className={MONEY}>Đã đóng</th>
-                <th scope="col" className={MONEY}>Còn nợ</th>
-                <th scope="col">Tình trạng</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown.slice(current * HOUSEHOLD_PAGE, (current + 1) * HOUSEHOLD_PAGE).map((row) => (
-                <tr key={row.key}>
-                  <th scope="row" className="row-header-th">
-                    {row.apartmentCodes.join(', ') || '—'}
-                    {row.householdCode && <span className="block text-xs font-normal text-slate-500">Hộ {row.householdCode}</span>}
-                  </th>
-                  <td data-label="Tổng" className={MONEY}>{formatMoney(row.total)}</td>
-                  <td data-label="Đã đóng" className={MONEY}>{formatMoney(row.paid)}</td>
-                  <td data-label="Còn nợ" className={`${MONEY} ${row.settled ? '' : 'font-semibold text-red-700'}`}>{formatMoney(row.outstanding)}</td>
-                  <td data-label="Tình trạng">{row.settled ? <StatusBadge tone="success">Đã đóng</StatusBadge> : <StatusBadge tone="warning">Còn nợ</StatusBadge>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <Pagination page={current} totalPages={totalPages} totalElements={shown.length} unit="hộ" onPageChange={setPage} />
-    </section>
+    </details>
   )
 }
 
 /**
  * Monthly billing for staff. One button computes the month's bills (creating the period and
- * generating invoices behind the scenes), one dialog reviews and sends them. Drafts never show.
+ * generating invoices behind the scenes), one dialog reviews and sends them. Drafts stay hidden
+ * unless the accountant chooses to review and edit individual bills before sending.
  */
 export default function StaffPeriodsTab({ onOpenFees }) {
   const { hasPermission } = useAuth()
   const can = {
-    create: hasPermission('billing-period.write') && hasPermission('invoice.generate') && hasPermission('billing-period.issue'),
+    create: canCreateBilling(hasPermission),
     close: hasPermission('billing-period.close'),
     fees: hasPermission('fee-type.read') && hasPermission('fee-rate.read'),
     occupancies: hasPermission('occupancy.read'),
     apartments: hasPermission('apartment.read'),
     households: hasPermission('household.read'),
+    recordPayment: hasPermission('payment.record'),
+    writeInvoice: hasPermission('invoice.write'),
+    cancelInvoice: hasPermission('invoice.cancel') || hasPermission('invoice.write'),
   }
   const today = todayInVietnam()
   const thisMonth = today.slice(0, 7)
@@ -145,7 +109,12 @@ export default function StaffPeriodsTab({ onOpenFees }) {
   const [revision, setRevision] = useState(0)
   const [preparing, setPreparing] = useState(false)
   const [review, setReview] = useState(null) // { period, invoices }
+  const [reviewingId, setReviewingId] = useState(null) // draft period being edited bill by bill
   const [closing, setClosing] = useState(null)
+  const [paying, setPaying] = useState(null) // { invoice, householdId }
+  const [receipt, setReceipt] = useState(null) // { receipt, payment }
+  const [lineInvoice, setLineInvoice] = useState(null)
+  const [cancelling, setCancelling] = useState(null) // { invoice, busy }
   const [success, setSuccess] = useState('')
 
   const reload = useCallback(() => setRevision((value) => value + 1), [])
@@ -184,14 +153,15 @@ export default function StaffPeriodsTab({ onOpenFees }) {
     }
     return grouped
   }, [data])
+  const lookups = useMemo(() => occupancyLookups(data ?? {}), [data])
+  const activeOccupancies = useMemo(() => (data?.occupancies ?? []).filter((row) => row.validFrom <= today && (!row.validTo || row.validTo > today)), [data, today])
 
-  const lookups = data ? { occupancies: data.occupancies, apartments: data.apartments, households: data.households } : {}
   const apartmentCodeOf = (occupancy) => data?.apartments.find((apartment) => apartment.id === occupancy.apartmentId)?.code ?? 'Căn chưa rõ mã'
   const period = data ? findPeriodForMonth(data.periods, month) : null
   const sent = period && period.status !== 'DRAFT'
-  const periodInvoices = sent ? invoicesByPeriod.get(period.id) ?? [] : []
+  const reviewing = period?.status === 'DRAFT' && reviewingId === period.id
+  const periodInvoices = period ? invoicesByPeriod.get(period.id) ?? [] : []
   const summary = summarizeInvoices(periodInvoices)
-  const householdRows = sent ? summarizeByHousehold(periodInvoices, lookups) : []
   const pastPeriods = (data?.periods ?? [])
     .filter((row) => row.status !== 'DRAFT' && row.id !== period?.id)
     .sort((a, b) => b.startDate.localeCompare(a.startDate))
@@ -207,7 +177,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
       let target = findPeriodForMonth(data.periods, month)
       if (!target) {
         try {
-          target = (await createBillingPeriodApi(defaults)).data
+          target = await createBillingPeriodApi(defaults)
         } catch (err) {
           if (err.response?.status !== 409) throw err
           target = findPeriodForMonth(await getBillingPeriodsApi(), month)
@@ -219,7 +189,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
         return
       }
       const snapshotDate = clampDate(today, target.startDate, target.endDate)
-      if (target.snapshotDate !== snapshotDate) target = (await updateBillingPeriodApi(target.id, { snapshotDate })).data
+      if (target.snapshotDate !== snapshotDate) target = await updateBillingPeriodApi(target.id, { snapshotDate })
       await generateInvoicesApi(target.id)
       const invoices = await getInvoicesApi({ periodId: target.id })
       setReview({ period: target, invoices })
@@ -227,6 +197,33 @@ export default function StaffPeriodsTab({ onOpenFees }) {
       setError(apiErrorMessage(err, 'Không lập được phiếu thu. Vui lòng thử lại.'))
     } finally {
       setPreparing(false)
+    }
+  }
+
+  const startPayment = (invoice) => setPaying({ invoice, householdId: lookups.householdMap[invoice.occupancyId]?.id ?? '' })
+
+  const deleteLine = async (invoice, lineId) => {
+    if (!window.confirm('Xóa dòng phí này khỏi phiếu thu?')) return
+    try {
+      await deleteInvoiceLineApi(invoice.id, lineId, { version: invoice.version })
+      setSuccess(`Đã xóa dòng phí khỏi phiếu ${invoice.invoiceNo}.`)
+      reload()
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Không xóa được dòng phí. Vui lòng thử lại.'))
+    }
+  }
+
+  const confirmCancel = async (reason) => {
+    const { invoice } = cancelling
+    setCancelling({ invoice, busy: true })
+    try {
+      await cancelInvoiceApi(invoice.id, { version: invoice.version, reason })
+      setCancelling(null)
+      setSuccess(`Đã hủy phiếu ${invoice.invoiceNo}.`)
+      reload()
+    } catch (err) {
+      setCancelling(null)
+      setError(apiErrorMessage(err, 'Không hủy được phiếu. Vui lòng thử lại.'))
     }
   }
 
@@ -258,7 +255,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
             <select id="billing-month" className="form-control min-h-10 w-auto" value={month} onChange={(event) => setMonth(event.target.value)}>
               {monthOptions.sort().reverse().map((value) => <option key={value} value={value}>{monthLabel(value)}</option>)}
             </select>
-            {sent && <StatusBadge tone={STATUS_TONE[period.status]}>{periodStatusLabel(period.status)}</StatusBadge>}
+            {(sent || reviewing) && <StatusBadge tone={STATUS_TONE[period.status]}>{periodStatusLabel(period.status)}</StatusBadge>}
           </div>
           {sent && period.status === 'ISSUED' && can.close && (
             <button type="button" className="btn btn-outline btn-sm" onClick={() => setClosing(period)}>
@@ -270,7 +267,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
 
         {data === null && !error && <p role="status" className="mt-4 mb-0 text-sm text-slate-600">Đang tải…</p>}
 
-        {data && !sent && (
+        {data && !sent && !reviewing && (
           <div className="mt-4 flex flex-col items-start gap-2">
             <p className="m-0 text-sm text-slate-600">Chưa gửi phiếu thu cho tháng {monthLabel(month)}.</p>
             {can.create ? (
@@ -281,6 +278,21 @@ export default function StaffPeriodsTab({ onOpenFees }) {
             ) : (
               <p className="m-0 text-sm text-slate-500">Bạn không có quyền lập phiếu thu.</p>
             )}
+          </div>
+        )}
+
+        {reviewing && (
+          <div className="mt-4 flex flex-col items-start gap-2">
+            <p className="m-0 text-sm text-slate-600">
+              Đang kiểm tra {summary.count} phiếu nháp, tổng <strong>{formatMoney(summary.total)}</strong>. Cư dân chưa thấy các phiếu này.
+            </p>
+            <p className="m-0 text-xs text-slate-500">
+              Nếu lập lại vào ngày khác, các dòng tính theo bảng phí (kể cả dòng thêm tay có chọn giá) sẽ được tính lại.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="btn btn-primary" onClick={() => setReview({ period, invoices: periodInvoices })}>Gửi cho cư dân</button>
+              <button type="button" className="btn btn-outline" onClick={() => setReviewingId(null)}>Xong, để sau</button>
+            </div>
           </div>
         )}
 
@@ -298,7 +310,24 @@ export default function StaffPeriodsTab({ onOpenFees }) {
         )}
       </section>
 
-      {sent && <HouseholdTable key={period.id} rows={householdRows} />}
+      {(sent || reviewing) && (
+        <>
+          <InvoiceListTable
+            key={period.id}
+            invoices={periodInvoices}
+            apartmentMap={lookups.apartmentMap}
+            householdMap={lookups.householdMap}
+            onRefresh={reload}
+            canRecordPayment={sent && can.recordPayment}
+            onRecordPayment={startPayment}
+            canWriteInvoice={reviewing && can.writeInvoice}
+            onAddLine={setLineInvoice}
+            onDeleteLine={deleteLine}
+            onCancelInvoice={sent && can.cancelInvoice ? (invoice) => setCancelling({ invoice, busy: false }) : undefined}
+          />
+          <ReconciliationPanel invoices={periodInvoices} period={period} lookups={lookups} />
+        </>
+      )}
 
       {pastPeriods.length > 0 && (
         <section className="table-card" aria-labelledby="past-periods-title">
@@ -330,7 +359,8 @@ export default function StaffPeriodsTab({ onOpenFees }) {
           apartmentCodeOf={apartmentCodeOf}
           onClose={() => { setReview(null); reload() }}
           onOpenFees={onOpenFees}
-          onIssued={(message) => { setReview(null); setSuccess(message); reload() }}
+          onReviewBills={can.writeInvoice ? () => { setReviewingId(review.period.id); setReview(null); reload() } : undefined}
+          onIssued={(message) => { setReview(null); setReviewingId(null); setSuccess(message); reload() }}
         />
       )}
       {closing && (
@@ -338,6 +368,44 @@ export default function StaffPeriodsTab({ onOpenFees }) {
           period={closing}
           onClose={() => setClosing(null)}
           onClosed={(message) => { setClosing(null); setSuccess(message); reload() }}
+        />
+      )}
+      {paying && (
+        <RecordPaymentModal
+          isOpen
+          initialHouseholdId={paying.householdId}
+          initialInvoice={paying.invoice}
+          households={data.households}
+          apartments={data.apartments}
+          occupancies={activeOccupancies}
+          onClose={() => setPaying(null)}
+          onSuccess={(payment, paymentReceipt) => {
+            setPaying(null)
+            setSuccess(`Đã thu tiền. Mã phiếu thu: ${payment.paymentNo}.`)
+            if (paymentReceipt) setReceipt({ receipt: paymentReceipt, payment })
+            reload()
+          }}
+        />
+      )}
+      {receipt && <ReceiptModal isOpen receipt={receipt.receipt} payment={receipt.payment} onClose={() => setReceipt(null)} />}
+      {lineInvoice && (
+        <AddInvoiceLineModal
+          isOpen
+          invoice={lineInvoice}
+          period={period}
+          feeTypes={data.feeTypes}
+          apartment={lookups.apartmentMap[lineInvoice.occupancyId] ?? null}
+          onClose={() => setLineInvoice(null)}
+          onSuccess={(line) => { setLineInvoice(null); setSuccess(`Đã thêm "${line.description}" vào phiếu.`); reload() }}
+        />
+      )}
+      {cancelling && (
+        <CancelInvoiceModal
+          isOpen
+          invoice={cancelling.invoice}
+          isCancelling={cancelling.busy}
+          onConfirm={confirmCancel}
+          onClose={() => setCancelling(null)}
         />
       )}
     </div>

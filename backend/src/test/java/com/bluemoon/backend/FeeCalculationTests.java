@@ -35,6 +35,10 @@ class FeeCalculationTests {
     String start() { return today().minusMonths(1).toString(); }
 
     @BeforeAll void setupAdmin() throws Exception {
+        // These calculation tests drive residence and billing from one operator account, so this test
+        // database gives ADMIN the full catalog. Real role boundaries are covered by RoleSeparationTests.
+        db.jdbc().update("INSERT INTO role_permission SELECT r.id,p.id FROM app_role r CROSS JOIN app_permission p WHERE r.code='ADMIN'"
+            + " AND NOT EXISTS (SELECT 1 FROM role_permission rp WHERE rp.role_id=r.id AND rp.permission_id=p.id)");
         admin = login("admin", "FeeCalc-test-password!");
     }
 

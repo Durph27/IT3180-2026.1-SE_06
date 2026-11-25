@@ -23,6 +23,7 @@ const { default: OutstandingPeriods } = await server.ssrLoadModule('/src/compone
 const { default: FeeFormModal } = await server.ssrLoadModule('/src/components/billing/FeeFormModal.jsx')
 const { default: IssueConfirmDialog } = await server.ssrLoadModule('/src/components/billing/IssueConfirmDialog.jsx')
 const { generateIdempotencyKey } = await server.ssrLoadModule('/src/api/billing.js')
+const { canCreateBilling } = await server.ssrLoadModule('/src/utils/billingUtils.js')
 
 function auth(role, overrides = {}) {
   const value = {
@@ -38,10 +39,10 @@ const navProps = {}
 
 test('billing tab follows invoice access and household scope', () => {
   const accountant = render(auth('ACCOUNTANT'), Navbar, navProps)
-  assert.match(accountant, /Thu phí/)
+  assert.match(accountant, /Khoản thu/)
+  // The price list is a tab of the billing page now, not its own menu entry.
   assert.doesNotMatch(accountant, /Biểu phí/)
   assert.match(render(auth('RESIDENT'), Navbar, navProps), /Khoản thu/)
-  assert.doesNotMatch(render(auth('RESIDENT'), Navbar, navProps), /Thu phí/)
   assert.doesNotMatch(render(auth('RESIDENT', { householdIds: [] }), Navbar, navProps), /Khoản thu/)
   assert.doesNotMatch(render(auth('AUTHORITY'), Navbar, navProps), /Khoản thu/)
 })
@@ -132,6 +133,18 @@ test('staff get the two billing tabs; residents get only their bills', () => {
   const resident = render(auth('RESIDENT'), BillingPage, { onBack() {} })
   assert.doesNotMatch(resident, /role="tablist"/)
   assert.doesNotMatch(resident, /Bản nháp/)
+})
+
+test('only the accountant can create bills; the board only follows collection', () => {
+  const can = (role) => canCreateBilling((permission) => canAccess(auth(role), permission))
+  assert.equal(can('ACCOUNTANT'), true)
+  assert.equal(can('MANAGER'), false)
+  assert.equal(can('RESIDENT'), false)
+  assert.equal(can('ADMIN'), false)
+  assert.match(render(auth('ACCOUNTANT'), BillingPage, { onBack() {} }, '/khoan-thu?tab=bang-phi'), /Thêm phí/)
+  const board = render(auth('MANAGER'), BillingPage, { onBack() {} }, '/khoan-thu?tab=bang-phi')
+  assert.match(board, /Bảng phí/)
+  assert.doesNotMatch(board, /Thêm phí/)
 })
 
 test('adding a fee asks only for a name, how it is charged and a price', () => {

@@ -43,17 +43,19 @@ const render = (value, component, props = {}, path = '/quy-bao-tri') =>
   renderToStaticMarkup(h(MemoryRouter, { initialEntries: [path] }, h(AuthContext.Provider, { value }, h(component, props))))
 
 test('Navbar renders Quỹ bảo trì only for authorized staff roles', () => {
-  for (const role of ['ADMIN', 'MANAGER', 'ACCOUNTANT']) {
-    assert.match(render(auth(role), Navbar), /Quỹ bảo trì/)
-  }
-  for (const role of ['RESIDENT', 'AUTHORITY']) {
+  for (const role of ['ACCOUNTANT', 'MANAGER']) assert.match(render(auth(role), Navbar), /Quỹ bảo trì/)
+  for (const role of ['ADMIN', 'RESIDENT', 'AUTHORITY']) {
     assert.doesNotMatch(render(auth(role), Navbar), /Quỹ bảo trì/)
   }
 })
 
-test('MaintenancePage blocks RESIDENT and AUTHORITY and exposes actions per permission', () => {
-  assert.match(render(auth('RESIDENT'), MaintenancePage, { onBack() {} }), /Bạn không có quyền truy cập/)
-  assert.match(render(auth('AUTHORITY'), MaintenancePage, { onBack() {} }), /Bạn không có quyền truy cập/)
+test('MaintenancePage: ACCOUNTANT acts, MANAGER only views, others are blocked', () => {
+  const managerHtml = render(auth('MANAGER'), MaintenancePage, { onBack() {} })
+  assert.match(managerHtml, /Danh sách quỹ bảo trì/)
+  for (const action of [/Tạo quỹ bảo trì/, /Tạo đợt thu/]) assert.doesNotMatch(managerHtml, action)
+  for (const role of ['ADMIN', 'RESIDENT', 'AUTHORITY']) {
+    assert.match(render(auth(role), MaintenancePage, { onBack() {} }), /Bạn không có quyền truy cập/, role)
+  }
 
   const accountantHtml = render(auth('ACCOUNTANT'), MaintenancePage, { onBack() {} })
   assert.match(accountantHtml, /Quỹ bảo trì &amp; Đối chiếu số dư/)
@@ -63,14 +65,14 @@ test('MaintenancePage blocks RESIDENT and AUTHORITY and exposes actions per perm
   assert.match(accountantHtml, /Tạo quỹ bảo trì/)
   assert.match(accountantHtml, /Tạo đợt thu/)
 
-  const managerReadOnlyHtml = render(
-    auth('MANAGER', { permissions: ['maintenance-fund.read'] }),
+  const readOnlyHtml = render(
+    auth('ACCOUNTANT', { permissions: ['maintenance-fund.read'] }),
     MaintenancePage,
     { onBack() {} },
   )
-  assert.doesNotMatch(managerReadOnlyHtml, /Tạo quỹ bảo trì/)
-  assert.doesNotMatch(managerReadOnlyHtml, /Tạo đợt thu/)
-  assert.doesNotMatch(managerReadOnlyHtml, /Đợt thu bảo trì/)
+  assert.doesNotMatch(readOnlyHtml, /Tạo quỹ bảo trì/)
+  assert.doesNotMatch(readOnlyHtml, /Tạo đợt thu/)
+  assert.doesNotMatch(readOnlyHtml, /Đợt thu bảo trì/)
 })
 
 test('MaintenanceFundCreateModal renders fields only when open', () => {

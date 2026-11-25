@@ -10,10 +10,7 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | GET | `/auth/me` | Hồ sơ và quyền hiện tại | — | 200 UserProfile | `AUTHENTICATED` |
 | PATCH | `/auth/me` | Đổi tên hiển thị | MeUpdate | 200 UserProfile | `AUTHENTICATED` |
 | POST | `/auth/change-password` | Đổi mật khẩu | PasswordChangeRequest | 204 — | `AUTHENTICATED` |
-| POST | `/auth/register` | Cư dân đăng ký tài khoản (chờ duyệt) | RegistrationCreate | 201 RegistrationReceipt | `PUBLIC` |
-| GET | `/registrations` | Danh sách yêu cầu đăng ký | — | 200 AccountRegistrationPage | `user.manage` |
-| POST | `/registrations/{id}/approve` | Duyệt, gắn chủ hộ và kích hoạt tài khoản | RegistrationApproveRequest | 200 AccountRegistration | `user.manage` |
-| POST | `/registrations/{id}/reject` | Từ chối yêu cầu đăng ký | RejectRequest | 200 AccountRegistration | `user.manage` |
+| POST | `/auth/register` | Cư dân tạo tài khoản bằng CCCD và số điện thoại đã có trong hồ sơ (kích hoạt ngay, tên đăng nhập = CCCD) | RegistrationCreate | 201 RegistrationReceipt | `PUBLIC` |
 
 ## Cư trú
 
@@ -39,7 +36,7 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | POST | `/residents` | Tạo Resident | ResidentCreate | 201 Resident | `resident.write` |
 | GET | `/residents/{id}` | Chi tiết Resident | — | 200 Resident | `resident.read` |
 | PATCH | `/residents/{id}` | Cập nhật Resident | ResidentUpdate | 200 Resident | `resident.write` |
-| GET | `/households/{id}/members` | Danh sách HouseholdMember | — | 200 HouseholdMemberPage | `household.read` |
+| GET | `/households/{id}/members` | Danh sách HouseholdMember | — | 200 HouseholdMemberPage | `resident.read` |
 | POST | `/households/{id}/members` | Thêm thành viên hộ | MemberCreate | 201 HouseholdMember | `household.write` |
 | POST | `/households/{id}/members/{memberId}/end` | Kết thúc tư cách thành viên | EndDateRequest | 200 HouseholdMember | `household.write` |
 | PUT | `/households/{id}/head` | Chọn chủ hộ | HeadRequest | 200 HouseholdMember | `household.write` |

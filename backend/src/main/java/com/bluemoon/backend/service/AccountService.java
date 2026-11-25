@@ -73,14 +73,12 @@ public class AccountService {
             if (path.endsWith("/permissions")) {
                 var role = db.get("Role", id);
                 if (method.equals("PUT")) {
-                    if ("ADMIN".equals(role.get("code")))
-                        throw new ApiException(409, "INVALID_STATE", "Giữ đầy đủ catalog quyền của ADMIN.");
-                    if ("AUTHORITY".equals(role.get("code"))) {
-                        var allowed = Set.of("building.read","apartment.read","household.read","occupancy.read","resident.read","resident.identity.read","residence-change.read");
-                        for (Object permissionId : (List<?>) b.get("permissionIds"))
-                            if (!allowed.contains(text(db.get("Permission",permissionId),"code")))
-                                throw new ApiException(409,"INVALID_STATE","Cơ quan chức năng chỉ được tra cứu cư trú.");
-                    }
+                    String code = text(role, "code");
+                    if ("ADMIN".equals(code))
+                        throw new ApiException(409, "INVALID_STATE", "Quyền của Quản trị hệ thống được cố định.");
+                    for (Object permissionId : (List<?>) b.get("permissionIds"))
+                        if (!RolePolicy.allows(code, text(db.get("Permission", permissionId), "code")))
+                            throw new ApiException(409, "INVALID_STATE", RolePolicy.label(code) + " không được cấp quyền ngoài phạm vi vai trò.");
                     replace("role_permission", "role_id", "permission_id", id, (List<?>) b.get("permissionIds"), "Permission");
                     ensureAdmin();
                 }
@@ -88,7 +86,7 @@ public class AccountService {
             }
             if (method.equals("POST")) throw new ApiException(409, "INVALID_STATE", "Hệ thống chỉ có 5 vai trò được cấp sẵn.");
             var old = db.get("Role", id);
-            if (b.containsKey("code") && Set.of("ADMIN", "MANAGER", "ACCOUNTANT", "AUTHORITY", "RESIDENT").contains(text(old, "code")) && !old.get("code").equals(b.get("code")))
+            if (b.containsKey("code") && RolePolicy.SYSTEM_ROLES.contains(text(old, "code")) && !old.get("code").equals(b.get("code")))
                 throw new ApiException(409, "INVALID_STATE", "Không đổi mã vai trò hệ thống.");
             return db.update("Role", id, b);
         }

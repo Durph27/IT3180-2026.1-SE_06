@@ -16,7 +16,7 @@ export default function LoginForm({ onRegister }) {
     setErrorMessage('')
 
     if (!username.trim()) {
-      setErrorMessage('Vui lòng nhập tên đăng nhập.')
+      setErrorMessage('Vui lòng nhập tên đăng nhập hoặc số CCCD.')
       return
     }
 
@@ -51,7 +51,7 @@ export default function LoginForm({ onRegister }) {
 
           <div className="login-welcome-text">
             <h2>Đăng nhập tài khoản</h2>
-            <p>Nhập tên đăng nhập và mật khẩu để bắt đầu phiên làm việc</p>
+            <p>Cư dân đăng nhập bằng số CCCD. Ban quản trị dùng tên đăng nhập được cấp.</p>
           </div>
 
           {errorMessage && (
@@ -63,7 +63,7 @@ export default function LoginForm({ onRegister }) {
 
           <form onSubmit={handleSubmit} className="modern-form" noValidate={false}>
             <div className="form-group">
-              <label htmlFor="login-username">Tên đăng nhập</label>
+              <label htmlFor="login-username">Tên đăng nhập hoặc số CCCD</label>
               <div className="input-with-icon">
                 <span className="input-icon">
                   <UserIcon size={16} />
@@ -73,7 +73,7 @@ export default function LoginForm({ onRegister }) {
                   name="username"
                   type="text"
                   className="form-control"
-                  placeholder="Nhập tên đăng nhập"
+                  placeholder="Số CCCD hoặc tên đăng nhập"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
@@ -134,7 +134,7 @@ export default function LoginForm({ onRegister }) {
               )}
             </button>
 
-            <p className="login-switch">Cư dân chưa có tài khoản? <button type="button" className="link-button" disabled={loading} onClick={onRegister}>Đăng ký</button></p>
+            <p className="login-switch">Cư dân chưa có tài khoản? <button type="button" className="link-button" disabled={loading} onClick={onRegister}>Tạo tài khoản bằng CCCD</button></p>
           </form>
         </div>
       </div>

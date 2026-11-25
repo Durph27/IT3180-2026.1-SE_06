@@ -3,6 +3,7 @@ const TONES = {
   info: 'border-(--primary-border) bg-(--primary-light) text-(--primary-active)',
   warning: 'border-amber-200 bg-amber-50 text-amber-800',
   neutral: 'border-slate-200 bg-slate-100 text-slate-700',
+  error: 'border-rose-200 bg-rose-50 text-rose-800',
 }
 
 export default function StatusBadge({ tone = 'neutral', children }) {

@@ -24,40 +24,21 @@ export function getBillingPeriodsApi(signal) {
   return fetchAll('/billing-periods', {}, signal)
 }
 
-export function createBillingPeriodApi(payload) {
-  return api.post('/billing-periods', payload)
+export async function createBillingPeriodApi(payload, signal) {
+  const { data } = await api.post('/billing-periods', payload, { signal })
+  return data
 }
 
 // Once invoices exist the backend accepts only dueDate and snapshotDate; moving the snapshot
 // clears the rate-priced lines so the next generation recomputes them.
-export function updateBillingPeriodApi(periodId, changes) {
-  return api.patch(`/billing-periods/${periodId}`, changes)
+export async function updateBillingPeriodApi(periodId, changes, signal) {
+  const { data } = await api.patch(`/billing-periods/${periodId}`, changes, { signal })
+  return data
 }
 
-export function generateInvoicesApi(periodId, idempotencyKey = generateIdempotencyKey('gen-inv')) {
-  return api.post(`/billing-periods/${periodId}/generate-invoices`, {}, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Idempotency-Key': idempotencyKey,
-    },
-  })
-}
-
-export function issueBillingPeriodApi(periodId, idempotencyKey = generateIdempotencyKey('issue-period')) {
-  return api.post(`/billing-periods/${periodId}/issue`, {}, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Idempotency-Key': idempotencyKey,
-    },
-  })
-}
-
-export function closeBillingPeriodApi(periodId) {
-  return api.post(`/billing-periods/${periodId}/close`, {}, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
+export async function closeBillingPeriodApi(periodId, signal) {
+  const { data } = await api.post(`/billing-periods/${periodId}/close`, null, { signal })
+  return data
 }
 
 // Only unpaid statuses, so finding debts across periods does not load the whole invoice history.
@@ -76,4 +57,85 @@ export function getContributionCampaignsApi(signal) {
 
 export function getFeeTypesApi(signal) {
   return fetchAll('/fee-types', {}, signal)
+}
+
+export async function generateInvoicesApi(periodId, { idempotencyKey } = {}, signal) {
+  const start = performance.now()
+  const key = idempotencyKey || generateIdempotencyKey()
+  const response = await api.post(`/billing-periods/${periodId}/generate-invoices`, null, {
+    headers: { 'Idempotency-Key': key },
+    signal,
+  })
+  const apiEnd = performance.now()
+  const apiDuration = Math.round(apiEnd - start)
+  return {
+    data: response.data,
+    apiDuration,
+  }
+}
+
+export async function issueBillingPeriodApi(periodId, { idempotencyKey } = {}, signal) {
+  const start = performance.now()
+  const key = idempotencyKey || generateIdempotencyKey()
+  const response = await api.post(`/billing-periods/${periodId}/issue`, null, {
+    headers: { 'Idempotency-Key': key },
+    signal,
+  })
+  const apiEnd = performance.now()
+  const apiDuration = Math.round(apiEnd - start)
+  return {
+    data: response.data,
+    apiDuration,
+  }
+}
+
+export async function getBillingPeriodByIdApi(periodId, signal) {
+  const response = await api.get(`/billing-periods/${periodId}`, { signal })
+  return response.data
+}
+
+export async function getInvoiceByIdApi(invoiceId, signal) {
+  const response = await api.get(`/invoices/${invoiceId}`, { signal })
+  return response.data
+}
+
+export async function addInvoiceLineApi(invoiceId, payload, { version } = {}, signal) {
+  const headers = {}
+  if (version !== undefined && version !== null) {
+    headers['If-Match'] = `"${version}"`
+  }
+  const response = await api.post(`/invoices/${invoiceId}/lines`, payload, {
+    headers,
+    signal,
+  })
+  return response.data
+}
+
+export async function deleteInvoiceLineApi(invoiceId, lineId, { version } = {}, signal) {
+  const headers = {}
+  if (version !== undefined && version !== null) {
+    headers['If-Match'] = `"${version}"`
+  }
+  const response = await api.delete(`/invoices/${invoiceId}/lines/${lineId}`, {
+    headers,
+    signal,
+  })
+  return response.data
+}
+
+export async function updateInvoiceLineApi(invoiceId, lineId, payload, { version } = {}, signal) {
+  const headers = {}
+  if (version !== undefined && version !== null) {
+    headers['If-Match'] = `"${version}"`
+  }
+  const response = await api.put(`/invoices/${invoiceId}/lines/${lineId}`, payload, {
+    headers,
+    signal,
+  })
+  return response.data
+}
+
+export async function cancelInvoiceApi(invoiceId, { version, reason } = {}, signal) {
+  const response = await api.post(`/invoices/${invoiceId}/cancel`, { version, reason }, { signal })
+  return response.data
 }
