@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useId, useRef } from 'react'
 import { getFeeRatesApi, updateFeeRateApi } from '../api/fees'
 import { BASIS_OPTIONS, VEHICLE_TYPE_OPTIONS } from '../utils/feeValidation'
+import { todayInVietnam } from '../residents/validation'
 import FeeRateCreateModal from './FeeRateCreateModal'
 import {
   ReceiptTaxIcon,
@@ -42,7 +43,7 @@ function EndRateModal({
   const helpId = useId()
   const errorId = useId()
 
-  const [todayStr] = useState(() => new Date().toISOString().slice(0, 10))
+  const [todayStr] = useState(() => todayInVietnam())
   const [endDateVal, setEndDateVal] = useState(() => rate?.effectiveTo || todayStr)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -257,7 +258,7 @@ export default function FeeRateScheduleModal({
 
   const basisMeta = BASIS_OPTIONS.find((b) => b.value === feeType?.basis)
   const isVehicle = feeType?.basis === 'PER_VEHICLE'
-  const [todayStr] = useState(() => new Date().toISOString().slice(0, 10))
+  const [todayStr] = useState(() => todayInVietnam())
 
   const loadRates = useCallback(() => {
     if (!feeType?.id) return
