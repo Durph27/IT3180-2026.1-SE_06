@@ -28,12 +28,16 @@ public class Bootstrap implements ApplicationRunner {
         db.lockWrites();
         Set<String> added=new HashSet<>();
         for(String code:contract.permissions()) if(db.where("Permission","code",code).isEmpty()){db.insert("Permission",map("id",id("permission:"+code),"code",code,"description",code));added.add(code);}
-        for(String role:List.of("ADMIN","MANAGER","ACCOUNTANT","AUTHORITY","RESIDENT")) {
+        for(String role:RolePolicy.SYSTEM_ROLES) {
             boolean exists=!db.where("Role","code",role).isEmpty();
-            var created=exists?db.where("Role","code",role).getFirst():db.insert("Role",map("id",id("role:"+role),"code",role,"name",roleName(role)));
-            for(var permission:db.all("Permission")) if((!exists || added.contains(text(permission,"code")) || role.equals("ADMIN")) && seedGrant(role,text(permission,"code"))) {
-                int present=db.jdbc().queryForObject("SELECT COUNT(*) FROM role_permission WHERE role_id=? AND permission_id=?",Integer.class,UUID.fromString(text(created,"id")),UUID.fromString(text(permission,"id")));
-                if(present==0)db.jdbc().update("INSERT INTO role_permission VALUES (?,?)",UUID.fromString(text(created,"id")),UUID.fromString(text(permission,"id")));
+            var created=exists?db.where("Role","code",role).getFirst():db.insert("Role",map("id",id("role:"+role),"code",role,"name",RolePolicy.label(role)));
+            UUID roleId=UUID.fromString(text(created,"id"));
+            // Grants seeded by an older, broader policy are withdrawn on every start.
+            for(String code:db.jdbc().queryForList("SELECT p.code FROM role_permission rp JOIN app_permission p ON p.id=rp.permission_id WHERE rp.role_id=?",String.class,roleId))
+                if(!RolePolicy.allows(role,code))db.jdbc().update("DELETE FROM role_permission WHERE role_id=? AND permission_id=(SELECT id FROM app_permission WHERE code=?)",roleId,code);
+            for(var permission:db.all("Permission")) if((!exists || added.contains(text(permission,"code")) || role.equals("ADMIN")) && RolePolicy.allows(role,text(permission,"code"))) {
+                int present=db.jdbc().queryForObject("SELECT COUNT(*) FROM role_permission WHERE role_id=? AND permission_id=?",Integer.class,roleId,UUID.fromString(text(permission,"id")));
+                if(present==0)db.jdbc().update("INSERT INTO role_permission VALUES (?,?)",roleId,UUID.fromString(text(permission,"id")));
             }
         }
         if(!password.isEmpty() && db.all("AppUser").isEmpty()) {
@@ -42,28 +46,5 @@ public class Bootstrap implements ApplicationRunner {
             var user=db.insert("AppUser",map("residentId",null,"username",username.trim().toLowerCase(Locale.ROOT),"displayName","Administrator","status","ACTIVE","createdAt",Instant.now().toString(),"passwordHash",identities.hashPassword(password)));
             db.jdbc().update("INSERT INTO user_role VALUES (?,?)",UUID.fromString(text(user,"id")),UUID.fromString(id("role:ADMIN")));
         }
-    }
-    static String roleName(String role) {
-        return switch(role) {
-            case "ADMIN" -> "Admin";
-            case "MANAGER" -> "Ban quản trị";
-            case "ACCOUNTANT" -> "Kế toán";
-            case "AUTHORITY" -> "Cơ quan chức năng";
-            case "RESIDENT" -> "Cư dân";
-            default -> throw new IllegalArgumentException("Unknown system role");
-        };
-    }
-    static boolean seedGrant(String role,String p) {
-        String group=p.split("\\.")[0];
-        return switch(role) {
-            case "ADMIN" -> true;
-            case "MANAGER" -> Set.of("user.read","user.write","user.manage").contains(p)
-                || !Set.of("maintenance-expense.record","household.family.write").contains(p) && !Set.of("user","role","rbac","audit","payment","receipt","payment-intent","payment-event").contains(group);
-            case "ACCOUNTANT" -> Set.of("maintenance-fund","maintenance-round","maintenance-expense","fee-type","fee-rate","billing-period","invoice","campaign","contribution","provider","subscription","utility-bill","reconciliation","report").contains(group)
-                || Set.of("payment.read","payment.record","payment.void","receipt.read","payment-intent.read","payment-event.read","notice.read","notice.remind","building.read","apartment.read","household.read","occupancy.read","resident.read","resident.identity.read","vehicle.read","residence-change.read").contains(p);
-            case "AUTHORITY" -> Set.of("building.read","apartment.read","household.read","occupancy.read","resident.read","resident.identity.read","residence-change.read").contains(p);
-            case "RESIDENT" -> Set.of("household.family.write","building.read","apartment.read","household.read","occupancy.read","resident.read","vehicle.read","fee-type.read","fee-rate.read","billing-period.read","invoice.read","campaign.read","contribution.read","contribution.write","subscription.read","utility-bill.read","payment.read","receipt.read","payment-intent.read","payment-intent.create","residence-change.read","residence-change.write","notice.read","ticket.read","ticket.write","ticket.update").contains(p);
-            default -> false;
-        };
     }
 }

@@ -36,7 +36,7 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | POST | `/residents` | Tạo Resident | ResidentCreate | 201 Resident | `resident.write` |
 | GET | `/residents/{id}` | Chi tiết Resident | — | 200 Resident | `resident.read` |
 | PATCH | `/residents/{id}` | Cập nhật Resident | ResidentUpdate | 200 Resident | `resident.write` |
-| GET | `/households/{id}/members` | Danh sách HouseholdMember | — | 200 HouseholdMemberPage | `household.read` |
+| GET | `/households/{id}/members` | Danh sách HouseholdMember | — | 200 HouseholdMemberPage | `resident.read` |
 | POST | `/households/{id}/members` | Thêm thành viên hộ | MemberCreate | 201 HouseholdMember | `household.write` |
 | POST | `/households/{id}/members/{memberId}/end` | Kết thúc tư cách thành viên | EndDateRequest | 200 HouseholdMember | `household.write` |
 | PUT | `/households/{id}/head` | Chọn chủ hộ | HeadRequest | 200 HouseholdMember | `household.write` |

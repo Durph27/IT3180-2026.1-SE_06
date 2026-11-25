@@ -1876,7 +1876,7 @@
         ],
         "summary": "Danh sách HouseholdMember",
         "operationId": "get_households_by_id_members",
-        "description": "Quyền: `household.read`.",
+        "description": "Quyền: `resident.read` (danh sách thành viên là dữ liệu nhân khẩu).",
         "parameters": [
           {
             "name": "id",
@@ -1951,7 +1951,7 @@
             "$ref": "#/components/responses/Unavailable"
           }
         },
-        "x-permission": "household.read",
+        "x-permission": "resident.read",
         "x-implementation-status": "planned",
         "x-implemented": true
       },

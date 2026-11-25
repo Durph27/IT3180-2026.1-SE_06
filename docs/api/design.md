@@ -98,14 +98,15 @@ tra nghiệp vụ. Vai trò khởi tạo đề xuất:
 
 | Role | Nhóm quyền seed | Phạm vi |
 | --- | --- | --- |
-| ADMIN | Toàn bộ catalog | Hệ thống |
-| MANAGER | Cư trú, phí, kỳ/bảng kê, đóng góp, thu hộ, thông báo, ticket và report; duyệt/phát hành/khóa/lập/hủy bảng kê | Chung cư, không tự có RBAC hoặc hủy thu tiền |
-| ACCOUNTANT | Đọc cư trú; quản lý phí/kỳ/bảng kê/đóng góp/thu hộ/đối soát; payment.read/record/void, receipt.read, payment-intent.read, payment-event.read, notice.read/remind và report | Chung cư |
+| ADMIN (Quản trị hệ thống) | user.read/write/manage, role.read/write, rbac.manage, audit.read | Hệ thống; không xem cư trú, không xem phí |
+| MANAGER (Ban quản trị) | Toàn bộ cư trú (tòa nhà, căn hộ, hộ, nhân khẩu, biến động, xe); xem thu phí: mọi quyền `.read` của biểu phí/kỳ thu/bảng kê/thanh toán/biên lai/quỹ bảo trì/đóng góp và report (trừ export); user.read/write/manage; notice và ticket | Chung cư; không tạo/phát hành/khóa kỳ thu, không lập bảng kê, không thu tiền, không gán vai trò |
+| ACCOUNTANT (Kế toán) | Toàn bộ nghiệp vụ phí: biểu phí, tạo/phát hành/khóa kỳ thu, lập bảng kê, thu tiền, biên lai, báo cáo, quỹ bảo trì, đóng góp, thu hộ, đối soát; notice.read/remind; building.read, apartment.read, household.read, occupancy.read làm ngữ cảnh | Chung cư; không đọc nhân khẩu, thành viên hộ hay biến động cư trú |
 | AUTHORITY | building.read, apartment.read, household.read, occupancy.read, resident.read, resident.identity.read, residence-change.read | Tra cứu cư trú toàn chung cư; không ghi và không xem tài chính |
 | RESIDENT | Đọc dữ liệu hộ/căn hộ/cư trú/xe/phí/kỳ/bảng kê/đóng góp/thu hộ/thanh toán; residence-change.read/write, contribution.read/write, payment-intent.read/create, notice.read, ticket.read/write/update | Hộ của tài khoản |
 
-Bảng là hướng dẫn seed, không phải wildcard runtime; gán các code cụ thể trong
-OpenAPI. Không cho cư dân thu tiền thủ công, duyệt yêu cầu, đọc callback event,
+Bảng là trần quyền (`security/RolePolicy`): seed cấp đúng tập này, mỗi lần khởi
+động thu hồi grant nằm ngoài trần, và PUT /roles/{id}/permissions chỉ được thu hẹp
+trong trần (ADMIN cố định). Gán các code cụ thể trong OpenAPI. Không cho cư dân thu tiền thủ công, duyệt yêu cầu, đọc callback event,
 ghi trực tiếp cư trú/giá/bảng kê hay xem báo cáo chung cư.
 
 Phạm vi hộ: app_user.resident_id → household_member còn hiệu lực theo ngày

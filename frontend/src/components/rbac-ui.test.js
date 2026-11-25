@@ -71,7 +71,18 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
     for (const markup of [navbar, dashboard]) {
       assert.equal(markup.includes('Quản lý tài khoản'), ['ADMIN', 'MANAGER'].includes(role))
     }
-    assert.equal(dashboard.includes('Trạng thái hạ tầng hệ thống'), ['ADMIN', 'MANAGER'].includes(role))
+    assert.equal(dashboard.includes('Trạng thái hạ tầng hệ thống'), role === 'ADMIN')
+    if (role === 'ADMIN') {
+      for (const hidden of ['Căn hộ &amp; Cư trú', 'Thu phí', 'Quỹ bảo trì']) assert.ok(!dashboard.includes(hidden), hidden)
+      for (const hidden of ['Nhân khẩu', 'Khoản thu', 'Biểu phí', 'Căn hộ', 'Tạm trú']) assert.ok(!navbar.includes(hidden), hidden)
+    }
+    if (role === 'MANAGER') {
+      assert.match(dashboard, /Căn hộ &amp; Cư trú/)
+      assert.match(dashboard, /Thu phí &amp; Công nợ/)
+      for (const hidden of ['Được phát hành kỳ thu', 'Được lập bảng kê', 'Được ghi nhận chi phí']) assert.ok(!dashboard.includes(hidden), hidden)
+      assert.match(navbar, /Nhân khẩu/)
+      assert.match(navbar, /Khoản thu/)
+    }
     assert.equal(dashboard.includes('Được gán và đổi vai trò'), role === 'ADMIN')
     if (role === 'AUTHORITY') {
       assert.match(dashboard, /Chỉ đọc thông tin cư trú/)
@@ -82,9 +93,9 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
     if (role === 'ACCOUNTANT') {
       assert.match(dashboard, /Thu phí &amp; Công nợ/)
       assert.match(dashboard, /Quỹ bảo trì/)
-      assert.match(dashboard, /Chỉ đọc thông tin cư trú/)
-      assert.ok(!dashboard.includes('Được duyệt'))
-      assert.ok(!dashboard.includes('Được nộp đơn'))
+      for (const hidden of ['Căn hộ &amp; Cư trú', 'thông tin cư trú', 'Được duyệt', 'Được nộp đơn']) assert.ok(!dashboard.includes(hidden), hidden)
+      for (const hidden of ['Nhân khẩu', 'Tạm trú']) assert.ok(!navbar.includes(hidden), hidden)
+      assert.match(navbar, /Khoản thu/)
     }
     if (role === 'RESIDENT') {
       assert.match(dashboard, /Khoản thu của hộ/)
