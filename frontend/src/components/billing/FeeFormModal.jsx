@@ -182,7 +182,7 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
             {errors.name && <span id="fee-name-error" className="field-hint text-danger">{errors.name}</span>}
             {!isEdit && mentionsMaintenance(name) && (
               <p className="mt-2 mb-0 rounded-lg border border-solid border-amber-200 bg-amber-50 p-2 text-sm text-amber-900" role="note">
-                Phí ở đây được tính vào phiếu hằng tháng và <strong>không vào quỹ bảo trì</strong>. Muốn thu vào quỹ, dùng nút &ldquo;Thu bảo trì&rdquo; ở trang Phí đột xuất.
+                Phí ở đây được tính vào phiếu hằng tháng và <strong>không vào quỹ bảo trì</strong>. Muốn thu vào quỹ, dùng nút &ldquo;Thu bảo trì&rdquo; ở trang Phí phát sinh.
               </p>
             )}
           </div>

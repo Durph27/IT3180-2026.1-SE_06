@@ -43,25 +43,25 @@ function auth(role, overrides = {}) {
   return value
 }
 
-const render = (value, component, props = {}, path = '/phi-dot-xuat') =>
+const render = (value, component, props = {}, path = '/phi-phat-sinh') =>
   renderToStaticMarkup(h(MemoryRouter, { initialEntries: [path] }, h(AuthContext.Provider, { value }, h(component, props))))
 
-test('Navbar renders Phí đột xuất only for authorized staff roles', () => {
-  for (const role of ['ACCOUNTANT', 'MANAGER']) assert.match(render(auth(role), Navbar), /Phí đột xuất/)
+test('Navbar renders Phí phát sinh only for authorized staff roles', () => {
+  for (const role of ['ACCOUNTANT', 'MANAGER']) assert.match(render(auth(role), Navbar), /Phí phát sinh/)
   for (const role of ['ADMIN', 'RESIDENT', 'AUTHORITY']) {
-    assert.doesNotMatch(render(auth(role), Navbar), /Phí đột xuất|Quỹ bảo trì/)
+    assert.doesNotMatch(render(auth(role), Navbar), /Phí phát sinh|Quỹ bảo trì/)
   }
 })
 
-test('Phí đột xuất has a maintenance tab and a voluntary tab; only staff with access get in', () => {
+test('Phí phát sinh has a maintenance tab and a voluntary tab; only staff with access get in', () => {
   for (const role of ['ACCOUNTANT', 'MANAGER']) {
     const html = render(auth(role), AdhocFeesPage, { onBack() {} })
-    assert.match(html, /<h1 class="header-title">Phí đột xuất<\/h1>/)
+    assert.match(html, /<h1 class="header-title">Phí phát sinh<\/h1>/)
     assert.match(html, /role="tablist"/)
     assert.match(html, /aria-selected="true"[^>]*>Bảo trì</)
     assert.match(html, />Tự nguyện</)
     assert.match(html, /Đang tải quỹ bảo trì/)
-    const voluntary = render(auth(role), AdhocFeesPage, { onBack() {} }, '/phi-dot-xuat?tab=tu-nguyen')
+    const voluntary = render(auth(role), AdhocFeesPage, { onBack() {} }, '/phi-phat-sinh?tab=tu-nguyen')
     assert.match(voluntary, /Đang tải các đợt vận động/)
     assert.equal(voluntary.includes('Tạo đợt vận động'), role === 'ACCOUNTANT', role)
   }

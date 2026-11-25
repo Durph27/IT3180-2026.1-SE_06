@@ -77,7 +77,7 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
     if (role === 'ADMIN') {
       assert.match(dashboard, /Quản trị hệ thống/)
       assert.match(dashboard, /Tổng tài khoản/)
-      for (const hidden of ['Căn hộ', 'Nhân khẩu', 'Tạm trú', 'Thu phí', 'Khoản thu', 'Biểu phí', 'Quỹ bảo trì', 'Phí cố định', 'Phí đột xuất', 'Đợt thu']) {
+      for (const hidden of ['Căn hộ', 'Nhân khẩu', 'Tạm trú', 'Thu phí', 'Khoản thu', 'Biểu phí', 'Quỹ bảo trì', 'Phí định kỳ', 'Phí phát sinh', 'Đợt thu']) {
         assert.ok(!dashboard.includes(hidden), hidden)
         assert.ok(!navbar.includes(hidden), hidden)
       }
@@ -85,12 +85,12 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
     if (role === 'MANAGER') {
       assert.match(dashboard, /Nhân khẩu &amp; Lưu trú/)
       assert.match(dashboard, /Đợt thu/)
-      assert.match(dashboard, /Phí cố định/)
-      assert.match(dashboard, /Phí đột xuất/)
+      assert.match(dashboard, /Phí định kỳ/)
+      assert.match(dashboard, /Phí phát sinh/)
       assert.match(navbar, /Nhân khẩu/)
       assert.match(navbar, /Đợt thu/)
-      assert.match(navbar, /Phí cố định/)
-      assert.match(navbar, /Phí đột xuất/)
+      assert.match(navbar, /Phí định kỳ/)
+      assert.match(navbar, /Phí phát sinh/)
       for (const hidden of ['Lập kỳ thu', 'Ghi nhận thanh toán']) {
         assert.ok(!dashboard.includes(hidden), hidden)
       }
@@ -99,16 +99,16 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
       assert.match(dashboard, /Rà soát lưu trú &amp; Xuất Excel/)
       assert.match(dashboard, /Hồ sơ căn hộ/)
       assert.match(dashboard, /Tạm trú, tạm vắng/)
-      for (const hidden of ['Thu phí', 'Quỹ bảo trì', 'Phí đột xuất', 'Phản ánh', 'Quản lý tài khoản', 'Được duyệt', 'Được nộp đơn', 'Được cập nhật']) {
+      for (const hidden of ['Thu phí', 'Quỹ bảo trì', 'Phí phát sinh', 'Phản ánh', 'Quản lý tài khoản', 'Được duyệt', 'Được nộp đơn', 'Được cập nhật']) {
         assert.ok(!dashboard.includes(hidden), hidden)
       }
     }
     if (role === 'ACCOUNTANT') {
       assert.match(dashboard, /Sổ thu tiền/)
-      assert.match(dashboard, /Phí đột xuất/)
+      assert.match(dashboard, /Phí phát sinh/)
       assert.match(navbar, /Đợt thu/)
-      assert.match(navbar, /Phí cố định/)
-      assert.match(navbar, /Phí đột xuất/)
+      assert.match(navbar, /Phí định kỳ/)
+      assert.match(navbar, /Phí phát sinh/)
       for (const hidden of ['Nhân khẩu', 'Tạm trú', 'Quản lý tài khoản', 'Được duyệt', 'Được nộp đơn']) {
         assert.ok(!dashboard.includes(hidden), hidden)
         assert.ok(!navbar.includes(hidden), hidden)
@@ -119,7 +119,7 @@ for (const role of Object.keys(ROLE_PERMISSIONS)) {
       assert.match(dashboard, /Lịch sử nộp tiền/)
       assert.match(dashboard, /Tạm trú, tạm vắng/)
       assert.match(dashboard, /Hộ gia đình/)
-      for (const hidden of ['Toàn chung cư', 'toàn chung cư', 'Quỹ bảo trì', 'Phí đột xuất', 'Phí cố định', 'Đợt thu', 'Quản lý tài khoản', 'Được duyệt', 'Được lập bảng kê', 'Được lập phiếu báo phí']) {
+      for (const hidden of ['Toàn chung cư', 'toàn chung cư', 'Quỹ bảo trì', 'Phí phát sinh', 'Phí định kỳ', 'Đợt thu', 'Quản lý tài khoản', 'Được duyệt', 'Được lập bảng kê', 'Được lập phiếu báo phí']) {
         assert.ok(!dashboard.includes(hidden), hidden)
       }
     }

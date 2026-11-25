@@ -24,9 +24,9 @@ export default function AdhocFeesPage({ onBack }) {
 
   return (
     <div className="user-management-container">
-      <PageHeader title="Phí đột xuất" description="Các khoản thu theo đợt: bảo trì (cộng vào phiếu báo phí) và đóng góp tự nguyện." />
+      <PageHeader title="Phí phát sinh" description="Các khoản thu theo đợt: bảo trì (cộng vào phiếu báo phí) và đóng góp tự nguyện." />
       {tabs.length > 1 && (
-        <div className="filter-buttons-group w-fit max-w-full flex-wrap" role="tablist" aria-label="Phí đột xuất">
+        <div className="filter-buttons-group w-fit max-w-full flex-wrap" role="tablist" aria-label="Phí phát sinh">
           {tabs.map((tab) => (
             <button
               key={tab.id}

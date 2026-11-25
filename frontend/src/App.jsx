@@ -31,22 +31,27 @@ const APP_TITLE = 'BlueMoon — Quản lý thu phí'
 const PAGE_TITLES = {
   [ROUTES.overview]: 'Tổng quan',
   [ROUTES.apartments]: 'Căn hộ',
-  [ROUTES.fixedFees]: 'Phí cố định',
+  [ROUTES.fixedFees]: 'Phí định kỳ',
   [ROUTES.residents]: 'Nhân khẩu',
   [ROUTES.billing]: 'Đợt thu',
   [ROUTES.payments]: 'Sổ thu tiền',
   [ROUTES.family]: 'Hộ gia đình',
   [ROUTES.residenceChanges]: 'Tạm trú, tạm vắng',
-  [ROUTES.adhocFees]: 'Phí đột xuất',
+  [ROUTES.adhocFees]: 'Phí phát sinh',
   [ROUTES.users]: 'Quản lý tài khoản',
 }
 
-// /quy-bao-tri?quy=… keeps working: same fund, now on the maintenance tab of "Phí đột xuất".
+// /quy-bao-tri?quy=… keeps working: same fund, now on the maintenance tab of "Phí phát sinh".
 function LegacyMaintenanceRedirect() {
   const { search } = useLocation()
   const params = new URLSearchParams(search)
   params.set('tab', 'bao-tri')
   return <Navigate to={`${ROUTES.adhocFees}?${params}`} replace />
+}
+
+function KeepQueryRedirect({ to }) {
+  const { search } = useLocation()
+  return <Navigate to={`${to}${search}`} replace />
 }
 
 function AppContent() {
@@ -150,7 +155,7 @@ function Workspace({ onLogout }) {
               <Route path={ROUTES.register} element={<ReturnAfterLogin />} />
               <Route path={ROUTES.overview} element={<HomePage />} />
               <Route path={ROUTES.apartments} element={<ApartmentManagement />} />
-              {/* Old address of the price list; it is the "Phí cố định" page now. */}
+              {/* Old address of the price list; it is the "Phí định kỳ" page now. */}
               <Route path={ROUTES.fees} element={<Navigate to={ROUTES.fixedFees} replace />} />
               <Route path={ROUTES.fixedFees} element={<FixedFeesPage onBack={goToOverview} />} />
               <Route path={ROUTES.users} element={<UserManagement onBack={goToOverview} />} />
@@ -161,6 +166,9 @@ function Workspace({ onLogout }) {
               <Route path={ROUTES.payments} element={<PaymentPage onBack={goToOverview} />} />
               <Route path={ROUTES.adhocFees} element={<AdhocFeesPage onBack={goToOverview} />} />
               <Route path={ROUTES.maintenanceFunds} element={<LegacyMaintenanceRedirect />} />
+              {/* Earlier names of the two fee pages. */}
+              <Route path="/phi-co-dinh" element={<Navigate to={ROUTES.fixedFees} replace />} />
+              <Route path="/phi-dot-xuat" element={<KeepQueryRedirect to={ROUTES.adhocFees} />} />
               <Route path="*" element={<NotFoundView />} />
             </Routes>
           </RoleGuard>

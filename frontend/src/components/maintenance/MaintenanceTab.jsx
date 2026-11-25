@@ -27,7 +27,7 @@ import RoundApartmentsDialog from './RoundApartmentsDialog'
 import RoundList from './RoundList'
 import { AlertTriangleIcon, CheckCircleIcon, PlusIcon, ReceiptIcon, WalletIcon } from '../Icons'
 
-/** Maintenance tab of "Phí đột xuất": one fund at a time, its rounds and expenses. */
+/** Maintenance tab of "Phí phát sinh": one fund at a time, its rounds and expenses. */
 export default function MaintenanceTab() {
   const { hasPermission } = useAuth()
   return <MaintenanceContent canReadFunds={hasPermission('maintenance-fund.read')} canReadRounds={hasPermission('maintenance-round.read')} />

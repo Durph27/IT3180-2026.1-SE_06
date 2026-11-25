@@ -42,7 +42,7 @@ export default function BillingPage({ onBack }) {
   )
 }
 
-// Staff send this month's bills here; the price list is its own page ("Phí cố định").
+// Staff send this month's bills here; the price list is its own page ("Phí định kỳ").
 function StaffBilling({ onBack }) {
   const auth = useAuth()
   const navigate = useNavigate()

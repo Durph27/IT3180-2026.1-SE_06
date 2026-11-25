@@ -71,8 +71,8 @@ export default function Navbar({ onNavigate, isOpen = false, onClose, hasUnpaidB
               {canReadResidents && <NavItem to={ROUTES.residents} label="Nhân khẩu" icon={UsersIcon} {...itemProps} />}
               {canReadResidenceChanges && <NavItem to={ROUTES.residenceChanges} label="Tạm trú, tạm vắng" icon={CalendarIcon} {...itemProps} />}
               {canReadBilling && <NavItem to={ROUTES.billing} label={isStaff ? 'Đợt thu' : 'Khoản thu'} icon={ReceiptIcon} attention={hasUnpaidBills ? 'còn khoản chưa đóng' : ''} {...itemProps} />}
-              {canViewFees && <NavItem to={ROUTES.fixedFees} label="Phí cố định" icon={ReceiptTaxIcon} {...itemProps} />}
-              {canViewAdhoc && <NavItem to={ROUTES.adhocFees} label="Phí đột xuất" icon={WalletIcon} {...itemProps} />}
+              {canViewFees && <NavItem to={ROUTES.fixedFees} label="Phí định kỳ" icon={ReceiptTaxIcon} {...itemProps} />}
+              {canViewAdhoc && <NavItem to={ROUTES.adhocFees} label="Phí phát sinh" icon={WalletIcon} {...itemProps} />}
               {canReadPayments && <NavItem to={ROUTES.payments} label="Sổ thu tiền" icon={CreditCardIcon} {...itemProps} />}
               {showFamily && <NavItem to={ROUTES.family} label="Hộ gia đình" icon={HomeIcon} {...itemProps} />}
             </div>
