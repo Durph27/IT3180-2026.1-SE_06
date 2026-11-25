@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  addMonths, findPeriodForMonth, generationWarnings, periodDefaultsForMonth, periodStatusLabel,
+  addMonths, billingMonthOptions, findPeriodForMonth, generationWarnings, periodDefaultsForMonth, periodStatusLabel,
   previousPeriod, summarizeByHousehold, summarizeInvoices,
 } from './billingUtils.js'
 import { feeCodeFromName, parseVndInput } from './feeValidation.js'
@@ -139,6 +139,19 @@ test('money input accepts Vietnamese thousands separators', () => {
   assert.equal(parseVndInput(''), null)
 })
 
+test('a decimal part is not mistaken for thousands, and must be zero', () => {
+  assert.equal(parseVndInput('150000.00'), '150000.00')
+  assert.equal(parseVndInput('150000,0'), '150000.00')
+  assert.equal(parseVndInput('1.200.000'), '1200000.00')
+  assert.equal(parseVndInput('1.200.000,00'), '1200000.00')
+  assert.equal(parseVndInput('1,200,000.00'), '1200000.00')
+  assert.equal(parseVndInput('7.000'), '7000.00')
+  assert.equal(parseVndInput('7,5'), null)
+  assert.equal(parseVndInput('7500.50'), null)
+  assert.equal(parseVndInput('1.20.000'), null)
+  assert.equal(parseVndInput('0.00'), null)
+})
+
 test('only the reserved, unpriced maintenance fee type is exempt from missing-price warnings', () => {
   const feeTypes = [
     { id: 'round', code: 'QUY_BAO_TRI', name: 'Phí bảo trì (theo đợt)', basis: 'PER_APARTMENT', active: true },
@@ -155,4 +168,25 @@ test('a fee named "Phí bảo trì" never takes the code reserved for maintenanc
   assert.equal(isMaintenanceFeeType({ code: 'QUY_BAO_TRI' }), true)
   // A priced fee under that code bills monthly and never reaches the fund, so it is ordinary.
   assert.equal(isMaintenanceFeeType({ code: 'QUY_BAO_TRI' }, [{ unitPrice: '7000.00' }]), false)
+})
+
+test('the month picker always offers months that already have a period', () => {
+  const periods = [{ id: 'jan', startDate: '2027-01-01' }, { id: 'old', startDate: '2025-03-01' }]
+  const months = billingMonthOptions(periods, '2026-11')
+  assert.ok(months.includes('2027-01'))
+  assert.ok(months.includes('2025-03'))
+  assert.ok(months.includes('2026-12') && months.includes('2026-08'))
+  assert.deepEqual(months, [...months].sort().reverse())
+})
+
+test('a live draft bill without lines is reported so the month is not sent', () => {
+  const { emptyInvoices } = generationWarnings({
+    snapshotDate: '2026-12-05',
+    invoices: [
+      { id: 'a', occupancyId: 'o1', status: 'DRAFT', lines: [] },
+      { id: 'b', occupancyId: 'o2', status: 'CANCELLED', lines: [] },
+      { id: 'c', occupancyId: 'o3', status: 'DRAFT', lines: [{ id: 'l' }] },
+    ],
+  })
+  assert.deepEqual(emptyInvoices.map((invoice) => invoice.id), ['a'])
 })

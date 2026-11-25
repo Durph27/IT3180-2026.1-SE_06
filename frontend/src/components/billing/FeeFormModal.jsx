@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { createFeeRateApi, createFeeTypeApi, updateFeeTypeApi } from '../../api/fees'
+import { createFeeRateApi, createFeeTypeApi, updateFeeRateApi, updateFeeTypeApi } from '../../api/fees'
 import { apiErrorMessage } from '../../api/errors'
 import { useModalDialog } from '../../hooks/useModalDialog'
 import { todayInVietnam } from '../../residents/validation.js'
@@ -14,18 +14,24 @@ function priceKeys(basis) {
   return basis === 'PER_VEHICLE' ? VEHICLE_TYPE_OPTIONS.map((option) => option.value) : [NO_VEHICLE]
 }
 
-function currentPrices(rates, today) {
-  const prices = {}
+// The rate that applies today for each price key, so editing can end it as well as replace it.
+function currentRates(rates, today) {
+  const byKey = {}
   for (const rate of rates) {
-    if (rateActiveAt(rate, today)) prices[rate.vehicleType ?? NO_VEHICLE] = rate.unitPrice
+    if (rateActiveAt(rate, today)) byKey[rate.vehicleType ?? NO_VEHICLE] = rate
   }
-  return prices
+  return byKey
 }
 
 // Maintenance money reaches the fund only through rounds, never through a monthly fee.
 const mentionsMaintenance = (name) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('bao tri')
 
-const displayPrice = (unitPrice) => (unitPrice ? String(Number.parseInt(unitPrice, 10)) : '')
+// Whole dong shows without ".00"; an older price with cents is shown as stored so nothing is lost.
+const displayPrice = (unitPrice) => {
+  if (!unitPrice) return ''
+  const [whole, cents = '00'] = String(unitPrice).split('.')
+  return /^0+$/.test(cents) ? whole : String(unitPrice)
+}
 
 /**
  * One form for a fee and its price. Creating asks only for a name, how it is charged and the price;
@@ -37,11 +43,12 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
   const titleId = useId()
   const [fee, setFee] = useState(initialFee)
   const isEdit = Boolean(fee)
-  const current = currentPrices(rates, today)
+  const current = currentRates(rates, today)
+  const initialText = Object.fromEntries(Object.entries(current).map(([key, rate]) => [key, displayPrice(rate.unitPrice)]))
 
   const [name, setName] = useState(initialFee?.name ?? '')
   const [basis, setBasis] = useState(initialFee?.basis ?? 'PER_M2')
-  const [prices, setPrices] = useState(() => Object.fromEntries(Object.entries(current).map(([key, value]) => [key, displayPrice(value)])))
+  const [prices, setPrices] = useState(initialText)
   const [effectiveFrom, setEffectiveFrom] = useState(today)
   const [pickDate, setPickDate] = useState(false)
   const [errors, setErrors] = useState({})
@@ -50,8 +57,14 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
   const ref = useModalDialog(onClose, saving)
 
   const keys = priceKeys(basis)
-  const changedKeys = keys.filter((key) => (prices[key] ?? '').trim() && parseVndInput(prices[key]) !== (current[key] ?? null))
-  const priceChanged = isEdit && changedKeys.some((key) => current[key])
+  const textOf = (key) => (prices[key] ?? '').trim()
+  // Only a field the user actually edited counts, so renaming a fee never re-saves its price.
+  const changedKeys = keys.filter((key) => textOf(key) && textOf(key) !== (initialText[key] ?? ''))
+  // Clearing a field that has a price stops charging it.
+  const endedKeys = isEdit ? keys.filter((key) => current[key] && !textOf(key)) : []
+  const priceChanged = isEdit && (changedKeys.some((key) => current[key]) || endedKeys.length > 0)
+  const appliesFrom = pickDate ? effectiveFrom : today
+  const endedLabels = endedKeys.map((key) => VEHICLE_TYPE_OPTIONS.find((option) => option.value === key)?.label ?? 'phí này')
   const unit = BASIS_SIMPLE[basis]?.unit ?? 'đ'
 
   const validate = () => {
@@ -87,9 +100,12 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
       for (const key of changedKeys) {
         await createFeeRateApi(saved.id, {
           unitPrice: parseVndInput(prices[key]),
-          effectiveFrom: pickDate ? effectiveFrom : today,
+          effectiveFrom: appliesFrom,
           vehicleType: key || null,
         })
+      }
+      for (const key of endedKeys) {
+        await updateFeeRateApi(current[key].id, { effectiveTo: appliesFrom })
       }
       onSaved(isEdit ? `Đã lưu "${saved.name}".` : `Đã thêm "${saved.name}".`)
     } catch (err) {
@@ -127,7 +143,7 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
             className="form-control"
             inputMode="numeric"
             autoComplete="off"
-            placeholder={current[key] ? displayPrice(current[key]) : 'Ví dụ 7.000'}
+            placeholder={current[key] ? displayPrice(current[key].unitPrice) : 'Ví dụ 7.000'}
             value={prices[key] ?? ''}
             onChange={(event) => setPrices((previous) => ({ ...previous, [key]: event.target.value }))}
             aria-invalid={Boolean(error)}
@@ -201,7 +217,7 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
               <div className="grid gap-3 sm:grid-cols-2">
                 {VEHICLE_TYPE_OPTIONS.map((option) => priceField(option.value, option.label))}
               </div>
-              <p className="field-hint">Để trống loại xe không thu phí.</p>
+              <p className="field-hint">{isEdit ? 'Xóa trống ô để ngừng thu loại xe đó.' : 'Để trống loại xe không thu phí.'}</p>
             </fieldset>
           ) : priceField(NO_VEHICLE)}
           {errors.prices && <p className="field-hint text-danger" role="alert">{errors.prices}</p>}
@@ -210,13 +226,14 @@ export default function FeeFormModal({ feeType: initialFee = null, rates = [], e
             <div className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
               {pickDate ? (
                 <div className="form-group mb-0!">
-                  <label htmlFor="fee-effective-from">Giá mới áp dụng từ ngày</label>
+                  <label htmlFor="fee-effective-from">Áp dụng từ ngày</label>
                   <input id="fee-effective-from" type="date" className="form-control" value={effectiveFrom} onChange={(event) => setEffectiveFrom(event.target.value)} />
                   {errors.effectiveFrom && <span className="field-hint text-danger">{errors.effectiveFrom}</span>}
                 </div>
               ) : (
                 <p className="m-0">
-                  Giá mới áp dụng cho các phiếu báo phí lập từ hôm nay. Phiếu đã gửi giữ giá cũ.{' '}
+                  {endedLabels.length > 0 && <>Ngừng thu {endedLabels.join(', ')} từ hôm nay. </>}
+                  Thay đổi áp dụng cho các phiếu báo phí lập từ hôm nay. Phiếu đã gửi giữ giá cũ.{' '}
                   <button type="button" className={LINK} onClick={() => setPickDate(true)}>Chọn ngày khác</button>
                 </p>
               )}

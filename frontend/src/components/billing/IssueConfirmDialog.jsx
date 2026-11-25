@@ -22,11 +22,11 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
   const ref = useModalDialog(onClose, sending)
   const month = monthLabel(periodMonth(period))
   const dueError = dueDate < period.endDate ? `Hạn nộp phải từ ngày ${formatDay(period.endDate)} trở đi.` : ''
-  const { feesWithoutPrice, unbilledOccupancies } = warnings
+  const { feesWithoutPrice, unbilledOccupancies, emptyInvoices = [] } = warnings
   const delta = previousSummary ? summary.total - previousSummary.total : null
 
   const send = async () => {
-    if (dueError || summary.count === 0) return
+    if (dueError || summary.count === 0 || emptyInvoices.length > 0) return
     setSending(true)
     setError('')
     try {
@@ -91,6 +91,13 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
             </p>
           )}
 
+          {emptyInvoices.length > 0 && (
+            <p className="m-0 mb-4 rounded-lg border border-solid border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
+              {emptyInvoices.length} phiếu báo phí không còn khoản phí nào ({emptyInvoices.map(apartmentCodeOf).join(', ')}). Hãy hủy các phiếu này trước khi gửi.{' '}
+              {onReviewBills && <button type="button" className={LINK} onClick={onReviewBills}>Xem và sửa từng phiếu</button>}
+            </p>
+          )}
+
           {(feesWithoutPrice.length > 0 || unbilledOccupancies.length > 0) && (
             <ul className="m-0 mb-4 flex list-none flex-col gap-2 rounded-lg border border-solid border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
               {feesWithoutPrice.length > 0 && (
@@ -117,7 +124,7 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
 
           <div className="modal-actions">
             <button type="button" className="btn btn-outline" disabled={sending} onClick={onClose}>Hủy</button>
-            <button type="button" className="btn btn-primary" disabled={sending || Boolean(dueError) || summary.count === 0} onClick={send}>
+            <button type="button" className="btn btn-primary" disabled={sending || Boolean(dueError) || summary.count === 0 || emptyInvoices.length > 0} onClick={send}>
               {sending ? 'Đang gửi…' : 'Gửi cho cư dân'}
             </button>
           </div>

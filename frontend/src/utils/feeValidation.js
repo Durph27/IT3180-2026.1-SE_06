@@ -186,9 +186,18 @@ export function feeCodeFromName(name, existingCodes = []) {
   }
 }
 
-// Accepts "7000", "7.000" or "7,000" (Vietnamese thousands separators) and returns "7000.00" or null.
+// Accepts "7000", "7.000", "1.200.000", "150000.00" or "1.200.000,00" and returns "7000.00",
+// or null. A "." or "," followed by exactly three digits groups thousands; one followed by one
+// or two digits at the end is a decimal part, which must be zero because VND has no cents.
 export function parseVndInput(value) {
-  const digits = String(value ?? '').trim().replace(/[.,\s]/g, '').replace(/đ|₫/gi, '')
+  let text = String(value ?? '').trim().replace(/\s/g, '').replace(/đ|₫/gi, '')
+  const decimal = /[.,](\d{1,2})$/.exec(text)
+  if (decimal) {
+    if (!/^0+$/.test(decimal[1])) return null
+    text = text.slice(0, decimal.index)
+  }
+  if (!/^\d{1,3}([.,]\d{3})*$|^\d+$/.test(text)) return null
+  const digits = text.replace(/[.,]/g, '')
   if (!/^[1-9][0-9]{0,15}$/.test(digits)) return null
   return `${digits}.00`
 }

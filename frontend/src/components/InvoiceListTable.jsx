@@ -228,8 +228,8 @@ function InvoiceRowGroup({
     ['ISSUED', 'PARTIALLY_PAID'].includes(invoice.status) &&
     toCents(invoice.outstandingAmount) > 0n
   const canModifyLines = invoice.status === 'DRAFT' && canWriteInvoice
+  // Callers pass onCancelInvoice only to users allowed to cancel.
   const canCancel =
-    canWriteInvoice &&
     Boolean(onCancelInvoice) &&
     ['DRAFT', 'ISSUED'].includes(invoice.status) &&
     toCents(invoice.paidAmount) === 0n

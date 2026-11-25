@@ -36,7 +36,18 @@ public class BillingService {
             }
             if (path.startsWith("/fee-rates")) {
                 var rate = db.get("FeeRate", id);
-                state(db.where("InvoiceLine", "rateId", id).isEmpty());
+                // A used price can still be ended, as long as every period that billed it was
+                // snapshotted before the new end date; those bills keep their price either way.
+                var usedBy = db.where("InvoiceLine", "rateId", id);
+                if (!usedBy.isEmpty() && b.get("effectiveTo") != null) {
+                    LocalDate end = LocalDate.parse(String.valueOf(b.get("effectiveTo")));
+                    for (var line : usedBy) {
+                        var period = db.get("BillingPeriod", db.get("Invoice", line.get("invoiceId")).get("periodId"));
+                        rule(date(period, "snapshotDate").isBefore(end), "Giá này đã được dùng cho đợt thu chốt ngày " + text(period, "snapshotDate") + "; ngày ngừng áp dụng phải sau ngày đó.");
+                    }
+                } else {
+                    state(usedBy.isEmpty());
+                }
                 var merged = new LinkedHashMap<>(rate);
                 merged.putAll(b);
                 validateRate(merged, id);
@@ -59,6 +70,9 @@ public class BillingService {
                 if (!db.where("Invoice", "periodId", id).isEmpty())
                     state(Set.of("dueDate", "snapshotDate").containsAll(b.keySet()));
                 snapshotMoved = b.containsKey("snapshotDate") && !Objects.equals(text(merged, "snapshotDate"), String.valueOf(b.get("snapshotDate")));
+                // Maintenance lines were split over the apartments occupied on the old snapshot.
+                if (snapshotMoved)
+                    rule(db.where("MaintenanceRound", "periodId", id).isEmpty(), "Tháng này đã có đợt thu bảo trì, không đổi được ngày chốt.");
             }
             merged.putAll(b);
             validatePeriod(merged);

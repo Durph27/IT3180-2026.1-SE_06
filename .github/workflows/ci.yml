@@ -80,6 +80,23 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      # setup-java caches ~/.m2/repository only; the wrapper downloads Maven itself into
+      # ~/.m2/wrapper, and a transient Maven Central error there fails the whole job.
+      - name: Cache Maven wrapper distribution
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/wrapper
+          key: maven-wrapper-${{ hashFiles('backend/.mvn/wrapper/maven-wrapper.properties') }}
+
+      - name: Download Maven via wrapper (retry on network errors)
+        run: |
+          for attempt in 1 2 3 4; do
+            ./mvnw --version --batch-mode && exit 0
+            echo "Maven download failed (attempt $attempt), retrying..."
+            sleep $((attempt * 15))
+          done
+          exit 1
+
       - name: Run backend tests
         env:
           TEST_POSTGRES_URL: jdbc:postgresql://localhost:5432/bluemoon_db

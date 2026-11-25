@@ -20,7 +20,7 @@ import { ROUTES } from '../../routes'
 import { useModalDialog } from '../../hooks/useModalDialog'
 import { todayInVietnam } from '../../residents/validation.js'
 import {
-  addMonths, canCreateBilling, findPeriodForMonth, formatDay, formatMoney, generationWarnings, monthLabel,
+  billingMonthOptions, canCreateBilling, findPeriodForMonth, formatDay, formatMoney, generationWarnings, monthLabel,
   occupancyLookups, periodDefaultsForMonth, periodMonth, periodStatusLabel, previousPeriod, reconcileInvoices,
   summarizeInvoices,
 } from '../../utils/billingUtils'
@@ -161,7 +161,10 @@ export default function StaffPeriodsTab({ onOpenFees }) {
   const lookups = useMemo(() => occupancyLookups(data ?? {}), [data])
   const activeOccupancies = useMemo(() => (data?.occupancies ?? []).filter((row) => row.validFrom <= today && (!row.validTo || row.validTo > today)), [data, today])
 
-  const apartmentCodeOf = (occupancy) => data?.apartments.find((apartment) => apartment.id === occupancy.apartmentId)?.code ?? 'Căn chưa rõ mã'
+  // Accepts an occupancy (warnings about unbilled apartments) or an invoice (empty bills).
+  const apartmentCodeOf = (row) => (row.occupancyId
+    ? lookups.apartmentMap[row.occupancyId]?.code
+    : data?.apartments.find((apartment) => apartment.id === row.apartmentId)?.code) ?? 'Căn chưa rõ mã'
   const period = data ? findPeriodForMonth(data.periods, month) : null
   const sent = period && period.status !== 'DRAFT'
   const reviewing = period?.status === 'DRAFT' && reviewingId === period.id
@@ -170,7 +173,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
   const pastPeriods = (data?.periods ?? [])
     .filter((row) => row.status !== 'DRAFT' && row.id !== period?.id)
     .sort((a, b) => b.startDate.localeCompare(a.startDate))
-  const monthOptions = [1, 0, -1, -2, -3].map((offset) => addMonths(thisMonth, offset))
+  const monthOptions = billingMonthOptions(data?.periods ?? [], thisMonth)
   if (!monthOptions.includes(month)) monthOptions.push(month)
 
   // Creates or reuses the month's period with today's snapshot, then computes its bills.
@@ -193,8 +196,17 @@ export default function StaffPeriodsTab({ onOpenFees }) {
         reload()
         return
       }
+      // A month with a maintenance round keeps its snapshot: the round was split over the
+      // apartments occupied on that date, and the backend refuses to move it.
+      const hasMaintenance = (data.maintenanceRounds ?? []).some((round) => round.periodId === target.id)
       const snapshotDate = clampDate(today, target.startDate, target.endDate)
-      if (target.snapshotDate !== snapshotDate) target = await updateBillingPeriodApi(target.id, { snapshotDate })
+      if (!hasMaintenance && target.snapshotDate !== snapshotDate) {
+        try {
+          target = await updateBillingPeriodApi(target.id, { snapshotDate })
+        } catch (err) {
+          if (err.response?.status !== 422) throw err
+        }
+      }
       await generateInvoicesApi(target.id)
       const invoices = await getInvoicesApi({ periodId: target.id })
       setReview({ period: target, invoices })
@@ -263,7 +275,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
             <h2 id="current-period-title" className="m-0 text-lg font-semibold text-slate-900">Tháng</h2>
             <label htmlFor="billing-month" className="sr-only">Chọn tháng</label>
             <select id="billing-month" className="form-control min-h-10 w-auto" value={month} onChange={(event) => setMonth(event.target.value)}>
-              {monthOptions.sort().reverse().map((value) => <option key={value} value={value}>{monthLabel(value)}</option>)}
+              {monthOptions.map((value) => <option key={value} value={value}>{monthLabel(value)}</option>)}
             </select>
             {(sent || reviewing) && <StatusBadge tone={STATUS_TONE[period.status]}>{periodStatusLabel(period.status)}</StatusBadge>}
           </div>
@@ -334,7 +346,7 @@ export default function StaffPeriodsTab({ onOpenFees }) {
             canWriteInvoice={reviewing && can.writeInvoice}
             onAddLine={setLineInvoice}
             onDeleteLine={deleteLine}
-            onCancelInvoice={sent && can.cancelInvoice ? (invoice) => setCancelling({ invoice, busy: false }) : undefined}
+            onCancelInvoice={can.cancelInvoice ? (invoice) => setCancelling({ invoice, busy: false }) : undefined}
           />
           <ReconciliationPanel invoices={periodInvoices} period={period} lookups={lookups} />
         </>

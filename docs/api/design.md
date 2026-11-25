@@ -153,6 +153,8 @@ vehicleType) sẽ tự đặt effectiveTo của biểu phí cũ = effectiveFrom 
 cùng transaction; bị từ chối 422 nếu biểu phí cũ đã dùng cho kỳ có snapshotDate
 không trước effectiveFrom mới. Trùng effectiveFrom với biểu phí đang mở chưa
 dùng thì sửa unitPrice tại chỗ (sửa nhầm giá trong ngày).
+PATCH /fee-rates/{id} chỉ đổi effectiveTo: giá đã dùng vẫn được kết thúc (ngừng
+thu) nếu effectiveTo sau snapshotDate của mọi kỳ đã dùng giá đó, nếu không trả 422.
 PER_VEHICLE cần vehicleType, basis khác null. FeeType.basis/mandatory bất biến
 sau sử dụng. SnapshotDate thuộc kỳ; dueDate >= endDate. Invoice unique theo
 occupancyId/periodId, utilityBillId unique trên dòng nếu khác null. Mã chứng từ
@@ -179,7 +181,9 @@ outstandingAmount dẫn xuất. Dòng đã phát hành giữ giá snapshot.
 Kỳ DRAFT → ISSUED → CLOSED; phát hành toàn kỳ nguyên tử. Kỳ DRAFT đã có bảng
 kê chỉ PATCH được dueDate/snapshotDate; đổi snapshotDate xóa các dòng tính theo
 biểu phí (rateId khác null, không gắn phân bổ bảo trì) của bảng kê DRAFT, xóa
-bảng kê không còn dòng, để lần lập bảng kê sau tính lại theo ngày chốt mới. Invoice DRAFT → ISSUED
+bảng kê không còn dòng, để lần lập bảng kê sau tính lại theo ngày chốt mới.
+Kỳ đã có đợt thu bảo trì (MaintenanceRound) không đổi được snapshotDate (422), vì
+phân bổ bảo trì đã tính theo cư trú tại ngày chốt cũ. Invoice DRAFT → ISSUED
 → PARTIALLY_PAID → PAID. DRAFT/ISSUED chưa thu được CANCELLED; hủy payment có thể
 đưa về ISSUED/PARTIALLY_PAID. Chỉ sửa/xóa dòng khi cả kỳ và invoice DRAFT.
 Kỳ CLOSED vẫn thu nợ cũ. Thêm/sửa/xóa dòng gửi If-Match: "3" với version hiện

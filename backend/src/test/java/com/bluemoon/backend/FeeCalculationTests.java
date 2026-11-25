@@ -569,4 +569,41 @@ class FeeCalculationTests {
         assertThat(lines).hasSize(1);
         assertThat(lines.getFirst().get("quantity")).isEqualTo("2.000");
     }
+
+    @Test void testUsedPriceCanBeEndedOnlyAfterTheSnapshotsThatUsedIt() throws Exception {
+        var building = create("/buildings", map("code", unique(), "name", "Tower X", "address", "Hà Nội"));
+        var apartment = create("/apartments", map("buildingId", id(building), "code", unique(), "floorNo", 1, "areaM2", "50.00"));
+        var household = create("/households", map("code", unique()));
+        create("/occupancies", map("householdId", id(household), "apartmentId", id(apartment), "validFrom", start()));
+        var fee = create("/fee-types", map("code", "END_" + unique(), "name", "Phí dịch vụ", "basis", "PER_APARTMENT", "mandatory", true, "active", true));
+        var rate = create("/fee-types/" + id(fee) + "/rates", map("unitPrice", "100000.00", "effectiveFrom", start()));
+        var period = create("/billing-periods", map("code", unique(), "startDate", start(), "endDate", today().toString(),
+                "snapshotDate", today().toString(), "dueDate", today().plusDays(7).toString()));
+        assertThat(call("POST", "/billing-periods/" + id(period) + "/generate-invoices", null, admin, unique()).status()).isEqualTo(200);
+
+        var tooEarly = call("PATCH", "/fee-rates/" + id(rate), map("effectiveTo", today().toString()), admin, null);
+        assertThat(tooEarly.status()).isEqualTo(422);
+        var ended = call("PATCH", "/fee-rates/" + id(rate), map("effectiveTo", today().plusDays(1).toString()), admin, null);
+        assertThat(ended.status()).as(ended.body().toString()).isEqualTo(200);
+        assertThat(ended.body().get("effectiveTo")).isEqualTo(today().plusDays(1).toString());
+    }
+
+    @Test void testSnapshotCannotMoveOnceAMaintenanceRoundJoinedTheMonth() throws Exception {
+        var building = create("/buildings", map("code", unique(), "name", "Tower M", "address", "Hà Nội"));
+        var apartment = create("/apartments", map("buildingId", id(building), "code", unique(), "floorNo", 1, "areaM2", "50.00"));
+        var household = create("/households", map("code", unique()));
+        var occupancy = create("/occupancies", map("householdId", id(household), "apartmentId", id(apartment), "validFrom", start()));
+        var fee = create("/fee-types", map("code", "QBT_" + unique(), "name", "Phí bảo trì (theo đợt)", "basis", "PER_APARTMENT", "mandatory", true, "active", true));
+        var fund = create("/maintenance-funds", map("code", "Q" + unique(), "name", "Quỹ", "openingBalance", "0.00", "openingDate", start()));
+        var period = create("/billing-periods", map("code", unique(), "startDate", start(), "endDate", today().toString(),
+                "snapshotDate", today().minusDays(1).toString(), "dueDate", today().plusDays(7).toString()));
+        var round = call("POST", "/maintenance-rounds", map("fundId", id(fund), "periodId", id(period), "feeTypeId", id(fee), "description", "Sơn",
+                "allocationBasis", "EQUAL", "totalCost", "100000.00", "occupancyIds", List.of(id(occupancy))), admin, unique());
+        assertThat(round.status()).as(round.body().toString()).isEqualTo(201);
+
+        var moved = call("PATCH", "/billing-periods/" + id(period), map("snapshotDate", today().toString()), admin, null);
+        assertThat(moved.status()).isEqualTo(422);
+        var due = call("PATCH", "/billing-periods/" + id(period), map("dueDate", today().plusDays(9).toString()), admin, null);
+        assertThat(due.status()).as(due.body().toString()).isEqualTo(200);
+    }
 }

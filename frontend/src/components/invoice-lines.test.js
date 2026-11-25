@@ -257,10 +257,9 @@ test('InvoiceListTable displays + Thêm khoản phí and delete buttons for DRAF
       canWriteInvoice: false,
       onAddLine() {},
       onDeleteLine() {},
-      onCancelInvoice() {},
     }
   )
 
-  // Should NOT show Hủy action button
+  // Without a cancel handler (no invoice.cancel right) there is no Hủy button
   assert.doesNotMatch(htmlReadOnly, /Hủy phiếu báo phí Phòng 101/)
 })

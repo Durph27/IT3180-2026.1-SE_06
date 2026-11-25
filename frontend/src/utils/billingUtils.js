@@ -229,6 +229,14 @@ export function periodMonth(period) {
   return period.startDate.slice(0, 7)
 }
 
+// The default months around today plus every month that already has a period, so a draft
+// created ahead of time (e.g. by a maintenance round) can always be opened and sent.
+export function billingMonthOptions(periods = [], thisMonth) {
+  const months = new Set([1, 0, -1, -2, -3].map((offset) => addMonths(thisMonth, offset)))
+  for (const period of periods) if (period.startDate) months.add(periodMonth(period))
+  return [...months].sort().reverse()
+}
+
 export function findPeriodForMonth(periods, yyyyMm) {
   return periods.find((period) => period.code === periodCodeForMonth(yyyyMm))
     ?? periods.find((period) => periodMonth(period) === yyyyMm)
@@ -311,7 +319,9 @@ export function generationWarnings({ feeTypes = [], ratesByFeeType = {}, invoice
     && !(ratesByFeeType[fee.id] ?? []).some((rate) => rateActiveAt(rate, snapshotDate)))
   const billed = new Set(liveInvoices(invoices).map((invoice) => invoice.occupancyId))
   const unbilledOccupancies = occupancies.filter((row) => activeOn(row, snapshotDate) && !billed.has(row.id))
-  return { feesWithoutPrice, unbilledOccupancies }
+  // The backend refuses to send a month while any live bill has no lines.
+  const emptyInvoices = liveInvoices(invoices).filter((invoice) => (invoice.lines ?? []).length === 0)
+  return { feesWithoutPrice, unbilledOccupancies, emptyInvoices }
 }
 
 export function formatDay(value) {
