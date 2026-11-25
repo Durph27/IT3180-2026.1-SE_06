@@ -133,8 +133,11 @@ public class ResourceViews {
             String field = q.getKey(), value = q.getValue();
             if (Set.of("page", "size", "sort").contains(field)) continue;
             if (field.equals("q")) {
-                if (!text(row, "fullName").toLowerCase(Locale.ROOT).contains(value.toLowerCase(Locale.ROOT)))
-                    return false;
+                String term = value.toLowerCase(Locale.ROOT);
+                boolean nameMatch = text(row, "fullName").toLowerCase(Locale.ROOT).contains(term);
+                String idNo = text(row, "identityNo");
+                boolean idMatch = idNo != null && idNo.toLowerCase(Locale.ROOT).contains(term);
+                if (!nameMatch && !idMatch) return false;
                 continue;
             }
             if (field.equals("at")) {

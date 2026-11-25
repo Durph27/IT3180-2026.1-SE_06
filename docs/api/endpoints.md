@@ -47,6 +47,7 @@ Tất cả path bên dưới có prefix `/api`. Request/response là tên schema
 | POST | `/residence-changes/{id}/approve` | Duyệt biến động cư trú | — | 200 ResidenceChange | `residence-change.approve` |
 | POST | `/residence-changes/{id}/reject` | Từ chối biến động | RejectRequest | 200 ResidenceChange | `residence-change.approve` |
 | POST | `/residence-changes/{id}/cancel` | Hủy yêu cầu biến động | — | 200 ResidenceChange | `residence-change.write` |
+| POST | `/residence-changes/{id}/end` | Kết thúc sớm tạm trú hoặc tạm vắng | EndResidenceChangeRequest | 200 ResidenceChange | `residence-change.approve` |
 
 ## Thu phí
 

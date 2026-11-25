@@ -1,6 +1,5 @@
 import { api } from './client.js'
 import { apiErrorMessage } from './errors.js'
-import { createResidentApi } from './residents.js'
 
 async function fetchAll(path, params, signal) {
   const rows = []
@@ -51,53 +50,53 @@ export async function cancelResidenceChangeApi(id) {
   return response.data
 }
 
-/**
- * Multi-step registration for temporary residence.
- * Remembers the resident ID after creation so that if the residence change step fails,
- * retrying reuses the existing resident record without creating a duplicate.
- */
-export async function registerTemporaryResidenceWithNewResidentApi({
+export async function endResidenceChangeApi(id, { effectiveTo, reason } = {}) {
+  const payload = { effectiveTo }
+  const trimmedReason = String(reason || '').trim()
+  if (trimmedReason) payload.reason = trimmedReason
+  const response = await api.post(`/residence-changes/${encodeURIComponent(id)}/end`, payload)
+  return response.data
+}
+
+export function createTemporaryResidenceApi({
   householdId,
-  residentData,
+  residentId,
   effectiveFrom,
   effectiveTo,
   relationship,
-  existingResidentId = null,
-  onResidentCreated = null,
+  permanentAddress = '',
+  note = '',
 }) {
-  let residentId = existingResidentId
-
-  if (!residentId && residentData) {
-    const createdResident = await createResidentApi(residentData)
-    residentId = createdResident.id
-    onResidentCreated?.(residentId)
+  const details = {
+    relationship,
+    isHead: false,
   }
+  const trimmedAddress = String(permanentAddress || '').trim()
+  const trimmedNote = String(note || '').trim()
+  if (trimmedAddress) details.permanentAddress = trimmedAddress
+  if (trimmedNote) details.note = trimmedNote
 
-  const change = await createResidenceChangeApi({
+  return createResidenceChangeApi({
     householdId,
     residentId,
     changeType: 'TEMPORARY_RESIDENCE',
     effectiveFrom,
     effectiveTo,
-    details: {
-      relationship,
-      isHead: false,
-    },
+    details,
   })
-
-  return change
 }
 
 export function residenceChangeError(error) {
-  const { status, data } = error.response || {}
+  const { status, data } = error?.response || {}
+  const msg = String(data?.message || '')
+
   if (status === 409) {
-    if (data?.code === 'DUPLICATE_RESOURCE' || data?.message?.includes('trùng') || data?.message?.includes('vi phạm ràng buộc')) {
-      return 'Số CCCD này đã tồn tại trong hệ thống. Vui lòng kiểm tra lại hoặc chuyển sang hình thức chọn nhân khẩu có sẵn.'
+    if (msg.includes('yêu cầu tạm trú chờ duyệt') || msg.includes('khai báo tạm vắng trùng')) {
+      return msg
     }
     return apiErrorMessage(error, 'Yêu cầu biến động cư trú này bị xung đột hoặc đã được xử lý.')
   }
   if (status === 422) {
-    const msg = data?.message || ''
     if (msg.includes('Không có thành viên hiệu lực')) {
       return 'Nhân khẩu không phải là thành viên đang hiệu lực của hộ này tại ngày bắt đầu.'
     }
@@ -107,13 +106,16 @@ export function residenceChangeError(error) {
     if (msg.includes('thuộc một hộ')) {
       return 'Nhân khẩu đã thuộc một hộ khác trong khoảng thời gian này.'
     }
+    if (msg.includes('kết thúc tạm trú')) {
+      return msg
+    }
     if (msg.includes('Field details')) {
       return 'Thông tin chi tiết biến động cư trú không đúng định dạng quy định.'
     }
     return apiErrorMessage(error, 'Dữ liệu không đáp ứng quy chuẩn nghiệp vụ cư trú.')
   }
   if (status === 403) {
-    return 'Bạn không có quyền thực hiện thao tác này. Lưu ý: Chỉ Ban quản lý mới có quyền tạo hồ sơ cư dân mới vào hệ thống.'
+    return 'Bạn không có quyền thực hiện thao tác này hoặc hồ sơ nằm ngoài phạm vi hộ gia đình được cấp quyền.'
   }
   return apiErrorMessage(error, 'Không thể xử lý yêu cầu biến động cư trú. Vui lòng thử lại.')
 }
