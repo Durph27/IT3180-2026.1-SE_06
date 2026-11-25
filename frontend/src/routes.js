@@ -8,5 +8,6 @@ export const ROUTES = Object.freeze({
   billing: '/khoan-thu',
   family: '/ho-gia-dinh',
   residenceChanges: '/tam-tru-tam-vang',
+  maintenanceFunds: '/quy-bao-tri',
   users: '/quan-ly-tai-khoan',
 })
