@@ -9,6 +9,7 @@ export const ROUTES = Object.freeze({
   payments: '/thanh-toan',
   family: '/ho-gia-dinh',
   residenceChanges: '/tam-tru-tam-vang',
+  fixedFees: '/phi-co-dinh',
   adhocFees: '/phi-dot-xuat',
   // Old address of the maintenance page; redirects to the maintenance tab of adhocFees.
   maintenanceFunds: '/quy-bao-tri',

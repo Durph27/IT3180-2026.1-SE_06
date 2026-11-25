@@ -18,6 +18,7 @@ import FamilyPage from './pages/FamilyPage'
 import BillingPage from './pages/BillingPage'
 import PaymentPage from './pages/PaymentPage'
 import AdhocFeesPage from './pages/AdhocFeesPage'
+import FixedFeesPage from './pages/FixedFeesPage'
 import RoleGuard from './components/RoleGuard'
 import ForbiddenView from './components/ForbiddenView'
 import NotFoundView from './components/NotFoundView'
@@ -30,9 +31,9 @@ const APP_TITLE = 'BlueMoon — Quản lý thu phí'
 const PAGE_TITLES = {
   [ROUTES.overview]: 'Tổng quan',
   [ROUTES.apartments]: 'Căn hộ',
-  [ROUTES.fees]: 'Phí cố định',
+  [ROUTES.fixedFees]: 'Phí cố định',
   [ROUTES.residents]: 'Nhân khẩu',
-  [ROUTES.billing]: 'Phí cố định',
+  [ROUTES.billing]: 'Đợt thu',
   [ROUTES.payments]: 'Sổ thu tiền',
   [ROUTES.family]: 'Hộ gia đình',
   [ROUTES.residenceChanges]: 'Tạm trú, tạm vắng',
@@ -99,7 +100,7 @@ function Workspace({ onLogout }) {
   const { pathname } = useLocation()
   const pageKey = pathname.replace(/\/+$/, '').toLowerCase()
   const { hasRole } = useAuth()
-  // Residents keep one "Khoản thu" page; staff split it into fixed and ad-hoc fees.
+  // Residents call the bills page "Khoản thu"; for staff it is "Đợt thu".
   const residentBilling = pageKey === ROUTES.billing && !STAFF_ROLES.some((role) => hasRole(role))
   const title = residentBilling ? 'Khoản thu' : PAGE_TITLES[pageKey] ?? 'Không tìm thấy trang'
   const goToOverview = () => navigate(ROUTES.overview)
@@ -149,8 +150,9 @@ function Workspace({ onLogout }) {
               <Route path={ROUTES.register} element={<ReturnAfterLogin />} />
               <Route path={ROUTES.overview} element={<HomePage />} />
               <Route path={ROUTES.apartments} element={<ApartmentManagement />} />
-              {/* The price list became a tab of the billing page; keep old links working. */}
-              <Route path={ROUTES.fees} element={<Navigate to={`${ROUTES.billing}?tab=bang-phi`} replace />} />
+              {/* Old address of the price list; it is the "Phí cố định" page now. */}
+              <Route path={ROUTES.fees} element={<Navigate to={ROUTES.fixedFees} replace />} />
+              <Route path={ROUTES.fixedFees} element={<FixedFeesPage onBack={goToOverview} />} />
               <Route path={ROUTES.users} element={<UserManagement onBack={goToOverview} />} />
               <Route path={ROUTES.residents} element={<ResidentManagement />} />
               <Route path={ROUTES.family} element={<FamilyPage onBack={goToOverview} />} />

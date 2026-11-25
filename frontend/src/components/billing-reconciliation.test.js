@@ -156,7 +156,7 @@ test('BillingPage permissions: Resident and unauthorized roles cannot trigger ba
 
   // ACCOUNTANT gets the staff page; its single "Lập phiếu thu" button appears once data loads.
   const accountantHtml = render(auth('ACCOUNTANT'), BillingPage, { onBack() {} })
-  assert.match(accountantHtml, /Phí cố định/)
+  assert.match(accountantHtml, /Đợt thu/)
   assert.match(accountantHtml, /Đợt thu/)
 })
 

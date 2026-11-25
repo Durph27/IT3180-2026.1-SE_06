@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useSearchParams } from 'react-router'
 import {
   getBillingPeriodsApi,
   getContributionCampaignsApi,
@@ -20,11 +20,11 @@ import FilterBar from '../components/FilterBar'
 import StatCard from '../components/StatCard'
 import { BuildingIcon, ReceiptIcon } from '../components/Icons'
 import StaffPeriodsTab from '../components/billing/StaffPeriodsTab'
-import FeeTableTab from '../components/billing/FeeTableTab'
 import OutstandingPeriods from '../components/OutstandingPeriods'
 import ResidentContributions from '../components/contributions/ResidentContributions'
 import { classifyFeeItems, collectDueAlerts, defaultPeriod, FEE_CATEGORY, formatMoney, STAFF_ROLES, summarizeOutstandingPeriods, summarizeTotals } from '../utils/billingUtils'
 import { canAccess } from '../auth/rbac'
+import { ROUTES } from '../routes'
 
 export default function BillingPage({ onBack }) {
   const { householdIds, hasRole } = useAuth()
@@ -42,46 +42,20 @@ export default function BillingPage({ onBack }) {
   )
 }
 
-const STAFF_TABS = Object.freeze([
-  { id: 'dot-thu', label: 'Đợt thu', allowed: (auth) => canAccess(auth, 'invoice.read') && canAccess(auth, 'billing-period.read') },
-  { id: 'bang-phi', label: 'Bảng phí', allowed: (auth) => canAccess(auth, 'fee-type.read') && canAccess(auth, 'fee-rate.read') },
-])
-
-// Staff work in two places only: send this month's bills, and keep the price list current.
+// Staff send this month's bills here; the price list is its own page ("Phí cố định").
 function StaffBilling({ onBack }) {
   const auth = useAuth()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const tabs = STAFF_TABS.filter((tab) => tab.allowed(auth))
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   if (auth.isLoading) return null
-  if (tabs.length === 0) return <ForbiddenView onBack={onBack} />
-  const active = tabs.find((tab) => tab.id === searchParams.get('tab'))?.id ?? tabs[0].id
-  const select = (id) => setSearchParams({ tab: id })
+  // Old links to the price-list tab land on the page that replaced it.
+  if (searchParams.get('tab') === 'bang-phi') return <Navigate to={ROUTES.fixedFees} replace />
+  if (!canAccess(auth, 'invoice.read') || !canAccess(auth, 'billing-period.read')) return <ForbiddenView onBack={onBack} />
+  const canOpenFees = canAccess(auth, 'fee-type.read') && canAccess(auth, 'fee-rate.read')
   return (
     <div className="user-management-container">
-      <PageHeader title="Phí cố định" description="Phí thu hằng tháng theo bảng phí (diện tích, nhân khẩu, xe…): lập phiếu báo phí, theo dõi thu tiền và quản lý giá." />
-      {tabs.length > 1 && (
-        <div className="filter-buttons-group w-fit max-w-full flex-wrap" role="tablist" aria-label="Phí cố định">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              id={`billing-tab-${tab.id}`}
-              aria-selected={active === tab.id}
-              aria-controls={`billing-panel-${tab.id}`}
-              className={`filter-btn ${active === tab.id ? 'active' : ''}`}
-              onClick={() => select(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      )}
-      <div role="tabpanel" id={`billing-panel-${active}`} aria-labelledby={`billing-tab-${active}`}>
-        {active === 'dot-thu'
-          ? <StaffPeriodsTab onOpenFees={tabs.some((tab) => tab.id === 'bang-phi') ? () => select('bang-phi') : undefined} />
-          : <FeeTableTab />}
-      </div>
+      <PageHeader title="Đợt thu" description="Lập và gửi phiếu báo phí hằng tháng, theo dõi thu tiền và khóa sổ từng tháng." />
+      <StaffPeriodsTab onOpenFees={canOpenFees ? () => navigate(ROUTES.fixedFees) : undefined} />
     </div>
   )
 }

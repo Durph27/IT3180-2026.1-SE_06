@@ -57,9 +57,9 @@ export function BillingProgressCard({
       {!currentPeriod && !loading && (
         <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
           <p className="text-sm font-semibold text-slate-700">Chưa có kỳ thu để tổng hợp số liệu</p>
-          <p className="mt-1 text-xs text-slate-500">Bấm “Lập phiếu báo phí” ở trang Phí cố định để bắt đầu thu phí tháng này.</p>
+          <p className="mt-1 text-xs text-slate-500">Bấm “Lập phiếu báo phí” ở trang Đợt thu để bắt đầu thu phí tháng này.</p>
           <Link to={ROUTES.billing} className="btn btn-primary btn-sm mt-3 no-underline">
-            Mở Phí cố định
+            Mở Đợt thu
           </Link>
         </div>
       )}
@@ -81,7 +81,7 @@ export function BillingProgressCard({
             <div className="flex items-start gap-2.5 rounded-xl border border-solid border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-900">
               <AlertTriangleIcon size={16} className="mt-0.5 shrink-0" />
               <span>
-                Phát hiện {reconciliation.discrepantCount} phiếu báo phí lệch đối chiếu dòng phí. Kiểm tra ở phần Đối chiếu kế toán trong trang Phí cố định.
+                Phát hiện {reconciliation.discrepantCount} phiếu báo phí lệch đối chiếu dòng phí. Kiểm tra ở phần Đối chiếu kế toán trong trang Đợt thu.
               </span>
             </div>
           )}

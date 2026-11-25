@@ -372,7 +372,7 @@ export default function RecordPaymentModal({
                   <CheckCircleIcon size={24} className="mx-auto mb-1 text-emerald-600" />
                   <p className="font-semibold">Hộ gia đình này hiện không còn khoản nợ nào!</p>
                   <p className="text-slate-500 mt-0.5">
-                    Tất cả phiếu báo phí đã phát hành đều đã được thanh toán đầy đủ, hoặc kỳ thu chưa được phát hành tại trang Phí cố định.
+                    Tất cả phiếu báo phí đã phát hành đều đã được thanh toán đầy đủ, hoặc kỳ thu chưa được phát hành tại trang Đợt thu.
                   </p>
                 </div>
               ) : (

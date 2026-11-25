@@ -308,11 +308,11 @@ export default function HomePage() {
       links.push({
         key: 'billing',
         to: ROUTES.billing,
-        title: ownHousehold ? 'Khoản thu của hộ' : 'Phí cố định',
+        title: ownHousehold ? 'Khoản thu của hộ' : 'Đợt thu',
         description: ownHousehold
           ? 'Xem phiếu báo phí và công nợ từng tháng.'
           : canGenerateInvoices
-            ? 'Lập và gửi phiếu báo phí hằng tháng, quản lý bảng phí.'
+            ? 'Lập và gửi phiếu báo phí hằng tháng, theo dõi thu tiền.'
             : 'Theo dõi phiếu báo phí từng tháng.',
       })
     }
@@ -331,8 +331,8 @@ export default function HomePage() {
     if (canViewFees) {
       links.push({
         key: 'fees',
-        to: `${ROUTES.billing}?tab=bang-phi`,
-        title: 'Bảng phí',
+        to: ROUTES.fixedFees,
+        title: 'Phí cố định',
         description: hasPermission('fee-type.write') || hasPermission('fee-rate.write')
           ? 'Thêm khoản phí và đổi giá.'
           : 'Xem các khoản phí và giá đang áp dụng.',

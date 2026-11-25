@@ -51,7 +51,7 @@ export default function IssueConfirmDialog({ period, summary, previousSummary, w
 
           {summary.count === 0 ? (
             <p className="alert alert-info">
-              Chưa có phiếu báo phí nào được lập. Hãy kiểm tra bảng phí đã có giá và các căn hộ đã có hộ đang ở.
+              Chưa có phiếu báo phí nào được lập. Hãy kiểm tra trang Phí cố định đã có giá và các căn hộ đã có hộ đang ở.
             </p>
           ) : (
             <div className="mb-4">
