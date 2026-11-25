@@ -1,5 +1,4 @@
 import { api } from './client'
-import { generateIdempotencyKey } from '../utils/billingUtils'
 
 async function fetchAll(path, params, signal) {
   const rows = []
@@ -23,8 +22,6 @@ export function generateIdempotencyKey(prefix = 'cmd') {
 
 export function getBillingPeriodsApi(signal) {
   return fetchAll('/billing-periods', {}, signal)
-}
-
 }
 
 export async function createBillingPeriodApi(payload, signal) {

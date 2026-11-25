@@ -263,7 +263,6 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
     setVersion((value) => value + 1)
   }
 
-<<<<<<< HEAD
   // Batch invoice generation
   const handleGenerateInvoices = async () => {
     if (isGenerating || isIssuing || !selectedPeriod || selectedPeriod.status !== 'DRAFT') return
@@ -468,23 +467,6 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
       )}
     </div>
   ) : null
-=======
-  const handleGenerateInvoices = async () => {
-    if (!selectedPeriod) return
-    setActionLoading('generating')
-    setActionError('')
-    setActionSuccess('')
-    try {
-      const res = await generateInvoicesApi(selectedPeriod.id)
-      const { createdCount = 0, existingCount = 0 } = res.data ?? {}
-      setActionSuccess(`Lập bảng kê nháp thành công! Đã tạo mới ${createdCount} bảng kê, ${existingCount} bảng kê đã tồn tại.`)
-      setVersion((v) => v + 1)
-    } catch (err) {
-      setActionError(apiErrorMessage(err, 'Không thể lập bảng kê nháp. Vui lòng kiểm tra lại biểu phí.'))
-    } finally {
-      setActionLoading('')
-    }
-  }
 
   const executeIssuePeriod = async () => {
     if (!selectedPeriod) return
@@ -520,18 +502,6 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
     }
   }
 
-  const headerActions = canWritePeriod ? (
-    <button
-      type="button"
-      className="btn btn-primary"
-      onClick={() => setShowCreateModal(true)}
-    >
-      <PlusIcon size={16} />
-      <span>Tạo kỳ thu mới</span>
-    </button>
-  ) : undefined
->>>>>>> origin/main
-
   return (
     <div className="user-management-container">
       <DueDateAlertBanner alerts={alerts} />
@@ -540,7 +510,6 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
         description={householdId ? 'Các khoản thu của hộ gia đình theo từng kỳ.' : 'Các khoản thu toàn chung cư theo từng kỳ.'}
         actions={headerActions}
       />
-<<<<<<< HEAD
 
       {error && (
         <div className="alert alert-error" role="alert">
@@ -574,6 +543,30 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
         </div>
       )}
 
+      {actionSuccess && (
+        <div className="alert alert-success flex items-start justify-between gap-3" role="status">
+          <div className="flex items-start gap-2">
+            <CheckCircleIcon size={18} className="mt-0.5 shrink-0 text-emerald-700" />
+            <p className="font-semibold text-emerald-950">{actionSuccess}</p>
+          </div>
+          <button type="button" className="text-xs font-semibold text-emerald-900 underline hover:no-underline" onClick={() => setActionSuccess('')}>
+            Đóng
+          </button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="alert alert-error flex items-start justify-between gap-3" role="alert">
+          <div className="flex items-start gap-2">
+            <AlertTriangleIcon size={18} className="mt-0.5 shrink-0" />
+            <div>{actionError}</div>
+          </div>
+          <button type="button" className="text-xs font-semibold text-rose-900 underline hover:no-underline" onClick={() => setActionError('')}>
+            Đóng
+          </button>
+        </div>
+      )}
+
       {batchError && (
         <div className="alert alert-error flex items-start justify-between gap-3" role="alert">
           <div className="flex items-start gap-2">
@@ -598,32 +591,6 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
           showInvoiceCount={!householdId}
         />
       )}
-
-=======
-
-      {error && <div className="alert alert-error" role="alert"><div>{error} <button type="button" className="btn btn-outline" onClick={retry}>Thử lại</button></div></div>}
-
-      {actionSuccess && (
-        <div className="alert alert-success" role="status">
-          <div className="flex flex-1 items-center justify-between gap-4">
-            <span>{actionSuccess}</span>
-            <button type="button" className="btn btn-outline btn-xs" onClick={() => setActionSuccess('')}>Đóng</button>
-          </div>
-        </div>
-      )}
-
-      {actionError && (
-        <div className="alert alert-error" role="alert">
-          <div className="flex flex-1 items-center justify-between gap-4">
-            <span>{actionError}</span>
-            <button type="button" className="btn btn-outline btn-xs" onClick={() => setActionError('')}>Đóng</button>
-          </div>
-        </div>
-      )}
-
-      {outstanding && <OutstandingPeriods summary={outstanding} selectedId={selectedPeriod?.id} onSelect={selectPeriod} showInvoiceCount={!householdId} />}
-
->>>>>>> origin/main
       {(householdOptions.length > 1 || selectedPeriod) && (
         <FilterBar>
           {householdOptions.length > 1 && (
@@ -654,8 +621,6 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
         </FilterBar>
       )}
 
-<<<<<<< HEAD
-=======
       {/* Notice for residents when viewing a DRAFT period */}
       {householdId && selectedPeriod?.status === 'DRAFT' && (
         <div className="alert alert-info my-3" role="status">
@@ -735,7 +700,6 @@ function BillingContent({ householdId, householdOptions, onSelectHousehold, buil
         </div>
       )}
 
->>>>>>> origin/main
       {loading && <p role="status">Đang tải khoản thu…</p>}
       {catalog?.periods.length === 0 && (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center my-4">
